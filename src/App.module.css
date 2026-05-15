@@ -1,0 +1,112 @@
+.app {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1px auto;
+  gap: 0;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 48px 48px;
+  min-height: 0;
+}
+
+.listCol {
+  padding: 40px 48px 40px 0;
+  overflow-y: auto;
+}
+
+.dateBlock {
+  margin-bottom: 32px;
+}
+
+.bigDate {
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.subDate {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text-placeholder);
+}
+
+.plantList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emptyMsg {
+  font-size: 14px;
+  color: var(--text-placeholder);
+  padding: 24px 0;
+}
+
+.addGhost {
+  width: 100%;
+  padding: 18px;
+  background: rgba(26,46,23,0.5);
+  border: 1.5px dashed rgba(71,133,61,0.4);
+  border-radius: var(--radius-lg);
+  color: var(--brand-primary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.addGhost:hover {
+  background: rgba(26,46,23,0.8);
+  border-color: rgba(71,133,61,0.65);
+}
+
+.divider {
+  width: 1px;
+  background: rgba(71,133,61,0.18);
+  align-self: stretch;
+  margin: 0;
+}
+
+.formCol {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.25s ease, opacity 0.2s ease;
+}
+
+.formColOpen {
+  width: 460px;
+  opacity: 1;
+  padding: 40px 0 40px 48px;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+    padding: 0 20px 40px;
+  }
+  .listCol { padding: 32px 0 24px; }
+  .divider { display: none; }
+  .formColOpen {
+    width: 100%;
+    padding: 0 0 40px;
+  }
+  .bigDate { font-size: 48px; }
+}
