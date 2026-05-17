@@ -49,6 +49,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
   const [win, setWin] = useState('1M')
   const containerRef = useRef(null)
   const [svgWidth, setSvgWidth] = useState(400)
+  const [tooltip, setTooltip] = useState(null) // { reading, x, y } | null
 
   useEffect(() => {
     const el = containerRef.current
@@ -111,7 +112,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
     .join(' ')
 
   return (
-    <div className={styles.wrap} ref={containerRef}>
+    <div className={styles.wrap} ref={containerRef} onTouchStart={() => setTooltip(null)}>
       <div className={styles.toggle}>
         {WINDOWS.map(w => (
           <button
@@ -125,6 +126,19 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
       {n < 2 ? (
         <p className={styles.empty}>Not enough readings for this range</p>
       ) : (
+        <div className={styles.svgWrap}>
+        {tooltip && (
+          <div
+            className={styles.tooltip}
+            style={{
+              left: Math.min(Math.max(tooltip.x, 48), svgWidth - 48),
+              top: tooltip.y - 8,
+            }}
+          >
+            <span className={styles.tooltipMoisture}>◎ {tooltip.reading.moisture} / 10</span>
+            <span className={styles.tooltipDate}>{fmtDate(tooltip.reading.timestamp)}</span>
+          </div>
+        )}
         <svg width={svgWidth} height={SVG_H} className={styles.svg}>
 
           {/* Ideal moisture range band */}
@@ -152,17 +166,26 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
             strokeLinecap="round"
           />
 
-          {/* Reading dots — colored by whether moisture is in ideal range */}
+          {/* Reading dots — colored by range, grow on hover/tap to show tooltip */}
           {visibleReadings.map((r, i) => {
             const x = xAt(r.timestamp)
             const y = mToY(r.moisture)
             const fill = dotColor(r.moisture, careProfile?.moistureRange)
+            const isHovered = tooltip?.reading?.id === r.id
             return (
               <circle
                 key={r.id}
-                cx={x} cy={y} r="4"
+                cx={x} cy={y}
+                r={isHovered ? 5.5 : 4}
                 fill={fill}
                 opacity="0.9"
+                style={{ cursor: 'pointer', transition: 'r 0.1s' }}
+                onMouseEnter={() => setTooltip({ reading: r, x, y })}
+                onMouseLeave={() => setTooltip(null)}
+                onTouchStart={e => {
+                  e.stopPropagation()
+                  setTooltip(t => t?.reading?.id === r.id ? null : { reading: r, x, y })
+                }}
               />
             )
           })}
@@ -223,6 +246,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
           ))}
 
         </svg>
+        </div>
       )}
     </div>
   )
