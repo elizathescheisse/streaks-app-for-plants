@@ -9,10 +9,10 @@ export default function Header({ onExport, onImport, onSettings }) {
       </div>
       <nav className={styles.actions}>
         <button className={styles.btnSecondary} onClick={onImport}>
-          ↑ Import
+          ↓ Import
         </button>
         <button className={styles.btnSecondary} onClick={onExport}>
-          ↓ Export
+          ↑ Export
         </button>
         <button className={styles.btnIcon} onClick={onSettings} title="Settings">
           ⚙️
