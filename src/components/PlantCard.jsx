@@ -45,6 +45,14 @@ function relTime(ts) {
   return `${days}d ago`
 }
 
+// Capitalize the first letter of each word. Used so species names entered
+// in lowercase ("fiddle leaf fig") render as "Fiddle Leaf Fig" — especially
+// when they appear as the plant's display name (no nickname set).
+function titleCase(s) {
+  if (!s) return s
+  return s.replace(/\b\w/g, c => c.toUpperCase())
+}
+
 export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen]     = useState(false)
@@ -71,16 +79,16 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
 
             {/* Name / species / badge */}
             <div className={styles.top}>
-              <span className={styles.name}>{name || species}</span>
-              {name && species && <span className={styles.species}>{species}</span>}
+              <span className={styles.name}>{name || titleCase(species)}</span>
+              {name && species && <span className={styles.species}>{titleCase(species)}</span>}
               <span className={`${styles.badge} ${styles[`badge_${health}`]}`}>
                 {HEALTH_LABELS[health]}
               </span>
             </div>
 
-            {/* Current state row — only shown if there's any data, mobile when stats block present */}
+            {/* Current state row — mobile only; wide screens show this in the right stats block */}
             {(reading || watering) && (
-              <div className={`${styles.meta} ${hasStats ? styles.metaMobileOnly : ''}`}>
+              <div className={`${styles.meta} ${styles.metaMobileOnly}`}>
                 {watering && (
                   <span className={styles.water}>
                     💧 {waterLabel(watering.unit, watering.amount)} · {relTime(watering.timestamp)}
@@ -94,7 +102,7 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
               </div>
             )}
 
-            {/* Mobile-only moisture bar */}
+            {/* Mobile-only moisture bar (when species has a known ideal range) */}
             {hasStats && reading && (
               <div className={styles.mobileBar}>
                 <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
@@ -134,16 +142,20 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
             </div>
           </div>
 
-          {/* ── Right column: stats block ── */}
-          {hasStats && reading && (
+          {/* ── Right column: stats block (shown for every plant with data) ── */}
+          {(reading || watering) && (
             <div className={styles.statsBlock}>
               {watering && (
                 <span className={styles.statWater}>💧 {waterLabel(watering.unit, watering.amount)}</span>
               )}
-              <span className={styles.statMoisture}>◎ {reading.moisture} / 10</span>
-              <div className={styles.statsBar}>
-                <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
-              </div>
+              {reading && (
+                <span className={styles.statMoisture}>◎ {reading.moisture} / 10</span>
+              )}
+              {hasStats && reading && (
+                <div className={styles.statsBar}>
+                  <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -217,7 +229,7 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
         <Modal onClose={() => setShowDeleteModal(false)}>
           <div className={styles.deleteModal}>
             <div className={styles.deleteModalIcon}>{emoji}</div>
-            <h2 className={styles.deleteModalTitle}>Delete {name || species}?</h2>
+            <h2 className={styles.deleteModalTitle}>Delete {name || titleCase(species)}?</h2>
             <p className={styles.deleteModalBody}>
               This will permanently remove this plant and all its log history. This can't be undone.
             </p>

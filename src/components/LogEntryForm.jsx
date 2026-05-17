@@ -14,13 +14,32 @@ const UNIT_OPTIONS = [
   { value: 'freeform', label: 'Freeform' },
 ]
 
-export const EMPTY_LOG_FORM = {
-  moisture:    '',
-  waterAmount: '',
-  waterUnit:   'cups',
-  health:      'no_change',
-  notes:       '',
+// Format a Date as the local-datetime string that <input type="datetime-local">
+// expects: "YYYY-MM-DDTHH:MM".
+function nowLocalInput() {
+  const d = new Date()
+  const pad = n => String(n).padStart(2, '0')
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  )
 }
+
+// Factory — call this each time you open the form so `timestamp` defaults
+// to the current moment (a static const would freeze at module load).
+export function createEmptyLogForm() {
+  return {
+    moisture:    '',
+    waterAmount: '',
+    waterUnit:   'cups',
+    health:      'no_change',
+    notes:       '',
+    timestamp:   nowLocalInput(),
+  }
+}
+
+// Backwards-compat alias — gets a stale timestamp; prefer createEmptyLogForm()
+export const EMPTY_LOG_FORM = createEmptyLogForm()
 
 function describePending(form) {
   const parts = []
@@ -47,6 +66,25 @@ export default function LogEntryForm({ plant, form, onChange, onSave, onCancel }
           </p>
         </div>
         <button className={styles.closeBtn} onClick={onCancel} aria-label="Close">×</button>
+      </div>
+
+      {/* ── When? ── */}
+      <div className={styles.field}>
+        <label className={styles.label}>When?</label>
+        <div className={styles.whenRow}>
+          <input
+            type="datetime-local"
+            className={`${styles.input} ${styles.datetimeInput}`}
+            value={form.timestamp || ''}
+            onChange={e => set('timestamp', e.target.value)}
+          />
+          <button
+            type="button"
+            className={styles.nowBtn}
+            onClick={() => set('timestamp', nowLocalInput())}
+            title="Reset to right now"
+          >Now</button>
+        </div>
       </div>
 
       {/* ── Moisture reading ── */}

@@ -68,7 +68,7 @@ export default function PlantPrediction({ plant, careProfile }) {
         {usingDefaults
           ? 'Using defaults — log readings + waterings to personalize'
           : confidence === 'low'
-          ? `Still learning · ${totalSamples} data point${totalSamples !== 1 ? 's' : ''}`
+          ? 'Still learning · log more entries to improve predictions'
           : `Based on ${totalSamples} data points`
         }
       </p>
