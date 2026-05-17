@@ -4,6 +4,7 @@ import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
+import PlantPrediction from './PlantPrediction.jsx'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Good', okay:'Okay', struggling:'Struggling' }
 
@@ -98,11 +99,16 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
               </div>
             )}
 
-            {/* History chart — inline above actions, only if ≥2 readings */}
+            {/* History chart — inline, only if ≥2 readings */}
             {readings.length >= 2 && (
               <div className={styles.chartInline}>
                 <PlantHistoryChart readings={readings} waterings={waterings} careProfile={careProfile} />
               </div>
+            )}
+
+            {/* Prediction + watering recommendation */}
+            {reading && (
+              <PlantPrediction plant={plant} careProfile={careProfile} />
             )}
 
             <div className={styles.actions}>

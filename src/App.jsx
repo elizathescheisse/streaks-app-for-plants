@@ -5,6 +5,7 @@ import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
 import LogEntryForm, { EMPTY_LOG_FORM } from './components/LogEntryForm.jsx'
 import EdgeGlow from './components/EdgeGlow.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
+import Modal from './components/Modal.jsx'
 import styles from './App.module.css'
 import { buildEventsFromForm } from './utils/plantSelectors.js'
 
@@ -139,33 +140,6 @@ export default function App() {
     e.target.value = ''
   }
 
-  // ── Panel content ────────────────────────────────────────
-  const panelOpen = panel != null
-
-  let panelContent = null
-  if (panel?.mode === 'identity') {
-    panelContent = (
-      <PlantForm
-        form={panel.form}
-        onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
-        onSave={savePlantIdentity}
-        onCancel={() => setPanel(null)}
-        isEdit={!!panel.form.id}
-      />
-    )
-  } else if (panel?.mode === 'log') {
-    const plant = plants.find(p => p.id === panel.plantId)
-    panelContent = (
-      <LogEntryForm
-        plant={plant}
-        form={panel.form}
-        onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
-        onSave={saveLogEntry}
-        onCancel={() => setPanel(null)}
-      />
-    )
-  }
-
   return (
     <div className={styles.app}>
       <EdgeGlow />
@@ -185,7 +159,6 @@ export default function App() {
       <input ref={importRef} type="file" accept=".json" onChange={handleImport} style={{ display:'none' }} />
 
       <main className={styles.main}>
-        {/* ── Left: plant list ── */}
         <section className={styles.listCol}>
           <div className={styles.dateBlock}>
             <div className={styles.dateRow}>
@@ -222,14 +195,32 @@ export default function App() {
             ))}
           </div>
         </section>
-
-        {/* ── Right: form panel ── */}
-        <div className={styles.divider} />
-
-        <section className={`${styles.formCol} ${panelOpen ? styles.formColOpen : ''}`}>
-          {panelContent}
-        </section>
       </main>
+
+      {/* ── Modals ── */}
+      {panel?.mode === 'identity' && (
+        <Modal onClose={() => setPanel(null)}>
+          <PlantForm
+            form={panel.form}
+            onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
+            onSave={savePlantIdentity}
+            onCancel={() => setPanel(null)}
+            isEdit={!!panel.form.id}
+          />
+        </Modal>
+      )}
+
+      {panel?.mode === 'log' && (
+        <Modal onClose={() => setPanel(null)}>
+          <LogEntryForm
+            plant={plants.find(p => p.id === panel.plantId)}
+            form={panel.form}
+            onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
+            onSave={saveLogEntry}
+            onCancel={() => setPanel(null)}
+          />
+        </Modal>
+      )}
     </div>
   )
 }
