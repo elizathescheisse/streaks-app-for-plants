@@ -26,6 +26,20 @@ const GAMMA         = 0.25  // smoothing factor: recent obs weighted more
 //   M_peak ≈ M_next_reading + β * days_since_watering  (Option B back-calc)
 //   α_obs = (M_peak − M_before) / water_amount
 // ─────────────────────────────────────────────────────────
+// Parse a user-entered water amount string to a number.
+// Handles decimals ('1.5'), integers ('2'), and fractions ('3/4', '1/3').
+// Returns null if the value is empty or unparseable.
+function parseAmount(s) {
+  if (!s) return null
+  const str = String(s).trim()
+  if (str.includes('/')) {
+    const [n, d] = str.split('/').map(Number)
+    return d ? n / d : null
+  }
+  const v = parseFloat(str)
+  return isNaN(v) ? null : v
+}
+
 export function computeModel(plant) {
   const timeline = (plant.events ?? [])
     .filter(e => e.type === 'reading' || e.type === 'watering')
@@ -56,7 +70,7 @@ export function computeModel(plant) {
     // from the same triple — they refine each other over time.
     if (i + 1 < timeline.length && timeline[i + 1].type === 'watering') {
       const watering = timeline[i + 1]
-      const waterAmt = parseFloat(watering.amount)
+      const waterAmt = parseAmount(watering.amount)
       if (!waterAmt || waterAmt <= 0) continue
 
       // Find next reading after the watering; abort if another watering appears first

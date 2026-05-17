@@ -135,7 +135,7 @@ export default function LogEntryForm({ plant, form, onChange, onSave, onCancel }
         <div className={styles.waterRow}>
           <input
             className={styles.input}
-            placeholder="Amount e.g. 0.5, 1, 2.5"
+            placeholder="Amount e.g. 1, 0.5, 3/4"
             inputMode="decimal"
             value={form.waterAmount}
             onChange={e => set('waterAmount', e.target.value)}
