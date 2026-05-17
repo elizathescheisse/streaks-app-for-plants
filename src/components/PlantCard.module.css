@@ -163,6 +163,23 @@
   width: 100%;
 }
 
+.logBtn {
+  padding: 6px 14px;
+  background: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  color: #071407;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.logBtn:hover {
+  background: var(--brand-bright);
+  border-color: var(--brand-bright);
+}
+
 .editBtn {
   padding: 6px 16px;
   background: var(--bg-surface-raised);

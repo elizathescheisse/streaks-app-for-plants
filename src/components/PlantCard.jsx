@@ -3,6 +3,7 @@ import styles from './PlantCard.module.css'
 import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
+import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Good', okay:'Okay', struggling:'Struggling' }
 
@@ -29,21 +30,31 @@ function waterLabel(unit, amount) {
   return amount
 }
 
-function formatLogDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+function formatTime(ts) {
+  return new Date(ts).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric'
   })
 }
 
-export default function PlantCard({ plant, onEdit, onDelete }) {
-  const { name, species, emoji = '🌿', waterUnit, waterAmount, moisture, health, notes, logs = [] } = plant
+function relTime(ts) {
+  const days = Math.floor((Date.now() - new Date(ts)) / 86_400_000)
+  if (days === 0) return 'today'
+  if (days === 1) return 'yesterday'
+  return `${days}d ago`
+}
+
+export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
+  const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
   const [infoOpen, setInfoOpen]       = useState(false)
 
   const careProfile = lookupPlant(species)
   const hasStats    = !!careProfile?.moistureRange
-  const reversedLogs = [...logs].reverse()
+  const bundles     = logBundles(plant)
+  const reading     = lastReading(plant)
+  const watering    = lastWatering(plant)
+  const health      = currentHealth(plant)
+  const { readings, waterings } = chartEvents(plant)
 
   return (
     <div className={styles.cardWrap}>
@@ -64,31 +75,40 @@ export default function PlantCard({ plant, onEdit, onDelete }) {
               </span>
             </div>
 
-            {/* Water + moisture row:
-                - always visible when there's no care profile (no right column)
-                - on mobile only when there IS a right column (hidden on wide via CSS) */}
-            <div className={`${styles.meta} ${hasStats ? styles.metaMobileOnly : ''}`}>
-              <span className={styles.water}>💧 {waterLabel(waterUnit, waterAmount)}</span>
-              <span className={styles.moisture}>◎ {moisture} / 10 moisture</span>
-            </div>
+            {/* Current state row — only shown if there's any data, mobile when stats block present */}
+            {(reading || watering) && (
+              <div className={`${styles.meta} ${hasStats ? styles.metaMobileOnly : ''}`}>
+                {watering && (
+                  <span className={styles.water}>
+                    💧 {waterLabel(watering.unit, watering.amount)} · {relTime(watering.timestamp)}
+                  </span>
+                )}
+                {reading && (
+                  <span className={styles.moisture}>
+                    ◎ {reading.moisture} / 10 · {relTime(reading.timestamp)}
+                  </span>
+                )}
+              </div>
+            )}
 
-            {/* Mobile-only bar when care profile exists */}
-            {hasStats && (
+            {/* Mobile-only moisture bar */}
+            {hasStats && reading && (
               <div className={styles.mobileBar}>
-                <MoistureBar value={Number(moisture)} range={careProfile.moistureRange} />
+                <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
               </div>
             )}
 
-            {/* History chart — inline, above notes */}
-            {logs.length >= 2 && (
+            {/* History chart — inline above actions, only if ≥2 readings */}
+            {readings.length >= 2 && (
               <div className={styles.chartInline}>
-                <PlantHistoryChart logs={logs} careProfile={careProfile} />
+                <PlantHistoryChart readings={readings} waterings={waterings} careProfile={careProfile} />
               </div>
             )}
-
-            {notes && <p className={styles.notes}>{notes}</p>}
 
             <div className={styles.actions}>
+              <button className={styles.logBtn} onClick={onLog} title="Log entry">
+                + Log
+              </button>
               {careProfile && (
                 <button
                   className={`${styles.historyBtn} ${infoOpen ? styles.historyBtnActive : ''}`}
@@ -99,20 +119,22 @@ export default function PlantCard({ plant, onEdit, onDelete }) {
               <button
                 className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
                 onClick={() => { setHistoryOpen(o => !o); setInfoOpen(false) }}
-                title="View care history"
-              >{historyOpen ? '▲' : '▼'} Log ({logs.length})</button>
+                title="View history"
+              >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
               <button className={styles.editBtn} onClick={onEdit}>Edit</button>
               <button className={styles.deleteBtn} onClick={onDelete} title="Remove plant">×</button>
             </div>
           </div>
 
-          {/* ── Right column: stats block (wide screens only, only when care profile) ── */}
-          {hasStats && (
+          {/* ── Right column: stats block ── */}
+          {hasStats && reading && (
             <div className={styles.statsBlock}>
-              <span className={styles.statWater}>💧 {waterLabel(waterUnit, waterAmount)}</span>
-              <span className={styles.statMoisture}>◎ {moisture} / 10</span>
+              {watering && (
+                <span className={styles.statWater}>💧 {waterLabel(watering.unit, watering.amount)}</span>
+              )}
+              <span className={styles.statMoisture}>◎ {reading.moisture} / 10</span>
               <div className={styles.statsBar}>
-                <MoistureBar value={Number(moisture)} range={careProfile.moistureRange} />
+                <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
               </div>
             </div>
           )}
@@ -147,31 +169,40 @@ export default function PlantCard({ plant, onEdit, onDelete }) {
         </div>
       )}
 
-      {/* ── Log history panel ── */}
+      {/* ── History panel: log bundles ── */}
       {historyOpen && (
         <div className={styles.historySection}>
-          {reversedLogs.length === 0 ? (
-            <p className={styles.emptyHistory}>No log entries yet — save care data to start tracking.</p>
-          ) : reversedLogs.map((entry, i) => (
-            <div key={entry.id} className={`${styles.logEntry} ${i < reversedLogs.length - 1 ? styles.logEntryDivider : ''}`}>
-              <div className={styles.logTop}>
-                <span className={styles.logDate}>{formatLogDate(entry.date)}</span>
-                <span className={`${styles.badge} ${styles[`badge_${entry.health}`]}`}>
-                  {HEALTH_LABELS[entry.health]}
-                </span>
-              </div>
-              <div className={styles.logMeta}>
-                <span className={styles.water}>💧 {waterLabel(entry.waterUnit, entry.waterAmount)}</span>
-                <span className={styles.moisture}>◎ {entry.moisture} / 10</span>
-              </div>
-              {careProfile?.moistureRange && (
-                <div className={styles.logBar}>
-                  <MoistureBar value={Number(entry.moisture)} range={careProfile.moistureRange} />
+          {bundles.length === 0 ? (
+            <p className={styles.emptyHistory}>No log entries yet — tap "+ Log" to record care data.</p>
+          ) : bundles.map((bundle, i) => {
+            const ts = bundle[0].timestamp
+            const reading  = bundle.find(e => e.type === 'reading')
+            const watering = bundle.find(e => e.type === 'watering')
+            const healthEv = bundle.find(e => e.type === 'health_change')
+            const note     = bundle.find(e => e.type === 'note')
+            return (
+              <div key={bundle[0].bundleId} className={`${styles.logEntry} ${i < bundles.length - 1 ? styles.logEntryDivider : ''}`}>
+                <div className={styles.logTop}>
+                  <span className={styles.logDate}>{formatTime(ts)}</span>
                 </div>
-              )}
-              {entry.notes && <p className={styles.logNotes}>{entry.notes}</p>}
-            </div>
-          ))}
+                <div className={styles.logMeta}>
+                  {reading && <span className={styles.moisture}>◎ {reading.moisture} / 10</span>}
+                  {watering && <span className={styles.water}>💧 {waterLabel(watering.unit, watering.amount)}</span>}
+                  {healthEv && (
+                    <span className={`${styles.badge} ${styles[`badge_${healthEv.health}`]}`}>
+                      {HEALTH_LABELS[healthEv.health]}
+                    </span>
+                  )}
+                </div>
+                {careProfile?.moistureRange && reading && (
+                  <div className={styles.logBar}>
+                    <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
+                  </div>
+                )}
+                {note && <p className={styles.logNotes}>{note.text}</p>}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

@@ -64,6 +64,24 @@
   background: var(--brand-bright);
 }
 
+.btnIcon {
+  width: 36px;
+  height: 36px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(71,133,61,0.50);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btnIcon:hover {
+  background: var(--bg-surface-raised);
+  border-color: rgba(71,133,61,0.75);
+}
+
 @media (max-width: 900px) {
   .header { padding: 0 20px; }
 }
