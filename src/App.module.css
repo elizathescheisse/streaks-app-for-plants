@@ -27,6 +27,30 @@
   margin-bottom: 32px;
 }
 
+.dateRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.addBtn {
+  margin-top: 8px;
+  height: 40px;
+  padding: 0 18px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-md);
+  color: #071407;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.addBtn:hover {
+  background: var(--brand-bright);
+}
+
 .bigDate {
   font-size: 72px;
   font-weight: 700;
@@ -53,27 +77,42 @@
   gap: 12px;
 }
 
-.emptyMsg {
-  font-size: 14px;
-  color: var(--text-placeholder);
-  padding: 24px 0;
-}
-
-.addGhost {
-  width: 100%;
-  padding: 18px;
-  background: rgba(26,46,23,0.5);
-  border: 1.5px dashed rgba(71,133,61,0.4);
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  background: rgba(26,46,23,0.4);
+  border: 1.5px dashed rgba(71,133,61,0.35);
   border-radius: var(--radius-lg);
-  color: var(--brand-primary);
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.15s, border-color 0.15s;
+  text-align: center;
 }
 
-.addGhost:hover {
-  background: rgba(26,46,23,0.8);
-  border-color: rgba(71,133,61,0.65);
+.emptyIcon {
+  font-size: 40px;
+}
+
+.emptyTitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.emptyAddBtn {
+  margin-top: 6px;
+  height: 44px;
+  padding: 0 24px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-md);
+  color: #071407;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.emptyAddBtn:hover {
+  background: var(--brand-bright);
 }
 
 .divider {

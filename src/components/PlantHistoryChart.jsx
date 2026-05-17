@@ -8,20 +8,12 @@ const WINDOWS = [
   { key: 'all', label: 'All', days: Infinity },
 ]
 
-// Health dot colors (raw values since SVG fill can't use CSS vars)
-const HEALTH_COLORS = {
-  thriving:  '#40d961',
-  good:      '#8cd966',
-  okay:      '#e0c740',
-  struggling:'#e56147',
-}
-
 // SVG vertical layout (fixed pixel heights)
-const PAD_X    = 16   // left/right padding inside SVG
-const TOP_ZONE = 26   // space above plot for watering labels
-const BOT_ZONE = 20   // space below plot for date labels
-const PLOT_H   = 60   // height of the moisture plot area
-const SVG_H    = TOP_ZONE + PLOT_H + BOT_ZONE  // 106
+const PAD_X    = 16
+const TOP_ZONE = 26
+const BOT_ZONE = 20
+const PLOT_H   = 60
+const SVG_H    = TOP_ZONE + PLOT_H + BOT_ZONE
 const PLOT_TOP = TOP_ZONE
 const PLOT_BOT = TOP_ZONE + PLOT_H
 
@@ -29,24 +21,22 @@ function mToY(moisture) {
   return PLOT_TOP + (1 - moisture / 10) * PLOT_H
 }
 
-function fmtDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 function waterAbbr(unit, amount) {
   if (!amount || String(amount).trim() === '') return null
   if (unit === 'cups')   return `${amount}c`
   if (unit === 'liters') return `${amount}L`
-  return String(amount).slice(0, 6) // truncate freeform
+  return String(amount).slice(0, 6)
 }
 
-export default function PlantHistoryChart({ logs, careProfile }) {
+export default function PlantHistoryChart({ readings, waterings, careProfile }) {
   const [win, setWin] = useState('1M')
   const containerRef = useRef(null)
   const [svgWidth, setSvgWidth] = useState(400)
 
-  // Measure container so we can calculate exact pixel positions
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -58,29 +48,41 @@ export default function PlantHistoryChart({ logs, careProfile }) {
     return () => ro.disconnect()
   }, [])
 
-  // Filter and sort logs by selected window
+  // Filter by window
   const windowDays = WINDOWS.find(w => w.key === win)?.days ?? Infinity
   const cutoff = windowDays === Infinity ? null
     : new Date(Date.now() - windowDays * 86_400_000)
 
-  const visible = [...logs]
-    .filter(e => !cutoff || new Date(e.timestamp) >= cutoff)
+  const visibleReadings = (readings ?? [])
+    .filter(r => !cutoff || new Date(r.timestamp) >= cutoff)
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
-  const n = visible.length
+  const visibleWaterings = (waterings ?? [])
+    .filter(w => !cutoff || new Date(w.timestamp) >= cutoff)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+
+  const n = visibleReadings.length
   const usableW = svgWidth - PAD_X * 2
 
-  function xAt(i) {
-    if (n <= 1) return svgWidth / 2
-    return PAD_X + (i / (n - 1)) * usableW
+  // Time-based x-axis: spans from earliest visible event to latest
+  const allTimestamps = [
+    ...visibleReadings.map(r => +new Date(r.timestamp)),
+    ...visibleWaterings.map(w => +new Date(w.timestamp)),
+  ]
+  const tMin = allTimestamps.length ? Math.min(...allTimestamps) : 0
+  const tMax = allTimestamps.length ? Math.max(...allTimestamps) : 1
+  const tSpan = tMax - tMin || 1
+
+  function xAt(ts) {
+    return PAD_X + ((+new Date(ts) - tMin) / tSpan) * usableW
   }
 
   // Ideal range
   const [rLo, rHi] = careProfile?.moistureRange ?? [null, null]
-  const rangeY1 = rHi != null ? mToY(rHi) : null  // higher moisture = lower Y
+  const rangeY1 = rHi != null ? mToY(rHi) : null
   const rangeY2 = rLo != null ? mToY(rLo) : null
 
-  // Date labels: show at most 6 (first, last, and evenly spaced between)
+  // Sample up to 6 reading dates for labels
   const maxLabels = 6
   const labelSet = new Set()
   if (n <= maxLabels) {
@@ -91,12 +93,12 @@ export default function PlantHistoryChart({ logs, careProfile }) {
     for (let i = 1; i < maxLabels - 1; i++) labelSet.add(Math.round(i * (n - 1) / (maxLabels - 1)))
   }
 
-  // Polyline points string
-  const polyPoints = visible.map((e, i) => `${xAt(i)},${mToY(e.moisture)}`).join(' ')
+  const polyPoints = visibleReadings
+    .map(r => `${xAt(r.timestamp)},${mToY(r.moisture)}`)
+    .join(' ')
 
   return (
     <div className={styles.wrap} ref={containerRef}>
-      {/* Time range toggle */}
       <div className={styles.toggle}>
         {WINDOWS.map(w => (
           <button
@@ -108,7 +110,7 @@ export default function PlantHistoryChart({ logs, careProfile }) {
       </div>
 
       {n < 2 ? (
-        <p className={styles.empty}>Not enough data for this range</p>
+        <p className={styles.empty}>Not enough readings for this range</p>
       ) : (
         <svg width={svgWidth} height={SVG_H} className={styles.svg}>
 
@@ -137,61 +139,63 @@ export default function PlantHistoryChart({ logs, careProfile }) {
             strokeLinecap="round"
           />
 
-          {/* Per-entry: dot + watering annotation */}
-          {visible.map((entry, i) => {
-            const x  = xAt(i)
-            const y  = mToY(entry.moisture)
-            const wLabel = waterAbbr(entry.waterUnit, entry.waterAmount)
-
+          {/* Reading dots */}
+          {visibleReadings.map((r, i) => {
+            const x = xAt(r.timestamp)
+            const y = mToY(r.moisture)
             return (
-              <g key={entry.id}>
-                {/* Watering tick + label above the plot */}
-                {wLabel && (
-                  <>
-                    <line
-                      x1={x} y1={PLOT_TOP - 4}
-                      x2={x} y2={y - 5}
-                      stroke="rgba(140,204,235,0.3)"
-                      strokeWidth="0.75"
-                    />
-                    <text
-                      x={x} y={PLOT_TOP - 6}
-                      textAnchor="middle"
-                      fontSize="8.5"
-                      fontFamily="Inter, sans-serif"
-                      fill="rgba(140,204,235,0.8)"
-                    >💧{wLabel}</text>
-                  </>
-                )}
+              <circle
+                key={r.id}
+                cx={x} cy={y} r="3.5"
+                fill="rgba(140,204,235,0.9)"
+                opacity="0.9"
+              />
+            )
+          })}
 
-                {/* Health-colored dot */}
-                <circle
-                  cx={x} cy={y} r="3.5"
-                  fill={HEALTH_COLORS[entry.health] ?? '#8cd966'}
-                  opacity="0.9"
+          {/* Watering annotations */}
+          {visibleWaterings.map(w => {
+            const x = xAt(w.timestamp)
+            const label = waterAbbr(w.unit, w.amount)
+            if (!label) return null
+            return (
+              <g key={w.id}>
+                <line
+                  x1={x} y1={PLOT_TOP - 4}
+                  x2={x} y2={PLOT_BOT}
+                  stroke="rgba(140,204,235,0.25)"
+                  strokeWidth="0.75"
+                  strokeDasharray="2,2"
                 />
+                <text
+                  x={x} y={PLOT_TOP - 6}
+                  textAnchor="middle"
+                  fontSize="8.5"
+                  fontFamily="Inter, sans-serif"
+                  fill="rgba(140,204,235,0.85)"
+                >💧{label}</text>
               </g>
             )
           })}
 
-          {/* Date labels */}
-          {visible.map((entry, i) => {
+          {/* Date labels along the bottom (anchored to readings) */}
+          {visibleReadings.map((r, i) => {
             if (!labelSet.has(i)) return null
-            const x = xAt(i)
+            const x = xAt(r.timestamp)
             const anchor = i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'
             return (
               <text
-                key={`dl-${entry.id}`}
+                key={`dl-${r.id}`}
                 x={x} y={PLOT_BOT + 14}
                 textAnchor={anchor}
                 fontSize="9"
                 fontFamily="Inter, sans-serif"
                 fill="rgba(150,180,150,0.55)"
-              >{fmtDate(entry.date)}</text>
+              >{fmtDate(r.timestamp)}</text>
             )
           })}
 
-          {/* Y-axis moisture labels (0, 5, 10) */}
+          {/* Y-axis moisture labels */}
           {[0, 5, 10].map(v => (
             <text
               key={`yl-${v}`}

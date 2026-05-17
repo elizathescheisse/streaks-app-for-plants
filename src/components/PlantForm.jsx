@@ -1,36 +1,30 @@
 import styles from './PlantForm.module.css'
 import SpeciesInput from './SpeciesInput.jsx'
 
-const HEALTH_OPTIONS = [
-  { value: 'struggling', label: 'Struggling' },
-  { value: 'okay',       label: 'Okay'       },
-  { value: 'good',       label: 'Good'       },
-  { value: 'thriving',   label: 'Thriving'   },
-]
-
-const UNIT_OPTIONS = [
-  { value: 'freeform', label: 'Freeform' },
-  { value: 'cups',     label: 'Cups'     },
-  { value: 'liters',   label: 'Liters'   },
-]
-
 const EMOJI_OPTIONS = [
   '🌿','🪴','🌱','🌵','🌴','🌳','🌾','🍀',
   '🌺','🌸','🌻','🌹','🪷','🎋','🍃','🌲',
 ]
 
+export const EMPTY_PLANT_FORM = {
+  id:      null,
+  emoji:   '🌿',
+  species: '',
+  name:    '',
+}
+
 export default function PlantForm({ form, onChange, onSave, onCancel, isEdit }) {
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
-
-  const moistureInt = Number(form.moisture)
   const canSave = form.species.trim() || form.name.trim()
 
   return (
     <div className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <h2 className={styles.title}>{isEdit ? 'Edit Plant' : 'Add Plant'}</h2>
-          <p className={styles.sub}>Record today's care for this plant.</p>
+          <h2 className={styles.title}>{isEdit ? 'Edit plant' : 'Add a plant'}</h2>
+          <p className={styles.sub}>
+            {isEdit ? 'Update this plant’s identity.' : 'Identify your plant — log entries come later.'}
+          </p>
         </div>
         <button className={styles.closeBtn} onClick={onCancel} aria-label="Close">×</button>
       </div>
@@ -76,7 +70,7 @@ export default function PlantForm({ form, onChange, onSave, onCancel, isEdit }) 
         />
       </div>
 
-      {/* Nickname — optional */}
+      {/* Nickname */}
       <div className={styles.field}>
         <label className={styles.label}>
           NICKNAME <span className={styles.optional}>(optional)</span>
@@ -89,88 +83,9 @@ export default function PlantForm({ form, onChange, onSave, onCancel, isEdit }) 
         />
       </div>
 
-      {/* Watering */}
-      <div className={styles.field}>
-        <label className={styles.label}>WATERING</label>
-        <div className={styles.segmented}>
-          {UNIT_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              className={`${styles.seg} ${form.waterUnit === opt.value ? styles.segActive : ''}`}
-              onClick={() => set('waterUnit', opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        <input
-          className={styles.input}
-          placeholder={
-            form.waterUnit === 'freeform' ? 'How much did you water?' :
-            form.waterUnit === 'cups'     ? 'Amount in cups'  : 'Amount in liters'
-          }
-          value={form.waterAmount}
-          onChange={e => set('waterAmount', e.target.value)}
-        />
-      </div>
-
-      {/* Soil moisture */}
-      <div className={styles.field}>
-        <label className={styles.label}>SOIL MOISTURE  (0 – 10)</label>
-        <div className={styles.stepper}>
-          <button
-            className={styles.stepBtn}
-            onClick={() => set('moisture', Math.max(0, moistureInt - 1))}
-          >−</button>
-          <div className={styles.stepValue}>
-            <span className={styles.stepNum}>{form.moisture}</span>
-            <span className={styles.stepUnit}> / 10</span>
-          </div>
-          <button
-            className={styles.stepBtn}
-            onClick={() => set('moisture', Math.min(10, moistureInt + 1))}
-          >+</button>
-        </div>
-        <input
-          type="range" min="0" max="10" step="0.1"
-          className={styles.slider}
-          value={form.moisture}
-          onChange={e => set('moisture', parseFloat(e.target.value))}
-        />
-      </div>
-
-      {/* Plant health */}
-      <div className={styles.field}>
-        <label className={styles.label}>PLANT HEALTH</label>
-        <div className={styles.healthPills}>
-          {HEALTH_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              className={`${styles.pill} ${styles[`pill_${opt.value}`]} ${form.health === opt.value ? styles[`pillActive_${opt.value}`] : ''}`}
-              onClick={() => set('health', opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div className={styles.field}>
-        <label className={styles.label}>NOTES</label>
-        <textarea
-          className={`${styles.input} ${styles.textarea}`}
-          placeholder="Any observations about this plant today…"
-          value={form.notes}
-          onChange={e => set('notes', e.target.value)}
-          rows={3}
-        />
-      </div>
-
-      {/* Actions */}
       <div className={styles.formActions}>
-        <button className={styles.saveBtn} onClick={onSave} disabled={!form.species.trim() && !form.name.trim()}>
-          {isEdit ? 'Update Plant' : 'Save Plant'}
+        <button className={styles.saveBtn} onClick={onSave} disabled={!canSave}>
+          {isEdit ? 'Save changes' : 'Add plant'}
         </button>
       </div>
     </div>

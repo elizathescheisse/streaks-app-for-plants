@@ -1,0 +1,245 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.plantName {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.closeBtn {
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.closeBtn:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.textarea {
+  height: auto;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input::placeholder { color: var(--text-placeholder); }
+
+.input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(69,209,87,0.15);
+  outline: none;
+}
+
+/* "+ Add moisture reading" button — encourages explicit action */
+.addBtn {
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  border: 1.5px dashed rgba(71,133,61,0.35);
+  border-radius: var(--radius-md);
+  color: var(--brand-primary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.addBtn:hover {
+  background: rgba(26,46,23,0.5);
+  border-color: rgba(71,133,61,0.6);
+}
+
+/* Moisture controls — appear once user adds a reading */
+.moistureBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.stepBtn {
+  width: 36px; height: 36px;
+  background: var(--bg-surface-raised);
+  border: none;
+  border-radius: 9px;
+  color: rgba(140,204,133,0.9);
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.stepBtn:hover { background: rgba(41,71,36,0.9); }
+
+.stepValue {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.stepNum {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stepUnit {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-surface-raised);
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--brand-bright);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(69,209,87,0.4);
+}
+
+.clearBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 2px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.clearBtn:hover {
+  color: var(--text-secondary);
+}
+
+/* Watering row: amount + unit */
+.waterRow {
+  display: flex;
+  gap: 8px;
+}
+
+.waterRow .input {
+  flex: 1;
+}
+
+.unitSelect {
+  height: 44px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  min-width: 110px;
+}
+
+/* Save section */
+.formActions {
+  padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saveBtn {
+  width: 100%;
+  height: 52px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-lg);
+  color: #071407;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.saveBtn:hover:not(:disabled) { background: var(--brand-bright); }
+
+.saveBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.preview {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.previewActive {
+  color: var(--brand-primary);
+  font-style: normal;
+}

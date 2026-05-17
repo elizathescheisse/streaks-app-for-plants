@@ -1,9 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import Header from './components/Header.jsx'
 import PlantCard from './components/PlantCard.jsx'
-import PlantForm from './components/PlantForm.jsx'
+import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
+import LogEntryForm, { EMPTY_LOG_FORM } from './components/LogEntryForm.jsx'
 import EdgeGlow from './components/EdgeGlow.jsx'
+import SettingsModal from './components/SettingsModal.jsx'
 import styles from './App.module.css'
+import { buildEventsFromForm } from './utils/plantSelectors.js'
+
+const SCHEMA_VERSION = '2'
+const STORAGE_KEY    = 'plant-streaks'
+const SCHEMA_KEY     = 'plant-streaks-schema'
 
 const today = new Date()
 const DATE_KEY = today.toISOString().slice(0, 10)
@@ -15,99 +22,93 @@ function formatDay(d) {
   return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric' })
 }
 
-const EMPTY_FORM = {
-  id: null,
-  emoji: '🌿',
-  species: '',
-  name: '',
-  waterUnit: 'freeform',
-  waterAmount: '',
-  moisture: 5,
-  health: 'good',
-  notes: '',
-  logs: [],
+// One-time schema reset — clears any old-format data on first load
+function loadInitialPlants() {
+  const ver = localStorage.getItem(SCHEMA_KEY)
+  if (ver !== SCHEMA_VERSION) {
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.setItem(SCHEMA_KEY, SCHEMA_VERSION)
+    return []
+  }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [] }
+  catch { return [] }
 }
 
 export default function App() {
-  const [plants, setPlants] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('plant-streaks')) ?? [] }
-    catch { return [] }
-  })
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [panelOpen, setPanelOpen] = useState(true)
+  const [plants, setPlants] = useState(loadInitialPlants)
+
+  // panel:
+  //   null                                   — no panel
+  //   { mode: 'identity', form }             — add/edit plant form
+  //   { mode: 'log', plantId, form }         — log-entry form
+  const [panel, setPanel] = useState(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const importRef = useRef()
 
-  // Persist plants to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('plant-streaks', JSON.stringify(plants))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plants))
   }, [plants])
 
-  // ── CRUD ─────────────────────────────────────────────────
-  function saveForm() {
+  // ── Plant identity (add/edit) ───────────────────────────
+  function savePlantIdentity() {
+    const form = panel.form
     const canSave = form.species.trim() || form.name.trim()
     if (!canSave) return
 
-    const CARE_FIELDS = ['waterUnit', 'waterAmount', 'moisture', 'health', 'notes']
-
     if (form.id) {
-      // Editing existing plant — only add a log if care data changed
-      setPlants(ps => ps.map(p => {
-        if (p.id !== form.id) return p
-        const lastLog = p.logs?.[p.logs.length - 1]
-        const careChanged = !lastLog || CARE_FIELDS.some(k => String(form[k]) !== String(lastLog[k]))
-        const newLogs = careChanged
-          ? [...(p.logs ?? []), {
-              id: crypto.randomUUID(),
-              date: DATE_KEY,
-              timestamp: new Date().toISOString(),
-              waterUnit: form.waterUnit,
-              waterAmount: form.waterAmount,
-              moisture: form.moisture,
-              health: form.health,
-              notes: form.notes,
-            }]
-          : (p.logs ?? [])
-        return { ...form, logs: newLogs }
-      }))
+      setPlants(ps => ps.map(p => p.id === form.id
+        ? { ...p, emoji: form.emoji, species: form.species, name: form.name }
+        : p
+      ))
     } else {
-      // New plant always gets its first log entry
       setPlants(ps => [...ps, {
-        ...form,
         id: crypto.randomUUID(),
-        logs: [{
-          id: crypto.randomUUID(),
-          date: DATE_KEY,
-          timestamp: new Date().toISOString(),
-          waterUnit: form.waterUnit,
-          waterAmount: form.waterAmount,
-          moisture: form.moisture,
-          health: form.health,
-          notes: form.notes,
-        }],
+        emoji:   form.emoji,
+        species: form.species,
+        name:    form.name,
+        events:  [],
       }])
     }
-    setForm(EMPTY_FORM)
-    setPanelOpen(false)
+    setPanel(null)
+  }
+
+  function openAdd() {
+    setPanel({ mode: 'identity', form: EMPTY_PLANT_FORM })
   }
 
   function editPlant(plant) {
-    setForm({ ...plant })
-    setPanelOpen(true)
+    setPanel({
+      mode: 'identity',
+      form: { id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name }
+    })
   }
 
   function deletePlant(id) {
     setPlants(ps => ps.filter(p => p.id !== id))
-    if (form.id === id) { setForm(EMPTY_FORM); setPanelOpen(false) }
+    if (panel?.form?.id === id || panel?.plantId === id) setPanel(null)
   }
 
-  function openAdd() {
-    setForm(EMPTY_FORM)
-    setPanelOpen(true)
+  // ── Log entry ───────────────────────────────────────────
+  function openLog(plant) {
+    setPanel({ mode: 'log', plantId: plant.id, form: EMPTY_LOG_FORM })
   }
 
-  // ── Export ────────────────────────────────────────────────
+  function saveLogEntry() {
+    const { plantId, form } = panel
+    const newEvents = buildEventsFromForm(form)
+    if (newEvents.length === 0) { setPanel(null); return }
+
+    setPlants(ps => ps.map(p =>
+      p.id === plantId
+        ? { ...p, events: [...(p.events ?? []), ...newEvents] }
+        : p
+    ))
+    setPanel(null)
+  }
+
+  // ── Export ──────────────────────────────────────────────
   function exportJSON() {
-    const data = { date: DATE_KEY, plants }
+    const data = { schemaVersion: SCHEMA_VERSION, date: DATE_KEY, plants }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -117,7 +118,7 @@ export default function App() {
     URL.revokeObjectURL(url)
   }
 
-  // ── Import ────────────────────────────────────────────────
+  // ── Import ──────────────────────────────────────────────
   function handleImport(e) {
     const file = e.target.files[0]
     if (!file) return
@@ -126,28 +127,43 @@ export default function App() {
       try {
         const data = JSON.parse(ev.target.result)
         if (!Array.isArray(data.plants)) return
-        // Migrate old-format plants (no logs) by bootstrapping a log entry
-        // from the plant's own data, dated to the export file's date if present.
-        const fileDate = data.date ?? '2026-05-14'
-        const migrated = data.plants.map(p => {
-          if (Array.isArray(p.logs) && p.logs.length > 0) return p
-          const entry = {
-            id: crypto.randomUUID(),
-            date: fileDate,
-            timestamp: `${fileDate}T00:00:00.000Z`,
-            waterUnit: p.waterUnit ?? 'freeform',
-            waterAmount: p.waterAmount ?? '',
-            moisture: p.moisture ?? 5,
-            health: p.health ?? 'good',
-            notes: p.notes ?? '',
-          }
-          return { ...p, logs: [entry] }
-        })
-        setPlants(migrated)
+        // Only accept v2 (event-based) files for now.
+        if (data.schemaVersion !== SCHEMA_VERSION) {
+          alert('This file is from an older version of the app. Please re-export.')
+          return
+        }
+        setPlants(data.plants)
       } catch { /* invalid file */ }
     }
     reader.readAsText(file)
     e.target.value = ''
+  }
+
+  // ── Panel content ────────────────────────────────────────
+  const panelOpen = panel != null
+
+  let panelContent = null
+  if (panel?.mode === 'identity') {
+    panelContent = (
+      <PlantForm
+        form={panel.form}
+        onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
+        onSave={savePlantIdentity}
+        onCancel={() => setPanel(null)}
+        isEdit={!!panel.form.id}
+      />
+    )
+  } else if (panel?.mode === 'log') {
+    const plant = plants.find(p => p.id === panel.plantId)
+    panelContent = (
+      <LogEntryForm
+        plant={plant}
+        form={panel.form}
+        onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
+        onSave={saveLogEntry}
+        onCancel={() => setPanel(null)}
+      />
+    )
   }
 
   return (
@@ -157,33 +173,53 @@ export default function App() {
       <Header
         onExport={exportJSON}
         onImport={() => importRef.current.click()}
+        onSettings={() => setSettingsOpen(true)}
       />
+      {settingsOpen && (
+        <SettingsModal
+          plantCount={plants.length}
+          onClose={() => setSettingsOpen(false)}
+          onClearData={() => { setPlants([]); setPanel(null) }}
+        />
+      )}
       <input ref={importRef} type="file" accept=".json" onChange={handleImport} style={{ display:'none' }} />
 
       <main className={styles.main}>
         {/* ── Left: plant list ── */}
         <section className={styles.listCol}>
           <div className={styles.dateBlock}>
-            <h1 className={styles.bigDate}>{formatDate(today)}</h1>
-            <p className={styles.subDate}>{formatDay(today)}</p>
+            <div className={styles.dateRow}>
+              <div>
+                <h1 className={styles.bigDate}>{formatDate(today)}</h1>
+                <p className={styles.subDate}>{formatDay(today)}</p>
+              </div>
+              {plants.length > 0 && (
+                <button className={styles.addBtn} onClick={openAdd}>
+                  + Add Plant
+                </button>
+              )}
+            </div>
             <p className={styles.hint}>Log your plants' health and watering for today.</p>
           </div>
 
           <div className={styles.plantList}>
-            {plants.length === 0 && (
-              <p className={styles.emptyMsg}>No plants yet — add your first one →</p>
-            )}
-            {plants.map(p => (
+            {plants.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>🌱</div>
+                <p className={styles.emptyTitle}>No plants yet</p>
+                <button className={styles.emptyAddBtn} onClick={openAdd}>
+                  + Add your first plant
+                </button>
+              </div>
+            ) : plants.map(p => (
               <PlantCard
                 key={p.id}
                 plant={p}
                 onEdit={() => editPlant(p)}
                 onDelete={() => deletePlant(p.id)}
+                onLog={() => openLog(p)}
               />
             ))}
-            <button className={styles.addGhost} onClick={openAdd}>
-              + Add a plant
-            </button>
           </div>
         </section>
 
@@ -191,13 +227,7 @@ export default function App() {
         <div className={styles.divider} />
 
         <section className={`${styles.formCol} ${panelOpen ? styles.formColOpen : ''}`}>
-          <PlantForm
-            form={form}
-            onChange={setForm}
-            onSave={saveForm}
-            onCancel={() => { setForm(EMPTY_FORM); setPanelOpen(false) }}
-            isEdit={!!form.id}
-          />
+          {panelContent}
         </section>
       </main>
     </div>

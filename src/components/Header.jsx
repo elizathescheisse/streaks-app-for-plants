@@ -1,6 +1,6 @@
 import styles from './Header.module.css'
 
-export default function Header({ onExport, onImport }) {
+export default function Header({ onExport, onImport, onSettings }) {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
@@ -13,6 +13,9 @@ export default function Header({ onExport, onImport }) {
         </button>
         <button className={styles.btnPrimary} onClick={onExport}>
           ↓ Export JSON
+        </button>
+        <button className={styles.btnIcon} onClick={onSettings} title="Settings">
+          ⚙️
         </button>
       </nav>
     </header>
