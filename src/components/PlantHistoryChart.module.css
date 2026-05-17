@@ -42,3 +42,36 @@
   padding: 8px 0 4px;
   margin: 0;
 }
+
+/* SVG wrapper — provides positioning context for the tooltip */
+.svgWrap {
+  position: relative;
+}
+
+/* Hover / tap tooltip */
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 5px 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.tooltipMoisture {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tooltipDate {
+  font-size: 10px;
+  color: var(--text-muted);
+}
