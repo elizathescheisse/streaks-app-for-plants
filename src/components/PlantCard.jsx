@@ -5,6 +5,7 @@ import PlantHistoryChart from './PlantHistoryChart.jsx'
 import Modal from './Modal.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
+import { computeModel, getRecommendation } from '../utils/plantModel.js'
 import PlantPrediction from './PlantPrediction.jsx'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Good', okay:'Okay', struggling:'Struggling' }
@@ -60,13 +61,15 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
   const [infoOpen, setInfoOpen]           = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  const careProfile = lookupPlant(species)
-  const hasStats    = !!careProfile?.moistureRange
-  const bundles     = logBundles(plant)
-  const reading     = lastReading(plant)
-  const watering    = lastWatering(plant)
-  const health      = currentHealth(plant)
+  const careProfile  = lookupPlant(species)
+  const hasStats     = !!careProfile?.moistureRange
+  const bundles      = logBundles(plant)
+  const reading      = lastReading(plant)
+  const watering     = lastWatering(plant)
+  const health       = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
+  const model        = computeModel(plant)
+  const rec          = reading ? getRecommendation(plant, model, careProfile) : null
 
   return (
     <div className={styles.cardWrap}>
@@ -143,15 +146,38 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
             </div>
           </div>
 
-          {/* ── Right column: stats block (shown for every plant with data) ── */}
+          {/* ── Right column: stats block ── */}
           {(reading || watering) && (
             <div className={styles.statsBlock}>
+
+              {/* Urgency signal — most important thing at a glance */}
+              {rec?.hasRange && (
+                <span className={`${styles.urgency} ${
+                  rec.daysUntilDry <= 0   ? styles.urgencyNow  :
+                  rec.daysUntilDry <= 1   ? styles.urgencySoon :
+                  rec.daysUntilDry <= 3   ? styles.urgencyOk   :
+                                            styles.urgencyGood
+                }`}>
+                  {rec.daysUntilDry <= 0 ? '🚨 Water now'                                :
+                   rec.daysUntilDry <= 1 ? '💧 Water today'                              :
+                   rec.daysUntilDry <= 3 ? `💧 Water in ${rec.daysUntilDry}d`            :
+                                           `✓ Good for ${Math.round(rec.daysUntilDry)}d`}
+                </span>
+              )}
+
+              {/* Last watered — how long ago, not just amount */}
               {watering && (
-                <span className={styles.statWater}>💧 {waterLabel(watering.unit, watering.amount)}</span>
+                <span className={styles.statWater}>
+                  💧 {waterLabel(watering.unit, watering.amount)} · {relTime(watering.timestamp)}
+                </span>
               )}
+
+              {/* Last reading */}
               {reading && (
-                <span className={styles.statMoisture}>◎ {reading.moisture} / 10</span>
+                <span className={styles.statMoisture}>◎ {reading.moisture} / 10 · {relTime(reading.timestamp)}</span>
               )}
+
+              {/* Moisture bar */}
               {hasStats && reading && (
                 <div className={styles.statsBar}>
                   <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />

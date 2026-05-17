@@ -52,6 +52,18 @@
   width: 160px;
 }
 
+/* Urgency signal — top of stats block */
+.urgency {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: right;
+}
+.urgencyNow  { color: var(--status-struggling); }
+.urgencySoon { color: var(--status-okay); }
+.urgencyOk   { color: var(--status-okay); opacity: 0.8; }
+.urgencyGood { color: var(--status-thriving); }
+
 .statWater {
   font-size: 12px;
   color: var(--data-water);
