@@ -94,16 +94,43 @@ export default function App() {
     setPanel({ mode: 'log', plantId: plant.id, form: createEmptyLogForm() })
   }
 
+  function openEditLog(plant, bundle) {
+    // Convert bundle events back into form shape for pre-filling
+    const ts      = bundle[0].timestamp
+    const reading = bundle.find(e => e.type === 'reading')
+    const watering = bundle.find(e => e.type === 'watering')
+    const healthEv = bundle.find(e => e.type === 'health_change')
+    const note     = bundle.find(e => e.type === 'note')
+    const d = new Date(ts)
+    const pad = n => String(n).padStart(2, '0')
+    const localTs = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    setPanel({
+      mode: 'log',
+      plantId: plant.id,
+      editBundleId: bundle[0].bundleId,
+      form: {
+        timestamp:   localTs,
+        moisture:    reading?.moisture  ?? '',
+        waterAmount: watering?.amount   ?? '',
+        waterUnit:   watering?.unit     ?? 'cups',
+        health:      healthEv?.health   ?? 'no_change',
+        notes:       note?.text         ?? '',
+      }
+    })
+  }
+
   function saveLogEntry() {
-    const { plantId, form } = panel
-    const newEvents = buildEventsFromForm(form)
+    const { plantId, form, editBundleId } = panel
+    const newEvents = buildEventsFromForm(form, editBundleId)
     if (newEvents.length === 0) { setPanel(null); return }
 
-    setPlants(ps => ps.map(p =>
-      p.id === plantId
-        ? { ...p, events: [...(p.events ?? []), ...newEvents] }
-        : p
-    ))
+    setPlants(ps => ps.map(p => {
+      if (p.id !== plantId) return p
+      const filtered = editBundleId
+        ? (p.events ?? []).filter(e => e.bundleId !== editBundleId)
+        : (p.events ?? [])
+      return { ...p, events: [...filtered, ...newEvents] }
+    }))
     setPanel(null)
   }
 
@@ -191,6 +218,7 @@ export default function App() {
                 onEdit={() => editPlant(p)}
                 onDelete={() => deletePlant(p.id)}
                 onLog={() => openLog(p)}
+                onEditLog={(bundle) => openEditLog(p, bundle)}
               />
             ))}
           </div>
@@ -215,6 +243,7 @@ export default function App() {
           <LogEntryForm
             plant={plants.find(p => p.id === panel.plantId)}
             form={panel.form}
+            isEdit={!!panel.editBundleId}
             onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
             onSave={saveLogEntry}
             onCancel={() => setPanel(null)}

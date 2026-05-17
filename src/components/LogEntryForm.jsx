@@ -50,7 +50,7 @@ function describePending(form) {
   return parts.length === 0 ? 'Nothing to save yet' : `Saving: ${parts.join(' · ')}`
 }
 
-export default function LogEntryForm({ plant, form, onChange, onSave, onCancel }) {
+export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, onCancel }) {
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const moistureInt = form.moisture === '' ? null : Number(form.moisture)
   const summary = describePending(form)
@@ -60,7 +60,7 @@ export default function LogEntryForm({ plant, form, onChange, onSave, onCancel }
     <div className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <h2 className={styles.title}>Log entry</h2>
+          <h2 className={styles.title}>{isEdit ? 'Edit log entry' : 'Log entry'}</h2>
           <p className={styles.sub}>
             for <span className={styles.plantName}>{plant?.name || plant?.species || 'this plant'}</span>
           </p>
