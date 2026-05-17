@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import Header from './components/Header.jsx'
 import PlantCard from './components/PlantCard.jsx'
 import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
-import LogEntryForm, { EMPTY_LOG_FORM } from './components/LogEntryForm.jsx'
+import LogEntryForm, { createEmptyLogForm } from './components/LogEntryForm.jsx'
 import EdgeGlow from './components/EdgeGlow.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import Modal from './components/Modal.jsx'
@@ -91,7 +91,7 @@ export default function App() {
 
   // ── Log entry ───────────────────────────────────────────
   function openLog(plant) {
-    setPanel({ mode: 'log', plantId: plant.id, form: EMPTY_LOG_FORM })
+    setPanel({ mode: 'log', plantId: plant.id, form: createEmptyLogForm() })
   }
 
   function saveLogEntry() {

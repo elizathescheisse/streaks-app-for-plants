@@ -18,3 +18,10 @@ dist/
 # Editor
 .vscode/
 .idea/
+
+# Local Claude settings
+.claude/settings.local.json
+
+# Local data exports / backups
+archive/
+plant-streaks-*.json

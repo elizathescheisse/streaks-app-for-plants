@@ -49,8 +49,12 @@ export function chartEvents(plant) {
 
 // Build the event list that a save action produces, given form input.
 // Returns [] if nothing was filled in.
+// `form.timestamp` is a local datetime string (YYYY-MM-DDTHH:MM) from the
+// <input type="datetime-local"> field. Falls back to "now" if missing.
 export function buildEventsFromForm(form) {
-  const timestamp = new Date().toISOString()
+  const timestamp = form.timestamp
+    ? new Date(form.timestamp).toISOString()
+    : new Date().toISOString()
   const bundleId  = crypto.randomUUID()
   const events = []
 
