@@ -1,0 +1,55 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(13, 23, 10, 0.6);
+  border: 1px solid rgba(71, 133, 61, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.moisture {
+  font-size: 12px;
+  color: rgba(140, 204, 235, 0.85);
+  white-space: nowrap;
+}
+
+.rec {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.recNormal {
+  color: var(--text-muted);
+}
+
+.recSoon {
+  color: var(--status-okay);
+  font-weight: 500;
+}
+
+.recUrgent {
+  color: var(--status-struggling);
+  font-weight: 600;
+}
+
+.residual {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.confidence {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.65;
+  margin: 0;
+}
