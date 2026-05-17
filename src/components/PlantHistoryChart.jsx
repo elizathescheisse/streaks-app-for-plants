@@ -25,6 +25,19 @@ function fmtDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+// Color a dot based on whether the moisture reading is within the ideal range.
+// Returns a CSS color string (uses design tokens where possible).
+// Falls back to the existing blue if no range is known for this species.
+function dotColor(moisture, range) {
+  if (!range || range[0] == null) return 'rgba(140,204,235,0.9)'
+  const [lo, hi] = range
+  const val = Number(moisture)
+  if (val >= lo && val <= hi) return 'var(--status-thriving)'   // in range — green
+  const dist = val < lo ? lo - val : val - hi
+  if (dist <= 2) return 'var(--status-okay)'                    // slightly outside — yellow
+  return 'var(--status-struggling)'                             // far outside — red
+}
+
 function waterAbbr(unit, amount) {
   if (!amount || String(amount).trim() === '') return null
   if (unit === 'cups')   return `${amount}c`
@@ -139,15 +152,16 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
             strokeLinecap="round"
           />
 
-          {/* Reading dots */}
+          {/* Reading dots — colored by whether moisture is in ideal range */}
           {visibleReadings.map((r, i) => {
             const x = xAt(r.timestamp)
             const y = mToY(r.moisture)
+            const fill = dotColor(r.moisture, careProfile?.moistureRange)
             return (
               <circle
                 key={r.id}
-                cx={x} cy={y} r="3.5"
-                fill="rgba(140,204,235,0.9)"
+                cx={x} cy={y} r="4"
+                fill={fill}
                 opacity="0.9"
               />
             )
