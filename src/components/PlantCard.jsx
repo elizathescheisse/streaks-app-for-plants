@@ -27,7 +27,8 @@ const WATERING_STYLE_LABELS = {
 
 function waterLabel(unit, amount) {
   if (!amount) return '—'
-  if (unit === 'cups')   return `${amount} cup${amount === '1' ? '' : 's'}`
+  const n = parseFloat(amount)
+  if (unit === 'cups')   return `${amount} cup${n === 1 ? '' : 's'}`
   if (unit === 'liters') return `${amount} L`
   return amount
 }
