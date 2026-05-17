@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styles from './PlantCard.module.css'
 import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
+import Modal from './Modal.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
 import PlantPrediction from './PlantPrediction.jsx'
@@ -46,8 +47,9 @@ function relTime(ts) {
 
 export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
   const { emoji = '🌿', species, name } = plant
-  const [historyOpen, setHistoryOpen] = useState(false)
-  const [infoOpen, setInfoOpen]       = useState(false)
+  const [historyOpen, setHistoryOpen]     = useState(false)
+  const [infoOpen, setInfoOpen]           = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const careProfile = lookupPlant(species)
   const hasStats    = !!careProfile?.moistureRange
@@ -128,7 +130,7 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
                 title="View history"
               >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
               <button className={styles.editBtn} onClick={onEdit}>Edit</button>
-              <button className={styles.deleteBtn} onClick={onDelete} title="Remove plant">×</button>
+              <button className={styles.deleteBtn} onClick={() => setShowDeleteModal(true)}>Delete</button>
             </div>
           </div>
 
@@ -210,6 +212,25 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
             )
           })}
         </div>
+      )}
+      {showDeleteModal && (
+        <Modal onClose={() => setShowDeleteModal(false)}>
+          <div className={styles.deleteModal}>
+            <div className={styles.deleteModalIcon}>{emoji}</div>
+            <h2 className={styles.deleteModalTitle}>Delete {name || species}?</h2>
+            <p className={styles.deleteModalBody}>
+              This will permanently remove this plant and all its log history. This can't be undone.
+            </p>
+            <div className={styles.deleteModalActions}>
+              <button className={styles.deleteModalCancel} onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </button>
+              <button className={styles.deleteModalConfirm} onClick={onDelete}>
+                Yes, delete
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   )

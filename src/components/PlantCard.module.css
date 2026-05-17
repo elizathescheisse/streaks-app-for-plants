@@ -124,6 +124,7 @@
 .badge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.14); border-color: rgba(224,199,64,0.55); }
 .badge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.14);  border-color: rgba(229,97,71,0.55);  }
 
+
 .species {
   font-size: 12px;
   color: var(--text-muted);
@@ -197,20 +198,90 @@
 }
 
 .deleteBtn {
-  width: 28px; height: 28px;
-  background: transparent;
-  border: 1px solid rgba(229,97,71,0.25);
+  padding: 6px 12px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.35);
   border-radius: var(--radius-sm);
-  color: rgba(229,97,71,0.5);
-  font-size: 18px;
-  line-height: 1;
+  color: var(--status-struggling);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .deleteBtn:hover {
   background: rgba(229,97,71,0.12);
-  color: var(--status-struggling);
   border-color: rgba(229,97,71,0.6);
+}
+
+/* Delete confirmation modal content */
+.deleteModal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.deleteModalIcon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.deleteModalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.deleteModalBody {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 320px;
+}
+
+.deleteModalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.deleteModalCancel {
+  flex: 1;
+  height: 44px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.35);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.deleteModalCancel:hover {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+}
+
+.deleteModalConfirm {
+  flex: 1;
+  height: 44px;
+  background: rgba(229,97,71,0.15);
+  border: 1px solid rgba(229,97,71,0.55);
+  border-radius: var(--radius-md);
+  color: var(--status-struggling);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.deleteModalConfirm:hover {
+  background: rgba(229,97,71,0.28);
+  border-color: rgba(229,97,71,0.8);
 }
 
 .historyBtn {
