@@ -65,12 +65,17 @@ function titleCase(s) {
 function moistureStatus(moisture, [min, max]) {
   const val = Number(moisture)
   const w   = max - min                                  // range width
+  // Thresholds blend "proportional to range width" with an absolute floor of
+  // 2 moisture points — otherwise narrow ranges (e.g. fiddle leaf fig 4–5)
+  // trip the alarm states on tiny dips.
+  const dryBuffer = Math.max(w * 0.75, 2)                // red kicks in this far below min
+  const wetBuffer = Math.max(w * 0.5,  2)                // yellow over kicks in this far above max
 
-  if (val < min - w * 0.75)  return { label: '🚨 Water immediately', cls: 'struggling' }
-  if (val < min)              return { label: '💧 Water',             cls: 'okay'       }
-  if (val < min + w * 0.3)   return { label: '💧 Water soon',        cls: 'good'       }
-  if (val <= max + w * 0.5)  return { label: '✓ Watered',             cls: 'thriving'   }
-  return                             { label: '⚠️ Overwatered',       cls: 'okay'       }
+  if (val < min - dryBuffer)  return { label: '🚨 Water immediately', cls: 'struggling' }
+  if (val < min)               return { label: '💧 Water',             cls: 'okay'       }
+  if (val < min + w * 0.3)    return { label: '💧 Water soon',        cls: 'good'       }
+  if (val <= max + wetBuffer) return { label: '✓ Watered',             cls: 'thriving'   }
+  return                              { label: '⚠️ Overwatered',       cls: 'okay'       }
 }
 
 
