@@ -105,7 +105,7 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
   const status = wateredAfterReading
     ? (() => {
         const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
-        const label = minsSince < 30 ? 'Check in 1hr' : 'Check in 30 mins'
+        const label = minsSince < 30 ? '🕐 Check in 1h' : '🕐 Check in 30m'
         return { label, cls: 'check' }
       })()
     : (hasStats && reading)
