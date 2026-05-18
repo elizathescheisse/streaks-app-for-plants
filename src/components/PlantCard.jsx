@@ -54,20 +54,25 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase())
 }
 
-// Returns a label + CSS class based on where current moisture sits relative to ideal range.
-// Colors deliberately match the health badge palette (struggling → okay → good → thriving).
+// Returns a badge label + which badge color to reuse, based on where the current
+// moisture reading sits relative to the plant's ideal range. The badge is action-
+// oriented ("what should I do about water right now?") — see designed-out cases:
+//   • very dry          → struggling color, "Water immediately"
+//   • below range       → okay color,       "Water"
+//   • bottom of range   → good color,       "Water soon"
+//   • in / just above   → thriving color,   "Healthy"
+//   • well above range  → okay color,       "Overwatered"
 function moistureStatus(moisture, [min, max]) {
   const val = Number(moisture)
-  const w   = max - min                        // range width
+  const w   = max - min                                  // range width
 
-  if (val < min - w * 0.75) return { label: '🚨 Very dry',      cls: 'urgencyRed'    }
-  if (val < min)             return { label: '💧 Needs water',   cls: 'urgencyYellow' }
-  if (val < min + w * 0.3)  return { label: '↓ Water soon',     cls: 'urgencyGreen'  }
-  if (val <= max - w * 0.3) return { label: '✓ Healthy',         cls: 'urgencyBright' }
-  if (val <= max)            return { label: '✓ Just watered',   cls: 'urgencyBright' }
-  if (val <= max + w * 0.75) return { label: '↑ Will dry out',  cls: 'urgencyGreen'  }
-  return                            { label: '⚠️ Overwatered',   cls: 'urgencyYellow' }
+  if (val < min - w * 0.75)  return { label: '🚨 Water immediately', cls: 'struggling' }
+  if (val < min)              return { label: '💧 Water',             cls: 'okay'       }
+  if (val < min + w * 0.3)   return { label: '💧 Water soon',        cls: 'good'       }
+  if (val <= max + w * 0.5)  return { label: '✓ Healthy',             cls: 'thriving'   }
+  return                             { label: '⚠️ Overwatered',       cls: 'okay'       }
 }
+
 
 export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
   const { emoji = '🌿', species, name } = plant
@@ -96,12 +101,11 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
           {/* ── Left column ── */}
           <div className={styles.cardLeft}>
 
-            {/* Name / species / badge */}
+            {/* Name + health-prefixed species line */}
             <div className={styles.top}>
               <span className={styles.name}>{name || titleCase(species)}</span>
-              {name && species && <span className={styles.species}>{titleCase(species)}</span>}
-              <span className={`${styles.badge} ${styles[`badge_${health}`]}`}>
-                {HEALTH_LABELS[health]}
+              <span className={styles.species}>
+                {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
               </span>
             </div>
 
@@ -165,9 +169,9 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
           {(reading || watering) && (
             <div className={styles.statsBlock}>
 
-              {/* Urgency signal — most important thing at a glance */}
+              {/* Watering action badge — reuses the health badge styling */}
               {status && (
-                <span className={`${styles.urgency} ${styles[status.cls]}`}>
+                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
                   {status.label}
                 </span>
               )}
