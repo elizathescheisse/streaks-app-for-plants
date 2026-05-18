@@ -103,7 +103,11 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
     watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
 
   const status = wateredAfterReading
-    ? { label: '✓ Watered', cls: 'thriving' }
+    ? (() => {
+        const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
+        const label = minsSince < 30 ? 'Check in 1hr' : 'Check in 30 mins'
+        return { label, cls: 'check' }
+      })()
     : (hasStats && reading)
     ? moistureStatus(reading.moisture, careProfile.moistureRange)
     : null
