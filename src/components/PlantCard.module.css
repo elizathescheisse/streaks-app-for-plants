@@ -126,6 +126,11 @@
 .badge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.14);  border-color: rgba(229,97,71,0.55);  }
 .badge_check     { color: #18A4E8;                 background: rgba(24,164,232,0.12); border-color: rgba(24,164,232,0.45);}
 
+.badgeIcon {
+  margin-right: 5px;
+  font-size: 0.9em;
+}
+
 
 .species {
   font-size: 12px;
