@@ -33,9 +33,13 @@ function waterLabel(unit, amount) {
   return amount
 }
 
-function formatTime(ts) {
-  return new Date(ts).toLocaleString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric'
+  })
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('en-US', {
     hour: 'numeric', minute: '2-digit'
   })
 }
@@ -247,7 +251,8 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
             return (
               <div key={bundle[0].bundleId} className={`${styles.logEntry} ${i < bundles.length - 1 ? styles.logEntryDivider : ''}`}>
                 <div className={styles.logTop}>
-                  <span className={styles.logDate}>{formatTime(ts)}</span>
+                  <span className={styles.logDate}>{fmtDate(ts)}</span>
+                  <span className={styles.logTime}>{fmtTime(ts)}</span>
                   {onEditLog && (
                     <button
                       className={styles.logEditBtn}
