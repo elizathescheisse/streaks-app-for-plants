@@ -276,3 +276,74 @@
   color: var(--brand-primary);
   font-style: normal;
 }
+
+/* ── Delete entry (edit mode only) ── */
+.deleteZone {
+  border-top: 1px solid var(--border-default);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.deleteEntryBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.deleteEntryBtn:hover {
+  color: var(--status-struggling);
+}
+
+.deleteConfirmText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.deleteConfirmActions {
+  display: flex;
+  gap: 8px;
+}
+
+.deleteCancelBtn {
+  flex: 1;
+  height: 40px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.3);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.deleteCancelBtn:hover {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+}
+
+.deleteConfirmBtn {
+  flex: 1;
+  height: 40px;
+  background: rgba(229,97,71,0.12);
+  border: 1px solid rgba(229,97,71,0.45);
+  border-radius: var(--radius-md);
+  color: var(--status-struggling);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.deleteConfirmBtn:hover {
+  background: rgba(229,97,71,0.24);
+  border-color: rgba(229,97,71,0.7);
+}

@@ -134,6 +134,16 @@ export default function App() {
     setPanel(null)
   }
 
+  function deleteLogBundle() {
+    const { plantId, editBundleId } = panel
+    if (!editBundleId) return
+    setPlants(ps => ps.map(p => {
+      if (p.id !== plantId) return p
+      return { ...p, events: (p.events ?? []).filter(e => e.bundleId !== editBundleId) }
+    }))
+    setPanel(null)
+  }
+
   // ── Export ──────────────────────────────────────────────
   function exportJSON() {
     const data = { schemaVersion: SCHEMA_VERSION, date: DATE_KEY, plants }
@@ -247,6 +257,7 @@ export default function App() {
             onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
             onSave={saveLogEntry}
             onCancel={() => setPanel(null)}
+            onDelete={panel.editBundleId ? deleteLogBundle : undefined}
           />
         </Modal>
       )}

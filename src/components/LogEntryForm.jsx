@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import styles from './LogEntryForm.module.css'
 
 const HEALTH_OPTIONS = [
@@ -50,7 +51,8 @@ function describePending(form) {
   return parts.length === 0 ? 'Nothing to save yet' : `Saving: ${parts.join(' · ')}`
 }
 
-export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, onCancel }) {
+export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, onCancel, onDelete }) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const moistureInt = form.moisture === '' ? null : Number(form.moisture)
   const summary = describePending(form)
@@ -185,6 +187,35 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
         </button>
         <p className={`${styles.preview} ${hasSomething ? styles.previewActive : ''}`}>{summary}</p>
       </div>
+
+      {/* ── Delete (edit mode only) ── */}
+      {isEdit && onDelete && (
+        <div className={styles.deleteZone}>
+          {confirmingDelete ? (
+            <>
+              <p className={styles.deleteConfirmText}>Delete this entry? This can't be undone.</p>
+              <div className={styles.deleteConfirmActions}>
+                <button
+                  type="button"
+                  className={styles.deleteCancelBtn}
+                  onClick={() => setConfirmingDelete(false)}
+                >Keep it</button>
+                <button
+                  type="button"
+                  className={styles.deleteConfirmBtn}
+                  onClick={onDelete}
+                >Yes, delete</button>
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className={styles.deleteEntryBtn}
+              onClick={() => setConfirmingDelete(true)}
+            >Delete this entry</button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
