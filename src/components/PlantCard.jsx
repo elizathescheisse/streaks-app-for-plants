@@ -97,7 +97,14 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
   const watering     = lastWatering(plant)
   const health       = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
-  const status = (hasStats && reading)
+  // If the plant was watered after the last reading, the moisture level
+  // is unknown — don't show a stale "Water now" recommendation.
+  const wateredAfterReading =
+    watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
+
+  const status = wateredAfterReading
+    ? { label: '✓ Watered', cls: 'thriving' }
+    : (hasStats && reading)
     ? moistureStatus(reading.moisture, careProfile.moistureRange)
     : null
 
