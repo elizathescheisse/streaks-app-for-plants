@@ -24,6 +24,13 @@ function mToY(moisture) {
 function fmtDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
+// Tooltip uses date + time so two events on the same day stay distinguishable.
+function fmtDateTime(ts) {
+  return new Date(ts).toLocaleString('en-US', {
+    month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit'
+  })
+}
 
 // Color a dot based on whether the moisture reading is within the ideal range.
 // Returns a CSS color string (uses design tokens where possible).
@@ -49,7 +56,8 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
   const [win, setWin] = useState('1M')
   const containerRef = useRef(null)
   const [svgWidth, setSvgWidth] = useState(400)
-  const [tooltip, setTooltip] = useState(null) // { reading, x, y } | null
+  // tooltip: { kind: 'reading' | 'watering', event, x, y } | null
+  const [tooltip, setTooltip] = useState(null)
 
   useEffect(() => {
     const el = containerRef.current
@@ -135,8 +143,12 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
               top: tooltip.y - 8,
             }}
           >
-            <span className={styles.tooltipMoisture}>◎ {tooltip.reading.moisture} / 10</span>
-            <span className={styles.tooltipDate}>{fmtDate(tooltip.reading.timestamp)}</span>
+            <span className={styles.tooltipMoisture}>
+              {tooltip.kind === 'watering'
+                ? `💧 ${tooltip.event.amount} ${tooltip.event.unit}`
+                : `◎ ${tooltip.event.moisture} / 10`}
+            </span>
+            <span className={styles.tooltipDate}>{fmtDateTime(tooltip.event.timestamp)}</span>
           </div>
         )}
         <svg width={svgWidth} height={SVG_H} className={styles.svg}>
@@ -171,7 +183,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
             const x = xAt(r.timestamp)
             const y = mToY(r.moisture)
             const fill = dotColor(r.moisture, careProfile?.moistureRange)
-            const isHovered = tooltip?.reading?.id === r.id
+            const isHovered = tooltip?.event?.id === r.id
             return (
               <circle
                 key={r.id}
@@ -180,23 +192,33 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
                 fill={fill}
                 opacity="0.9"
                 style={{ cursor: 'pointer', transition: 'r 0.1s' }}
-                onMouseEnter={() => setTooltip({ reading: r, x, y })}
+                onMouseEnter={() => setTooltip({ kind: 'reading', event: r, x, y })}
                 onMouseLeave={() => setTooltip(null)}
                 onTouchStart={e => {
                   e.stopPropagation()
-                  setTooltip(t => t?.reading?.id === r.id ? null : { reading: r, x, y })
+                  setTooltip(t => t?.event?.id === r.id ? null : { kind: 'reading', event: r, x, y })
                 }}
               />
             )
           })}
 
-          {/* Watering annotations */}
+          {/* Watering annotations — hover to see exact amount + timestamp */}
           {visibleWaterings.map(w => {
             const x = xAt(w.timestamp)
             const label = waterAbbr(w.unit, w.amount)
             if (!label) return null
+            const tipY = PLOT_TOP - 8                          // anchor tooltip near the label
             return (
-              <g key={w.id}>
+              <g
+                key={w.id}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => setTooltip({ kind: 'watering', event: w, x, y: tipY })}
+                onMouseLeave={() => setTooltip(null)}
+                onTouchStart={e => {
+                  e.stopPropagation()
+                  setTooltip(t => t?.event?.id === w.id ? null : { kind: 'watering', event: w, x, y: tipY })
+                }}
+              >
                 <line
                   x1={x} y1={PLOT_TOP - 4}
                   x2={x} y2={PLOT_BOT}
@@ -211,6 +233,12 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
                   fontFamily="Inter, sans-serif"
                   fill="rgba(140,204,235,0.85)"
                 >💧{label}</text>
+                {/* transparent hit area widens the hover target */}
+                <rect
+                  x={x - 14} y={PLOT_TOP - 16}
+                  width={28} height={20}
+                  fill="transparent"
+                />
               </g>
             )
           })}
