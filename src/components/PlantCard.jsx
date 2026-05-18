@@ -5,7 +5,6 @@ import PlantHistoryChart from './PlantHistoryChart.jsx'
 import Modal from './Modal.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
-import { computeModel, getRecommendation } from '../utils/plantModel.js'
 import PlantPrediction from './PlantPrediction.jsx'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Good', okay:'Okay', struggling:'Struggling' }
@@ -55,6 +54,21 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase())
 }
 
+// Returns a label + CSS class based on where current moisture sits relative to ideal range.
+// Colors deliberately match the health badge palette (struggling → okay → good → thriving).
+function moistureStatus(moisture, [min, max]) {
+  const val = Number(moisture)
+  const w   = max - min                        // range width
+
+  if (val < min - w * 0.75) return { label: '🚨 Very dry',      cls: 'urgencyRed'    }
+  if (val < min)             return { label: '💧 Needs water',   cls: 'urgencyYellow' }
+  if (val < min + w * 0.3)  return { label: '↓ Water soon',     cls: 'urgencyGreen'  }
+  if (val <= max - w * 0.3) return { label: '✓ Healthy',         cls: 'urgencyBright' }
+  if (val <= max)            return { label: '✓ Just watered',   cls: 'urgencyBright' }
+  if (val <= max + w * 0.75) return { label: '↑ Will dry out',  cls: 'urgencyGreen'  }
+  return                            { label: '⚠️ Overwatered',   cls: 'urgencyYellow' }
+}
+
 export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen]     = useState(false)
@@ -68,8 +82,9 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
   const watering     = lastWatering(plant)
   const health       = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
-  const model        = computeModel(plant)
-  const rec          = reading ? getRecommendation(plant, model, careProfile) : null
+  const status = (hasStats && reading)
+    ? moistureStatus(reading.moisture, careProfile.moistureRange)
+    : null
 
   return (
     <div className={styles.cardWrap}>
@@ -151,17 +166,9 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
             <div className={styles.statsBlock}>
 
               {/* Urgency signal — most important thing at a glance */}
-              {rec?.hasRange && (
-                <span className={`${styles.urgency} ${
-                  rec.daysUntilDry <= 0   ? styles.urgencyNow  :
-                  rec.daysUntilDry <= 1   ? styles.urgencySoon :
-                  rec.daysUntilDry <= 3   ? styles.urgencyOk   :
-                                            styles.urgencyGood
-                }`}>
-                  {rec.daysUntilDry <= 0 ? '🚨 Water now'                                :
-                   rec.daysUntilDry <= 1 ? '💧 Water today'                              :
-                   rec.daysUntilDry <= 3 ? `💧 Water in ${rec.daysUntilDry}d`            :
-                                           `✓ Good for ${Math.round(rec.daysUntilDry)}d`}
+              {status && (
+                <span className={`${styles.urgency} ${styles[status.cls]}`}>
+                  {status.label}
                 </span>
               )}
 

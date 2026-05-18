@@ -52,17 +52,18 @@
   width: 160px;
 }
 
-/* Urgency signal — top of stats block */
+/* Urgency signal — top of stats block.
+   Colors match the health badge palette: struggling → okay → good → thriving */
 .urgency {
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   text-align: right;
 }
-.urgencyNow  { color: var(--status-struggling); }
-.urgencySoon { color: var(--status-okay); }
-.urgencyOk   { color: var(--status-okay); opacity: 0.8; }
-.urgencyGood { color: var(--status-thriving); }
+.urgencyRed    { color: var(--status-struggling); }
+.urgencyYellow { color: var(--status-okay); }
+.urgencyGreen  { color: var(--status-good); }
+.urgencyBright { color: var(--status-thriving); }
 
 .statWater {
   font-size: 12px;
