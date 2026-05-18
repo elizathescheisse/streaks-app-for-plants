@@ -40,6 +40,13 @@
   font-weight: 600;
 }
 
+/* Shown after a watering before the next reading is taken */
+.settling {
+  font-size: 12px;
+  color: var(--data-water);
+  white-space: nowrap;
+}
+
 .residual {
   font-size: 11px;
   color: var(--text-muted);

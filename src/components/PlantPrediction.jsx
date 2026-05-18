@@ -1,6 +1,6 @@
 import styles from './PlantPrediction.module.css'
 import { computeModel, getRecommendation, getLastResidual } from '../utils/plantModel.js'
-import { lastReading } from '../utils/plantSelectors.js'
+import { lastReading, lastWatering } from '../utils/plantSelectors.js'
 
 function waterLabel(amount, unit) {
   if (!amount) return ''
@@ -23,12 +23,44 @@ function residualLabel(residual) {
     : `Last reading was ${diff} lower than predicted`
 }
 
+function relTime(ts) {
+  const mins = Math.floor((Date.now() - new Date(ts)) / 60_000)
+  if (mins < 60)  return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)   return `${hrs}h ago`
+  return 'today'
+}
+
 export default function PlantPrediction({ plant, careProfile }) {
-  const reading = lastReading(plant)
+  const reading  = lastReading(plant)
+  const watering = lastWatering(plant)
   if (!reading) return null
 
-  const model   = computeModel(plant)
-  const rec     = getRecommendation(plant, model, careProfile)
+  // If the most recent logged event is a watering (after the last reading),
+  // the model can't estimate current moisture — it has no idea how much
+  // the water raised the level. Show a settling state instead of a stale
+  // "Water today" recommendation.
+  const wateredAfterReading =
+    watering && new Date(watering.timestamp) > new Date(reading.timestamp)
+
+  if (wateredAfterReading) {
+    const wLabel = waterLabel(watering.amount, watering.unit)
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.row}>
+          <span className={styles.settling}>
+            💧 {wLabel ? `${wLabel} · ` : ''}Watered {relTime(watering.timestamp)}
+          </span>
+        </div>
+        <p className={styles.confidence}>
+          Take a new reading once it soaks in
+        </p>
+      </div>
+    )
+  }
+
+  const model    = computeModel(plant)
+  const rec      = getRecommendation(plant, model, careProfile)
   const residual = getLastResidual(plant, model)
   if (!rec) return null
 
