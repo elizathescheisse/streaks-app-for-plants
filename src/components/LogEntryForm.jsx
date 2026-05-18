@@ -3,7 +3,7 @@ import styles from './LogEntryForm.module.css'
 const HEALTH_OPTIONS = [
   { value: 'no_change',  label: 'No change'    },
   { value: 'thriving',   label: 'Thriving'     },
-  { value: 'good',       label: 'Good'         },
+  { value: 'good',       label: 'Healthy'      },
   { value: 'okay',       label: 'Okay'         },
   { value: 'struggling', label: 'Struggling'   },
 ]

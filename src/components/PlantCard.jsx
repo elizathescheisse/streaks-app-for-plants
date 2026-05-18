@@ -7,7 +7,7 @@ import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
 import PlantPrediction from './PlantPrediction.jsx'
 
-const HEALTH_LABELS = { thriving:'Thriving', good:'Good', okay:'Okay', struggling:'Struggling' }
+const HEALTH_LABELS = { thriving:'Thriving', good:'Healthy', okay:'Okay', struggling:'Struggling' }
 
 const LIGHT_LABELS = {
   'direct':         '☀️ Direct sun',
@@ -54,19 +54,47 @@ function titleCase(s) {
   return s.replace(/\b\w/g, c => c.toUpperCase())
 }
 
+// Returns a badge label + which badge color to reuse, based on where the current
+// moisture reading sits relative to the plant's ideal range. The badge is action-
+// oriented ("what should I do about water right now?") — see designed-out cases:
+//   • very dry          → struggling color, "Water immediately"
+//   • below range       → okay color,       "Water"
+//   • bottom of range   → good color,       "Water soon"
+//   • in / just above   → thriving color,   "Watered"
+//   • well above range  → okay color,       "Overwatered"
+function moistureStatus(moisture, [min, max]) {
+  const val = Number(moisture)
+  const w   = max - min                                  // range width
+  // Thresholds blend "proportional to range width" with an absolute floor of
+  // 2 moisture points — otherwise narrow ranges (e.g. fiddle leaf fig 4–5)
+  // trip the alarm states on tiny dips.
+  const dryBuffer = Math.max(w * 0.75, 2)                // red kicks in this far below min
+  const wetBuffer = Math.max(w * 0.5,  2)                // yellow over kicks in this far above max
+
+  if (val < min - dryBuffer)  return { label: '🚨 Water immediately', cls: 'struggling' }
+  if (val < min)               return { label: '💧 Water',             cls: 'okay'       }
+  if (val < min + w * 0.3)    return { label: '💧 Water soon',        cls: 'good'       }
+  if (val <= max + wetBuffer) return { label: '✓ Watered',             cls: 'thriving'   }
+  return                              { label: '⚠️ Overwatered',       cls: 'okay'       }
+}
+
+
 export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen]     = useState(false)
   const [infoOpen, setInfoOpen]           = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  const careProfile = lookupPlant(species)
-  const hasStats    = !!careProfile?.moistureRange
-  const bundles     = logBundles(plant)
-  const reading     = lastReading(plant)
-  const watering    = lastWatering(plant)
-  const health      = currentHealth(plant)
+  const careProfile  = lookupPlant(species)
+  const hasStats     = !!careProfile?.moistureRange
+  const bundles      = logBundles(plant)
+  const reading      = lastReading(plant)
+  const watering     = lastWatering(plant)
+  const health       = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
+  const status = (hasStats && reading)
+    ? moistureStatus(reading.moisture, careProfile.moistureRange)
+    : null
 
   return (
     <div className={styles.cardWrap}>
@@ -78,12 +106,11 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
           {/* ── Left column ── */}
           <div className={styles.cardLeft}>
 
-            {/* Name / species / badge */}
+            {/* Name + health-prefixed species line */}
             <div className={styles.top}>
               <span className={styles.name}>{name || titleCase(species)}</span>
-              {name && species && <span className={styles.species}>{titleCase(species)}</span>}
-              <span className={`${styles.badge} ${styles[`badge_${health}`]}`}>
-                {HEALTH_LABELS[health]}
+              <span className={styles.species}>
+                {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
               </span>
             </div>
 
@@ -143,15 +170,30 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
             </div>
           </div>
 
-          {/* ── Right column: stats block (shown for every plant with data) ── */}
+          {/* ── Right column: stats block ── */}
           {(reading || watering) && (
             <div className={styles.statsBlock}>
+
+              {/* Watering action badge — reuses the health badge styling */}
+              {status && (
+                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+                  {status.label}
+                </span>
+              )}
+
+              {/* Last watered — how long ago, not just amount */}
               {watering && (
-                <span className={styles.statWater}>💧 {waterLabel(watering.unit, watering.amount)}</span>
+                <span className={styles.statWater}>
+                  💧 {waterLabel(watering.unit, watering.amount)} · {relTime(watering.timestamp)}
+                </span>
               )}
+
+              {/* Last reading */}
               {reading && (
-                <span className={styles.statMoisture}>◎ {reading.moisture} / 10</span>
+                <span className={styles.statMoisture}>◎ {reading.moisture} / 10 · {relTime(reading.timestamp)}</span>
               )}
+
+              {/* Moisture bar */}
               {hasStats && reading && (
                 <div className={styles.statsBar}>
                   <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
