@@ -60,7 +60,7 @@ function titleCase(s) {
 //   • very dry          → struggling color, "Water immediately"
 //   • below range       → okay color,       "Water"
 //   • bottom of range   → good color,       "Water soon"
-//   • in / just above   → thriving color,   "Healthy"
+//   • in / just above   → thriving color,   "Watered"
 //   • well above range  → okay color,       "Overwatered"
 function moistureStatus(moisture, [min, max]) {
   const val = Number(moisture)
@@ -79,7 +79,7 @@ function moistureStatus(moisture, [min, max]) {
 }
 
 
-export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
+export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen]     = useState(false)
   const [infoOpen, setInfoOpen]           = useState(false)
@@ -247,6 +247,13 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog }) {
               <div key={bundle[0].bundleId} className={`${styles.logEntry} ${i < bundles.length - 1 ? styles.logEntryDivider : ''}`}>
                 <div className={styles.logTop}>
                   <span className={styles.logDate}>{formatTime(ts)}</span>
+                  {onEditLog && (
+                    <button
+                      className={styles.logEditBtn}
+                      onClick={() => onEditLog(bundle)}
+                      type="button"
+                    >Edit</button>
+                  )}
                 </div>
                 <div className={styles.logMeta}>
                   {reading && <span className={styles.moisture}>◎ {reading.moisture} / 10</span>}

@@ -353,6 +353,23 @@
   color: var(--text-secondary);
 }
 
+.logEditBtn {
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid rgba(71,133,61,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.logEditBtn:hover {
+  background: rgba(41,71,36,0.6);
+  color: var(--text-secondary);
+}
+
 .logMeta {
   display: flex;
   gap: 16px;
