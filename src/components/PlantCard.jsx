@@ -69,7 +69,7 @@ function moistureStatus(moisture, [min, max]) {
   if (val < min - w * 0.75)  return { label: '🚨 Water immediately', cls: 'struggling' }
   if (val < min)              return { label: '💧 Water',             cls: 'okay'       }
   if (val < min + w * 0.3)   return { label: '💧 Water soon',        cls: 'good'       }
-  if (val <= max + w * 0.5)  return { label: '✓ Well watered',        cls: 'thriving'   }
+  if (val <= max + w * 0.5)  return { label: '✓ Watered',             cls: 'thriving'   }
   return                             { label: '⚠️ Overwatered',       cls: 'okay'       }
 }
 
