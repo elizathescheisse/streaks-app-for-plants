@@ -7,7 +7,7 @@ import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
 import PlantPrediction from './PlantPrediction.jsx'
 
-const HEALTH_LABELS = { thriving:'Thriving', good:'Good', okay:'Okay', struggling:'Struggling' }
+const HEALTH_LABELS = { thriving:'Thriving', good:'Healthy', okay:'Okay', struggling:'Struggling' }
 
 const LIGHT_LABELS = {
   'direct':         '☀️ Direct sun',
