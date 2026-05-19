@@ -203,25 +203,26 @@
 
 .logBtn {
   padding: 6px 14px;
-  background: rgba(255,255,255,0.88);
+  background: rgba(255,255,255,0.75);
   border: none;
   border-radius: var(--radius-sm);
   color: #0e1a0c;
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-  transition: background 0.12s, transform 0.08s, box-shadow 0.12s;
+  transition: background 0.1s, transform 0.08s, box-shadow 0.1s;
 }
 
 .logBtn:hover {
   background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
 }
 
 .logBtn:active {
-  background: rgba(255,255,255,0.75);
-  transform: scale(0.96);
-  box-shadow: none;
+  background: rgba(255,255,255,0.9);
+  transform: scale(0.93) translateY(1px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .editBtn {
