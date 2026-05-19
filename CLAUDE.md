@@ -1,5 +1,9 @@
 # streaks_app_for_plants — Claude Instructions
 
+## Shorthand commands
+
+- **`gh <description>`** — means "file a GitHub issue: <description>". Create the issue immediately without asking for confirmation. Use good judgment on labels, detail, and whether it relates to any open issues.
+
 ## Project Overview
 A plant care tracking app with streak-based motivation. Users log moisture readings and watering events; the app learns each plant's individual α/β model to predict when to water next.
 
