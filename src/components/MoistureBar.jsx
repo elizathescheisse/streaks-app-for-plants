@@ -2,19 +2,30 @@ import styles from './MoistureBar.module.css'
 
 export default function MoistureBar({ value, range }) {
   const [lo, hi] = range
-  const inRange = value >= lo && value <= hi
   const pct = (v) => `${(v / 10) * 100}%`
 
-  let statusLabel, statusClass
-  if (value < lo) {
-    statusLabel = `Too dry — ideal is ${lo}–${hi}`
-    statusClass = styles.dry
-  } else if (value > hi) {
-    statusLabel = `Too wet — ideal is ${lo}–${hi}`
-    statusClass = styles.wet
-  } else {
+  // Distance outside the ideal range (0 if in range)
+  const dist = value < lo ? lo - value : value > hi ? value - hi : 0
+  // Matches the dotColor() buffer used in PlantHistoryChart
+  const slightlyOutside = dist > 0 && dist <= 2
+
+  let statusLabel, statusClass, dotClass
+  if (dist === 0) {
     statusLabel = `In range (${lo}–${hi})`
     statusClass = styles.ok
+    dotClass    = styles.dotOk
+  } else if (slightlyOutside) {
+    statusLabel = value < lo
+      ? `A little dry — ideal is ${lo}–${hi}`
+      : `A little wet — ideal is ${lo}–${hi}`
+    statusClass = styles.close
+    dotClass    = styles.dotClose
+  } else {
+    statusLabel = value < lo
+      ? `Too dry — ideal is ${lo}–${hi}`
+      : `Too wet — ideal is ${lo}–${hi}`
+    statusClass = value < lo ? styles.dry : styles.wet
+    dotClass    = styles.dotOut
   }
 
   return (
@@ -27,7 +38,7 @@ export default function MoistureBar({ value, range }) {
         />
         {/* Current value dot */}
         <div
-          className={`${styles.dot} ${inRange ? styles.dotOk : styles.dotOut}`}
+          className={`${styles.dot} ${dotClass}`}
           style={{ left: pct(value) }}
         />
       </div>

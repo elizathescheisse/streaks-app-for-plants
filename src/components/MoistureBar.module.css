@@ -33,8 +33,9 @@
   box-shadow: 0 0 4px rgba(0,0,0,0.4);
 }
 
-.dotOk  { background: var(--brand-bright); box-shadow: 0 0 6px rgba(69,209,87,0.5); }
-.dotOut { background: var(--status-struggling); box-shadow: 0 0 6px rgba(229,97,71,0.4); }
+.dotOk    { background: var(--brand-bright);      box-shadow: 0 0 6px rgba(69,209,87,0.5);  }
+.dotClose { background: var(--status-okay);       box-shadow: 0 0 6px rgba(224,199,64,0.4); }
+.dotOut   { background: var(--status-struggling); box-shadow: 0 0 6px rgba(229,97,71,0.4);  }
 
 .label {
   font-size: 11px;
@@ -44,6 +45,7 @@
   text-overflow: ellipsis;
 }
 
-.ok  { color: var(--brand-bright); }
-.dry { color: var(--status-okay); }
-.wet { color: var(--status-struggling); }
+.ok    { color: var(--brand-bright); }
+.close { color: var(--status-okay); }
+.dry   { color: var(--status-okay); }
+.wet   { color: var(--status-struggling); }
