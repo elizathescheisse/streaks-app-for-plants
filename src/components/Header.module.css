@@ -82,41 +82,6 @@
   border-color: rgba(71,133,61,0.75);
 }
 
-.chartToggle {
-  display: flex;
-  gap: 4px;
-  background: rgba(13,23,10,0.6);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 3px;
-}
-
-.toggleBtn {
-  height: 28px;
-  padding: 0 12px;
-  background: transparent;
-  border: none;
-  border-radius: 7px;
-  color: rgba(102,153,102,0.8);
-  font-size: 12px;
-  font-weight: 500;
-  transition: background 0.12s, color 0.12s;
-}
-
-.toggleBtn:hover {
-  background: var(--bg-surface-raised);
-  color: var(--text-secondary);
-}
-
-.toggleBtnActive {
-  background: var(--bg-surface-raised);
-  color: var(--text-secondary);
-}
-
 @media (max-width: 900px) {
   .header { padding: 0 20px; }
-}
-
-@media (max-width: 639px) {
-  .chartToggle { display: none; }
 }

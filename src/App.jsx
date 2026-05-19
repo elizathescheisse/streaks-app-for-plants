@@ -186,8 +186,6 @@ export default function App() {
         onExport={exportJSON}
         onImport={() => importRef.current.click()}
         onSettings={() => setSettingsOpen(true)}
-        chartWindow={chartWindow}
-        onChartWindowChange={setChartWindow}
       />
       {settingsOpen && (
         <SettingsModal
@@ -212,7 +210,20 @@ export default function App() {
                 </button>
               )}
             </div>
-            <p className={styles.hint}>Log your plants' health and watering for today.</p>
+            <div className={styles.hintRow}>
+              <p className={styles.hint}>Log your plants' health and watering for today.</p>
+              {plants.length > 0 && (
+                <div className={styles.chartToggle}>
+                  {['1W','1M','3M','all'].map(key => (
+                    <button
+                      key={key}
+                      className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
+                      onClick={() => setChartWindow(key)}
+                    >{key === 'all' ? 'All' : key}</button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className={styles.plantList}>
