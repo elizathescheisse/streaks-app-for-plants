@@ -104,15 +104,42 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
   const rangeY1 = rHi != null ? mToY(rHi) : null
   const rangeY2 = rLo != null ? mToY(rLo) : null
 
-  // Sample up to 6 reading dates for labels
-  const maxLabels = 6
-  const labelSet = new Set()
-  if (n <= maxLabels) {
-    for (let i = 0; i < n; i++) labelSet.add(i)
+  // Build per-date groups so same-day readings share one centered label
+  const dateMap = new Map()
+  visibleReadings.forEach(r => {
+    const key = fmtDate(r.timestamp)
+    const x   = xAt(r.timestamp)
+    if (!dateMap.has(key)) dateMap.set(key, { key, minX: x, maxX: x })
+    else {
+      const g = dateMap.get(key)
+      g.minX = Math.min(g.minX, x)
+      g.maxX = Math.max(g.maxX, x)
+    }
+  })
+  // Unique dates sorted left→right, each with a center x for the group
+  const uniqueDates = [...dateMap.values()]
+    .sort((a, b) => a.minX - b.minX)
+    .map(g => ({ dateStr: g.key, x: (g.minX + g.maxX) / 2 }))
+
+  // Sample up to 6 unique dates (evenly spaced), then drop any that are
+  // still too close together after sampling (min 38px gap)
+  const MAX_LABELS  = 6
+  const MIN_SPACING = 38
+  const nd = uniqueDates.length
+  let sampled
+  if (nd <= MAX_LABELS) {
+    sampled = uniqueDates
   } else {
-    labelSet.add(0)
-    labelSet.add(n - 1)
-    for (let i = 1; i < maxLabels - 1; i++) labelSet.add(Math.round(i * (n - 1) / (maxLabels - 1)))
+    const picked = new Set([0, nd - 1])
+    for (let i = 1; i < MAX_LABELS - 1; i++) {
+      picked.add(Math.round(i * (nd - 1) / (MAX_LABELS - 1)))
+    }
+    sampled = [...picked].sort((a, b) => a - b).map(i => uniqueDates[i])
+  }
+  const dateLabels = []
+  let lastLabelX = -Infinity
+  for (const l of sampled) {
+    if (l.x - lastLabelX >= MIN_SPACING) { dateLabels.push(l); lastLabelX = l.x }
   }
 
   const polyPoints = visibleReadings
@@ -243,20 +270,18 @@ export default function PlantHistoryChart({ readings, waterings, careProfile }) 
             )
           })}
 
-          {/* Date labels along the bottom (anchored to readings) */}
-          {visibleReadings.map((r, i) => {
-            if (!labelSet.has(i)) return null
-            const x = xAt(r.timestamp)
-            const anchor = i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'
+          {/* Date labels along the bottom — one per unique date, centered on same-day groups */}
+          {dateLabels.map((l, i) => {
+            const anchor = i === 0 ? 'start' : i === dateLabels.length - 1 ? 'end' : 'middle'
             return (
               <text
-                key={`dl-${r.id}`}
-                x={x} y={PLOT_BOT + 14}
+                key={`dl-${l.dateStr}`}
+                x={l.x} y={PLOT_BOT + 14}
                 textAnchor={anchor}
                 fontSize="9"
                 fontFamily="Inter, sans-serif"
                 fill="rgba(150,180,150,0.55)"
-              >{fmtDate(r.timestamp)}</text>
+              >{l.dateStr}</text>
             )
           })}
 
