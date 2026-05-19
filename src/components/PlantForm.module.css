@@ -361,3 +361,93 @@
   background: rgba(229,97,71,0.22);
   border-color: rgba(229,97,71,0.7);
 }
+
+/* ── Plant detail / care info section ── */
+.careInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(13,23,10,0.5);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.careWatering {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.careWateringTitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.careFreq {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.careNote {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.careRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.careTag {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.careTips {
+  border-top: 1px solid var(--border-default);
+  padding-top: 10px;
+}
+
+.careTipsLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.careTipsList {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.careTipsList li {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.editDivider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.editDivider::before,
+.editDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
