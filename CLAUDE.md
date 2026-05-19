@@ -11,6 +11,11 @@ Never leave a discussed idea, problem, or decision unresolved without capturing 
 - If multiple topics are in flight and one gets dropped when the user pivots to something new, flag the unresolved thread at the bottom of the next response before it gets lost.
 - At the end of a session, if anything was discussed but not captured in a GitHub issue or committed code, call it out explicitly.
 
+**When filing a proactive (unconfirmed) issue:**
+1. Prefix the title with `[loose thread]` — e.g. `[loose thread] Add animation when cards reorder`
+2. Add a `loose-thread` label
+3. In the issue body, include the relevant conversation excerpt — what Eliza said, what Claude responded, and why it wasn't explicitly confirmed — so future-Eliza has full context on why it ended up in the backlog unconfirmed
+
 ## Shorthand commands
 
 - **`gh <description>`** — means "file a GitHub issue: <description>". Create the issue immediately without asking for confirmation. Use good judgment on labels, detail, and whether it relates to any open issues.
