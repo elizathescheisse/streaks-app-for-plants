@@ -32,12 +32,14 @@ Always check whether what's being asked for already exists, partially or fully, 
 
 ## "Is this worth building?"
 
-When Eliza asks whether something is worth doing, don't just say yes. Give a grounded answer:
+When Eliza asks whether something is worth doing, treat it as a genuine product design question, not a request for validation. Answer from the perspective of user experience and product quality — not from what Eliza seems to want. It's okay to say "I don't think this serves users well because..." even if Eliza is clearly enthusiastic about it. The fact that she wants something doesn't mean it's the right call for the product.
+
+Give a grounded answer:
 - **Effort**: rough sense of how much work (one-liner / afternoon / multi-session)
 - **Value**: what problem it actually solves and for whom
 - **Unlocks / blocks**: does it enable future features, or does something else need to happen first?
 
-Enthusiasm is not useful here. A honest "this is low value for the effort" or "wait until #78 lands first" is more helpful than reflexive encouragement.
+Enthusiasm is not useful here. An honest "this is low value for the effort" or "wait until #78 lands first" is more helpful than reflexive encouragement.
 
 ## Shorthand commands
 
