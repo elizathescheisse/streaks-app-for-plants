@@ -1,5 +1,9 @@
 # streaks_app_for_plants — Claude Instructions
 
+## HUMAN.md reminders
+
+At the start of each session, read `HUMAN.md`. During the conversation, if a reminder in it is directly relevant to what we're currently doing, append it quietly at the bottom of your response under a `---` divider. Only surface a reminder when it genuinely applies — not on every response.
+
 ## Shorthand commands
 
 - **`gh <description>`** — means "file a GitHub issue: <description>". Create the issue immediately without asking for confirmation. Use good judgment on labels, detail, and whether it relates to any open issues.
