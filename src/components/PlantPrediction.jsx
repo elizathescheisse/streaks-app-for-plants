@@ -62,7 +62,7 @@ export default function PlantPrediction({ plant, careProfile }) {
               ? 'Log paired readings to unlock predictions'
               : totalSamples === 1
               ? '1 of 3 observations — 2 more to go'
-              : '2 of 3 observations — almost there'}
+              : '2 of 3 observations collected'}
           </span>
         </div>
       </div>
