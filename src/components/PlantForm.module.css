@@ -161,7 +161,7 @@
 .historyBadge_good      { color: var(--status-good);      background: rgba(140,217,102,0.1); border-color: rgba(140,217,102,0.4); }
 .historyBadge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.1);  border-color: rgba(224,199,64,0.4);  }
 .historyBadge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.1);   border-color: rgba(229,97,71,0.4);   }
-.historyBadge_water     { color: #f5c400;                 background: rgba(245,196,0,0.1);   border-color: rgba(245,196,0,0.45);  }
+.historyBadge_water     { color: var(--status-water);     background: rgba(245,212,0,0.1);   border-color: rgba(245,212,0,0.45);  }
 
 .historyBar  { margin-top: 4px; }
 
