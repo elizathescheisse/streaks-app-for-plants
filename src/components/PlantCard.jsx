@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantCard.module.css'
 import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
@@ -97,7 +99,19 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
   const watering     = lastWatering(plant)
   const health       = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
-  const status = (hasStats && reading)
+  // If the plant was watered after the last reading, the moisture level
+  // is unknown — don't show a stale "Water now" recommendation.
+  const wateredAfterReading =
+    watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
+
+  const status = wateredAfterReading
+    ? (() => {
+        const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
+        const minsLeft = Math.round(Math.max(0, 60 - minsSince))
+        const label = minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now'
+        return { label, cls: 'check', icon: faClock }
+      })()
+    : (hasStats && reading)
     ? moistureStatus(reading.moisture, careProfile.moistureRange)
     : null
 
@@ -182,6 +196,7 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
               {/* Watering action badge — reuses the health badge styling */}
               {status && (
                 <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
                   {status.label}
                 </span>
               )}
