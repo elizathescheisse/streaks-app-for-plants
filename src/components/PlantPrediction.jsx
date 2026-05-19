@@ -56,9 +56,6 @@ export default function PlantPrediction({ plant, careProfile }) {
     const nameStr   = name ? `${name} generally likes water` : 'This plant generally likes water'
     return (
       <div className={styles.wrap}>
-        <div className={styles.moistureRow}>
-          <span className={styles.moistureRaw}>◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})</span>
-        </div>
         {freq ? (
           <p className={styles.speciesDefault}>
             {nameStr} <strong>{freq}</strong>.

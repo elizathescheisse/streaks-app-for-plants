@@ -230,7 +230,20 @@ export default function App() {
                   onChange={e => setSearchQuery(e.target.value)}
                 />
 
-                {/* View-switcher: grid icon + dropdown */}
+                {/* Chart window toggle — hidden when there's no chart */}
+                {cardView === 'chart' && (
+                  <div className={styles.chartToggle}>
+                    {['1W','1M','3M','all'].map(key => (
+                      <button
+                        key={key}
+                        className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
+                        onClick={() => setChartWindow(key)}
+                      >{key === 'all' ? 'All' : key}</button>
+                    ))}
+                  </div>
+                )}
+
+                {/* View-switcher: grid icon + dropdown — always rightmost so it doesn't shift */}
                 <div className={styles.viewSwitcher}>
                   <button
                     className={`${styles.viewSwitcherBtn} ${viewMenuOpen ? styles.viewSwitcherBtnOpen : ''}`}
@@ -259,19 +272,6 @@ export default function App() {
                     </>
                   )}
                 </div>
-
-                {/* Chart window toggle — hidden when there's no chart */}
-                {cardView === 'chart' && (
-                  <div className={styles.chartToggle}>
-                    {['1W','1M','3M','all'].map(key => (
-                      <button
-                        key={key}
-                        className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
-                        onClick={() => setChartWindow(key)}
-                      >{key === 'all' ? 'All' : key}</button>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
           </div>

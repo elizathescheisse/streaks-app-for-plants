@@ -161,6 +161,13 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               <span className={styles.species}>
                 {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
               </span>
+              {/* In compact mode the badge lives here (top-right), in chart mode it's in statsBlock */}
+              {isCompact && status && (
+                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline}`}>
+                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+                  {status.label}
+                </span>
+              )}
             </div>
 
             {/* ── CHART MODE only: mobile stat rows + chart + prediction-mobile ── */}
@@ -203,14 +210,7 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               </div>
             )}
 
-            {/* ── COMPACT MODE only: badge + bar + prediction full-width ── */}
-            {isCompact && status && (
-              <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
-                {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                {status.label}
-              </span>
-            )}
-
+            {/* ── COMPACT MODE only: bar + prediction full-width ── */}
             {isCompact && hasStats && badgeMoisture != null && (
               <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
             )}
