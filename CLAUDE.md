@@ -113,6 +113,18 @@ This is a pre-flight check, not an afterthought — run it before writing any `u
 - **Auto-layout height collapse**: After `resize(w, h)`, always explicitly set `primaryAxisSizingMode = 'AUTO'` on the group if you want height to hug content — `resize()` freezes sizing modes to FIXED
 - **Chart strips**: The SVG-like chart elements (rotated line segments, dots) must live in regular frames, not auto-layout frames, since rotation breaks auto-layout
 
+## Testing
+
+Run `npm test` in these situations — not mechanically on every change, but as a safety check when it matters:
+
+1. **After editing `plantModel.js` or `plantSelectors.js`** — these are the files the tests cover. Run before committing.
+2. **After editing the test files themselves** — make sure no test is accidentally broken or vacuously passing.
+3. **Before opening a PR** — final sanity check regardless of what changed. Cheap insurance.
+
+Skip running tests for pure CSS changes, JSX layout tweaks, or new components that don't touch model/selector logic — tests can't catch those anyway.
+
+If a test fails unexpectedly: fix the code (not the test) unless the test itself is wrong. A failing test on a "safe" change is a signal something unexpected broke.
+
 ---
 
 ## GitHub Workflow
@@ -134,18 +146,17 @@ Before creating any PR, always:
 - `needs-discussion` — unclear, think it through before building
 
 ### Staying in sync with main
-At the start of any new task, and whenever the user mentions that PRs have been merged, run:
-```
-git fetch && git status
-```
-If local `main` is behind `origin/main`, pull before doing anything else:
+Proactively pull from origin/main whenever there's any reason to think remote might be ahead of local — don't wait to be asked. This includes: the user mentioning a merge, asking about PRs, starting a new coding task, or any gap in conversation where merges could have happened. When in doubt, just check:
 ```
 git checkout main && git pull
+git branch -vv   # delete any local branches whose PRs have merged
 ```
-Then delete any local branches whose PRs have merged. Never start a new branch or commit new work on a stale local main — always pull first.
+Never start a new branch or commit new work on a stale local main.
+
+**After creating or updating a PR**: at the start of the very next response, silently check if it merged with `gh pr view <N> --json state -q .state` before doing anything else. If merged: pull main and delete the branch immediately. Don't wait for the user to mention it.
 
 ### Branch cleanup
-After any PR is merged, delete the corresponding local branch. Always check for stale local branches by running `git branch -vv` and deleting any whose remote PR has merged. Do this proactively at the end of a session or whenever switching tasks — don't wait to be asked.
+Delete local branches as soon as their PR merges — proactively, without being asked. Run `git branch -vv` to spot stale ones (shown as `[origin/...: gone]`). Delete with `git branch -d <name>`.
 
 ### Filing issues
 When a good idea comes up in conversation but we're not building it now, file a GitHub issue rather than letting it get lost. Include:
