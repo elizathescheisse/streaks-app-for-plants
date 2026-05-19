@@ -19,10 +19,10 @@ export const EMPTY_PLANT_FORM = {
 }
 
 const HEALTH_OPTIONS = [
-  { value: 'thriving',   label: '🌟 Thriving'   },
-  { value: 'good',       label: '✓ Healthy'     },
-  { value: 'okay',       label: '~ Okay'        },
-  { value: 'struggling', label: '⚠ Struggling'  },
+  { value: 'thriving',   label: 'Thriving'   },
+  { value: 'good',       label: 'Healthy'    },
+  { value: 'okay',       label: 'Okay'       },
+  { value: 'struggling', label: 'Struggling' },
 ]
 
 const LIGHT_LABELS = {
