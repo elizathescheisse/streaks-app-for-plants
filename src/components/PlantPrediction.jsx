@@ -67,6 +67,12 @@ export default function PlantPrediction({ plant, careProfile }) {
     )
   }
 
+  const wateringStyleLabel = careProfile?.wateringStyle === 'flood-and-dry'
+    ? '🌊 Flood & dry out'
+    : careProfile?.wateringStyle === 'consistent'
+    ? '🪣 Consistent moisture'
+    : null
+
   return (
     <div className={styles.wrap}>
       <span className={styles.moistureRaw}>
@@ -75,6 +81,9 @@ export default function PlantPrediction({ plant, careProfile }) {
       <span className={styles.moistureEst}>
         ◎ {Math.round(predicted)} (estimated now)
       </span>
+      {wateringStyleLabel && (
+        <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+      )}
     </div>
   )
 }
