@@ -151,9 +151,11 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               <button className={styles.nameBtn} onClick={onEdit} type="button">
                 {name || titleCase(species)}<span className={styles.nameBtnChevron}>›</span>
               </button>
-              <span className={styles.species}>
-                {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
-              </span>
+              {!isCompact && (
+                <span className={styles.species}>
+                  {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
+                </span>
+              )}
               {/* In compact mode the badge lives here (top-right), in chart mode it's in statsBlock */}
               {isCompact && status && (
                 <span className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline}`}>
