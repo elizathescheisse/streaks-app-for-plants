@@ -16,6 +16,37 @@
 
 .card:hover { border-color: rgba(71,133,61,0.55); }
 
+/* Focus-mode status tints — subtle background wash + colored border */
+.cardStatus_struggling {
+  background: rgba(229, 97, 71, 0.07);
+  border-color: rgba(229, 97, 71, 0.45);
+}
+.cardStatus_struggling:hover { border-color: rgba(229, 97, 71, 0.65); }
+
+.cardStatus_okay {
+  background: rgba(224, 199, 64, 0.06);
+  border-color: rgba(224, 199, 64, 0.38);
+}
+.cardStatus_okay:hover { border-color: rgba(224, 199, 64, 0.58); }
+
+.cardStatus_good {
+  background: rgba(140, 217, 102, 0.05);
+  border-color: rgba(140, 217, 102, 0.32);
+}
+.cardStatus_good:hover { border-color: rgba(140, 217, 102, 0.52); }
+
+.cardStatus_thriving {
+  background: rgba(64, 217, 97, 0.05);
+  border-color: rgba(64, 217, 97, 0.32);
+}
+.cardStatus_thriving:hover { border-color: rgba(64, 217, 97, 0.52); }
+
+.cardStatus_check {
+  background: rgba(24, 164, 232, 0.05);
+  border-color: rgba(24, 164, 232, 0.32);
+}
+.cardStatus_check:hover { border-color: rgba(24, 164, 232, 0.52); }
+
 .iconCircle {
   width: 48px; height: 48px;
   border-radius: 50%;

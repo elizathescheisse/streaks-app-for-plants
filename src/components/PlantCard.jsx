@@ -138,7 +138,7 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
 
   return (
     <div className={styles.cardWrap}>
-      <div className={`${styles.card} ${styles[health]}`}>
+      <div className={`${styles.card} ${styles[health]} ${isCompact && status ? styles[`cardStatus_${status.cls}`] : ''}`}>
         <div className={styles.iconCircle}>{emoji}</div>
 
         <div className={styles.cardInner}>
