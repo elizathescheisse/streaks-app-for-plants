@@ -86,7 +86,7 @@ function moistureStatus(moisture, [min, max]) {
 }
 
 
-export default function PlantCard({ plant, onEdit, onLog, onEditLog }) {
+export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
   const [infoOpen, setInfoOpen]       = useState(false)
@@ -183,7 +183,7 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog }) {
             {/* History chart — inline, only if ≥2 readings */}
             {readings.length >= 2 && (
               <div className={styles.chartInline}>
-                <PlantHistoryChart readings={readings} waterings={waterings} careProfile={careProfile} />
+                <PlantHistoryChart readings={readings} waterings={waterings} careProfile={careProfile} window={chartWindow} />
               </div>
             )}
 

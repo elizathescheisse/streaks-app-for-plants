@@ -19,9 +19,6 @@ const DATE_KEY = today.toISOString().slice(0, 10)
 function formatDate(d) {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
 }
-function formatDay(d) {
-  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric' })
-}
 
 // One-time schema reset — clears any old-format data on first load
 function loadInitialPlants() {
@@ -44,6 +41,8 @@ export default function App() {
   //   { mode: 'log', plantId, form }         — log-entry form
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [chartWindow, setChartWindow] = useState('1M')
+  const [searchQuery, setSearchQuery] = useState('')
   const importRef = useRef()
 
   useEffect(() => {
@@ -199,10 +198,7 @@ export default function App() {
         <section className={styles.listCol}>
           <div className={styles.dateBlock}>
             <div className={styles.dateRow}>
-              <div>
-                <h1 className={styles.bigDate}>{formatDate(today)}</h1>
-                <p className={styles.subDate}>{formatDay(today)}</p>
-              </div>
+              <h1 className={styles.bigDate}>{formatDate(today)}</h1>
               {plants.length > 0 && (
                 <button className={styles.addBtn} onClick={openAdd}>
                   + Add Plant
@@ -210,6 +206,26 @@ export default function App() {
               )}
             </div>
             <p className={styles.hint}>Log your plants' health and watering for today.</p>
+            {plants.length > 0 && (
+              <div className={styles.controlRow}>
+                <input
+                  className={styles.searchInput}
+                  type="search"
+                  placeholder="Search plants…"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+                <div className={styles.chartToggle}>
+                  {['1W','1M','3M','all'].map(key => (
+                    <button
+                      key={key}
+                      className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
+                      onClick={() => setChartWindow(key)}
+                    >{key === 'all' ? 'All' : key}</button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={styles.plantList}>
@@ -221,15 +237,29 @@ export default function App() {
                   + Add your first plant
                 </button>
               </div>
-            ) : plants.map(p => (
-              <PlantCard
-                key={p.id}
-                plant={p}
-                onEdit={() => editPlant(p)}
-                onLog={() => openLog(p)}
-                onEditLog={(bundle) => openEditLog(p, bundle)}
-              />
-            ))}
+            ) : (() => {
+              const q = searchQuery.trim().toLowerCase()
+              const filtered = q
+                ? plants.filter(p =>
+                    (p.name    && p.name.toLowerCase().includes(q)) ||
+                    (p.species && p.species.toLowerCase().includes(q)) ||
+                    (p.emoji   && p.emoji.includes(searchQuery.trim()))
+                  )
+                : plants
+              if (filtered.length === 0) return (
+                <p className={styles.noResults}>No plants match "{searchQuery.trim()}"</p>
+              )
+              return filtered.map(p => (
+                <PlantCard
+                  key={p.id}
+                  plant={p}
+                  onEdit={() => editPlant(p)}
+                  onLog={() => openLog(p)}
+                  onEditLog={(bundle) => openEditLog(p, bundle)}
+                  chartWindow={chartWindow}
+                />
+              ))
+            })()}
           </div>
         </section>
       </main>
