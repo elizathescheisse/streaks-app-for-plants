@@ -35,10 +35,19 @@ function fmtDateTime(ts) {
 // Color a dot based on whether the moisture reading is within the ideal range.
 // Returns a CSS color string (uses design tokens where possible).
 // Falls back to the existing blue if no range is known for this species.
-function dotColor(moisture, range) {
+function dotColor(moisture, careProfile) {
+  const range = careProfile?.moistureRange
   if (!range || range[0] == null) return 'rgba(140,204,235,0.9)'
   const [lo, hi] = range
   const val = Number(moisture)
+
+  if (careProfile?.wateringStyle === 'flood-and-dry') {
+    const dry = careProfile.dryThreshold ?? lo
+    if (val <= dry)       return 'var(--status-struggling)'  // needs water — red
+    if (val <= dry + 1)   return 'var(--status-okay)'        // getting close — yellow
+    return                       'var(--status-thriving)'    // drying out, healthy — green
+  }
+
   if (val >= lo && val <= hi) return 'var(--status-thriving)'   // in range — green
   const dist = val < lo ? lo - val : val - hi
   if (dist <= 1) return 'var(--status-okay)'                    // slightly outside — yellow
@@ -215,7 +224,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
           {visibleReadings.map((r, i) => {
             const x = xAt(r.timestamp)
             const y = mToY(r.moisture)
-            const fill = dotColor(r.moisture, careProfile?.moistureRange)
+            const fill = dotColor(r.moisture, careProfile)
             const isHovered = tooltip?.event?.id === r.id
             return (
               <circle
@@ -242,7 +251,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
             const estY   = mToY(Math.min(10, Math.max(0, predictedMoisture)))
             const lastX  = xAt(lastR.timestamp)
             const lastY  = mToY(lastR.moisture)
-            const estColor = dotColor(predictedMoisture, careProfile?.moistureRange)
+            const estColor = dotColor(predictedMoisture, careProfile)
             const isHovered = tooltip?.kind === 'estimated'
             return (
               <g key="est">
