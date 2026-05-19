@@ -4,6 +4,36 @@
   gap: 4px;
   width: 100%;
   margin-top: 6px;
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 5px 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.tooltipValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tooltipLabel {
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 .track {
@@ -21,6 +51,7 @@
   background: rgba(56, 178, 71, 0.35);
   border-radius: 3px;
   border: 1px solid rgba(56, 178, 71, 0.5);
+  cursor: pointer;
 }
 
 .dot {
@@ -31,6 +62,17 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   box-shadow: 0 0 4px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+
+/* Expand touch/click target without changing visual size */
+.dot::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
 }
 
 .dotOk    { background: var(--brand-bright);      box-shadow: 0 0 6px rgba(69,209,87,0.5);  }

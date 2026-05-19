@@ -25,3 +25,4 @@ dist/
 # Local data exports / backups
 archive/
 plant-streaks-*.json
+temporary_screenshots/

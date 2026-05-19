@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import styles from './MoistureBar.module.css'
 
 export default function MoistureBar({ value, range }) {
+  const [tooltip, setTooltip] = useState(null) // 'dot' | 'range' | null
   const [lo, hi] = range
   const pct = (v) => `${(v / 10) * 100}%`
 
@@ -9,40 +11,52 @@ export default function MoistureBar({ value, range }) {
   // 1 unit outside = "a little off" (yellow); more than 1 = problem (red)
   const slightlyOutside = dist > 0 && dist <= 1
 
-  let statusLabel, statusClass, dotClass
+  let statusLabel, dotClass
   if (dist === 0) {
     statusLabel = `In range (${lo}–${hi})`
-    statusClass = styles.ok
     dotClass    = styles.dotOk
   } else if (slightlyOutside) {
     statusLabel = value < lo
       ? `A little dry — ideal is ${lo}–${hi}`
       : `A little wet — ideal is ${lo}–${hi}`
-    statusClass = styles.close
     dotClass    = styles.dotClose
   } else {
     statusLabel = value < lo
       ? `Too dry — ideal is ${lo}–${hi}`
       : `Too wet — ideal is ${lo}–${hi}`
-    statusClass = value < lo ? styles.dry : styles.wet
     dotClass    = styles.dotOut
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} onTouchStart={() => setTooltip(null)}>
+      {tooltip && (
+        <div className={styles.tooltip}>
+          <span className={styles.tooltipValue}>
+            {tooltip === 'dot' ? `◎ ${value} / 10` : statusLabel}
+          </span>
+          {tooltip === 'dot' && (
+            <span className={styles.tooltipLabel}>{statusLabel}</span>
+          )}
+        </div>
+      )}
       <div className={styles.track}>
-        {/* Ideal range fill */}
+        {/* Ideal range fill — hover/tap shows status label */}
         <div
           className={styles.rangeFill}
           style={{ left: pct(lo), width: pct(hi - lo) }}
+          onMouseEnter={() => setTooltip('range')}
+          onMouseLeave={() => setTooltip(null)}
+          onTouchStart={e => { e.stopPropagation(); setTooltip(t => t === 'range' ? null : 'range') }}
         />
-        {/* Current value dot */}
+        {/* Current value dot — hover/tap shows exact moisture reading */}
         <div
           className={`${styles.dot} ${dotClass}`}
           style={{ left: pct(value) }}
+          onMouseEnter={() => setTooltip('dot')}
+          onMouseLeave={() => setTooltip(null)}
+          onTouchStart={e => { e.stopPropagation(); setTooltip(t => t === 'dot' ? null : 'dot') }}
         />
       </div>
-      <span className={`${styles.label} ${statusClass}`}>{statusLabel}</span>
     </div>
   )
 }
