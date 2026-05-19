@@ -3,6 +3,7 @@ import Header from './components/Header.jsx'
 import PlantCard from './components/PlantCard.jsx'
 import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
 import LogEntryForm, { createEmptyLogForm } from './components/LogEntryForm.jsx'
+import QuickLogModal from './components/QuickLogModal.jsx'
 import EdgeGlow from './components/EdgeGlow.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import Modal from './components/Modal.jsx'
@@ -168,6 +169,19 @@ export default function App() {
     setPanel(null)
   }
 
+  // ── Quick log ───────────────────────────────────────────
+  function openQuickLog(plant, type) {
+    setPanel({ mode: 'quickLog', plantId: plant.id, quickType: type })
+  }
+
+  function saveQuickLog(events) {
+    const { plantId } = panel
+    setPlants(ps => ps.map(p =>
+      p.id !== plantId ? p : { ...p, events: [...(p.events ?? []), ...events] }
+    ))
+    setPanel(null)
+  }
+
   // ── Export ──────────────────────────────────────────────
   function exportJSON() {
     const data = { schemaVersion: SCHEMA_VERSION, date: DATE_KEY, plants }
@@ -314,6 +328,8 @@ export default function App() {
                   plant={p}
                   onEdit={() => editPlant(p)}
                   onLog={() => openLog(p)}
+                  onQuickWater={() => openQuickLog(p, 'water')}
+                  onQuickReading={() => openQuickLog(p, 'reading')}
                   onEditLog={(bundle) => openEditLog(p, bundle)}
                   chartWindow={chartWindow}
                   cardView={cardView}
@@ -339,6 +355,17 @@ export default function App() {
               const p = plants.find(p => p.id === panel.form.id)
               if (p) openEditLog(p, bundle)
             }}
+          />
+        </Modal>
+      )}
+
+      {panel?.mode === 'quickLog' && (
+        <Modal onClose={() => setPanel(null)}>
+          <QuickLogModal
+            type={panel.quickType}
+            plant={plants.find(p => p.id === panel.plantId)}
+            onSave={saveQuickLog}
+            onCancel={() => setPanel(null)}
           />
         </Modal>
       )}

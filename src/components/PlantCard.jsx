@@ -91,7 +91,7 @@ function moistureStatus(moisture, [min, max], waterNeeded, waterUnit) {
 }
 
 
-export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow, cardView = 'chart' }) {
+export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
   const isCompact = cardView === 'compact'
@@ -221,12 +221,19 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
                   >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
                 )}
               </div>
-              {/* Compact: always-visible prominent Log button. Chart: mobile-only (desktop is in statsBlock) */}
-              <button
-                className={`${styles.logBtn} ${isCompact ? styles.logBtnCompact : styles.logBtnMobile}`}
-                onClick={onLog}
-                title="Log entry"
-              >+ Log</button>
+              {/* Compact: two quick-log buttons. Chart: single Log button (mobile only; desktop is in statsBlock) */}
+              {isCompact ? (
+                <div className={styles.quickLogBtns}>
+                  <button className={styles.quickLogBtn} onClick={onQuickWater}   title="Log watering">💧 Water</button>
+                  <button className={styles.quickLogBtn} onClick={onQuickReading} title="Log reading">◎ Reading</button>
+                </div>
+              ) : (
+                <button
+                  className={`${styles.logBtn} ${styles.logBtnMobile}`}
+                  onClick={onLog}
+                  title="Log entry"
+                >+ Log</button>
+              )}
             </div>
           </div>
 

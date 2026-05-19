@@ -315,6 +315,34 @@
   font-weight: 700;
 }
 
+/* Compact-mode quick-log buttons */
+.quickLogBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.quickLogBtn {
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.75);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #0e1a0c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.1s, transform 0.08s, box-shadow 0.1s;
+}
+.quickLogBtn:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+.quickLogBtn:active {
+  background: rgba(255,255,255,0.9);
+  transform: scale(0.93) translateY(1px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
 .logBtn:active {
   background: rgba(255,255,255,0.9);
   transform: scale(0.93) translateY(1px);
