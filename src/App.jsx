@@ -44,6 +44,7 @@ export default function App() {
   //   { mode: 'log', plantId, form }         — log-entry form
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [chartWindow, setChartWindow] = useState('1M')
   const importRef = useRef()
 
   useEffect(() => {
@@ -185,6 +186,8 @@ export default function App() {
         onExport={exportJSON}
         onImport={() => importRef.current.click()}
         onSettings={() => setSettingsOpen(true)}
+        chartWindow={chartWindow}
+        onChartWindowChange={setChartWindow}
       />
       {settingsOpen && (
         <SettingsModal
@@ -228,6 +231,7 @@ export default function App() {
                 onEdit={() => editPlant(p)}
                 onLog={() => openLog(p)}
                 onEditLog={(bundle) => openEditLog(p, bundle)}
+                chartWindow={chartWindow}
               />
             ))}
           </div>
