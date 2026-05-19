@@ -78,6 +78,10 @@
   max-width: 300px;
 }
 
+/* Log button variants: desktop lives in statsBlock, mobile lives in actions row */
+.logBtnDesktop { display: none; }  /* shown only on desktop via media query below */
+.logBtnMobile  {}                  /* shown on mobile, hidden on desktop */
+
 /* ── Responsive: mobile collapses stats block into left column ── */
 @media (max-width: 639px) {
   .statsBlock    { display: none; }
@@ -87,6 +91,8 @@
 
 @media (min-width: 640px) {
   .metaMobileOnly { display: none !important; }
+  .logBtnDesktop  { display: block; width: 100%; }
+  .logBtnMobile   { display: none !important; }
 }
 
 /* Legacy .info — kept for safety */

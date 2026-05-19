@@ -207,32 +207,36 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog }) {
                   title="View history"
                 >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
               </div>
-              <button className={styles.logBtn} onClick={onLog} title="Log entry">
+              {/* Mobile-only Log button — hidden on desktop where it lives in the stats block */}
+              <button className={`${styles.logBtn} ${styles.logBtnMobile}`} onClick={onLog} title="Log entry">
                 + Log
               </button>
             </div>
           </div>
 
-          {/* ── Right column: stats block ── */}
-          {(reading || watering) && (
-            <div className={styles.statsBlock}>
+          {/* ── Right column: stats block — always rendered so Log button shows on desktop ── */}
+          <div className={styles.statsBlock}>
 
-              {/* Watering action badge — reuses the health badge styling */}
-              {status && (
-                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
-                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                  {status.label}
-                </span>
-              )}
+            {/* Watering action badge — reuses the health badge styling */}
+            {status && (
+              <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+                {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+                {status.label}
+              </span>
+            )}
 
-              {/* Moisture bar — uses predicted moisture when drift is significant */}
-              {hasStats && badgeMoisture != null && (
-                <div className={styles.statsBar}>
-                  <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
-                </div>
-              )}
-            </div>
-          )}
+            {/* Moisture bar — uses predicted moisture when drift is significant */}
+            {hasStats && badgeMoisture != null && (
+              <div className={styles.statsBar}>
+                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
+              </div>
+            )}
+
+            {/* Log button — right edge of card, under the badge/bar */}
+            <button className={`${styles.logBtn} ${styles.logBtnDesktop}`} onClick={onLog} title="Log entry">
+              + Log
+            </button>
+          </div>
         </div>
       </div>
 
