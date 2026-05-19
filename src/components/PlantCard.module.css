@@ -143,6 +143,11 @@
   color: var(--text-secondary);
 }
 
+/* Compact-mode badge sits in the name row, pushed to the right */
+.badgeInline {
+  margin-left: auto;
+}
+
 .badge {
   display: inline-block;
   padding: 3px 10px;
