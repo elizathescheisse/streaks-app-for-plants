@@ -287,7 +287,7 @@ export default function App() {
             )}
           </div>
 
-          <div className={styles.plantList}>
+          <div className={`${styles.plantList} ${cardView === 'compact' ? styles.plantListCompact : ''}`}>
             {plants.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyIcon}>🌱</div>
