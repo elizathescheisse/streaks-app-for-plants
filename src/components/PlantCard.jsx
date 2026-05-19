@@ -211,11 +211,13 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
             {/* ── Actions row ── */}
             <div className={styles.actions}>
               <div className={styles.actionsLeft}>
-                <button
-                  className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
-                  onClick={() => setHistoryOpen(o => !o)}
-                  title="View history"
-                >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
+                {!isCompact && (
+                  <button
+                    className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
+                    onClick={() => setHistoryOpen(o => !o)}
+                    title="View history"
+                  >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
+                )}
               </div>
               {/* Compact: always-visible prominent Log button. Chart: mobile-only (desktop is in statsBlock) */}
               <button
