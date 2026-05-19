@@ -59,10 +59,8 @@ export default function PlantPrediction({ plant, careProfile }) {
           ))}
           <span className={styles.progressLabel}>
             {totalSamples === 0
-              ? 'Log paired readings to unlock predictions'
-              : totalSamples === 1
-              ? '1 of 3 observations collected'
-              : '2 of 3 observations collected'}
+              ? 'Log a reading before and after watering to unlock predictions'
+              : 'Still learning — keep logging readings'}
           </span>
         </div>
       </div>
