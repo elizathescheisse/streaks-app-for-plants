@@ -9,6 +9,18 @@ import Modal from './components/Modal.jsx'
 import styles from './App.module.css'
 import { buildEventsFromForm } from './utils/plantSelectors.js'
 
+// 2×2 grid icon used for the view-switcher button
+function GridIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+      <rect x="0" y="0" width="4" height="4" rx="0.5"/>
+      <rect x="6" y="0" width="4" height="4" rx="0.5"/>
+      <rect x="0" y="6" width="4" height="4" rx="0.5"/>
+      <rect x="6" y="6" width="4" height="4" rx="0.5"/>
+    </svg>
+  )
+}
+
 const SCHEMA_VERSION = '2'
 const STORAGE_KEY    = 'plant-streaks'
 const SCHEMA_KEY     = 'plant-streaks-schema'
@@ -42,6 +54,8 @@ export default function App() {
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [chartWindow, setChartWindow] = useState('1M')
+  const [cardView, setCardView]       = useState('chart')   // 'chart' | 'compact'
+  const [viewMenuOpen, setViewMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const importRef = useRef()
 
@@ -215,15 +229,49 @@ export default function App() {
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                 />
-                <div className={styles.chartToggle}>
-                  {['1W','1M','3M','all'].map(key => (
-                    <button
-                      key={key}
-                      className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
-                      onClick={() => setChartWindow(key)}
-                    >{key === 'all' ? 'All' : key}</button>
-                  ))}
+
+                {/* View-switcher: grid icon + dropdown */}
+                <div className={styles.viewSwitcher}>
+                  <button
+                    className={`${styles.viewSwitcherBtn} ${viewMenuOpen ? styles.viewSwitcherBtnOpen : ''}`}
+                    onClick={() => setViewMenuOpen(o => !o)}
+                    title="Switch card view"
+                    type="button"
+                  >
+                    <GridIcon />
+                  </button>
+                  {viewMenuOpen && (
+                    <>
+                      <div className={styles.viewMenuBackdrop} onClick={() => setViewMenuOpen(false)} />
+                      <div className={styles.viewMenu}>
+                        {[
+                          { key: 'chart',   label: 'Timeline' },
+                          { key: 'compact', label: 'Focus'    },
+                        ].map(({ key, label }) => (
+                          <button
+                            key={key}
+                            className={`${styles.viewMenuItem} ${cardView === key ? styles.viewMenuItemActive : ''}`}
+                            onClick={() => { setCardView(key); setViewMenuOpen(false) }}
+                            type="button"
+                          >{label}</button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
+
+                {/* Chart window toggle — hidden when there's no chart */}
+                {cardView === 'chart' && (
+                  <div className={styles.chartToggle}>
+                    {['1W','1M','3M','all'].map(key => (
+                      <button
+                        key={key}
+                        className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
+                        onClick={() => setChartWindow(key)}
+                      >{key === 'all' ? 'All' : key}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -257,6 +305,7 @@ export default function App() {
                   onLog={() => openLog(p)}
                   onEditLog={(bundle) => openEditLog(p, bundle)}
                   chartWindow={chartWindow}
+                  cardView={cardView}
                 />
               ))
             })()}

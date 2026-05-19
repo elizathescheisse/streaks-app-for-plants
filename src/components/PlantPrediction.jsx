@@ -1,34 +1,16 @@
 import styles from './PlantPrediction.module.css'
-import { computeModel, getRecommendation, getLastResidual } from '../utils/plantModel.js'
+import { computeModel, getRecommendation } from '../utils/plantModel.js'
 import { lastReading, lastWatering } from '../utils/plantSelectors.js'
-
-function waterLabel(amount, unit) {
-  if (!amount) return ''
-  if (unit === 'cups')   return `${amount} cup${amount === 1 ? '' : 's'}`
-  if (unit === 'liters') return `${amount}L`
-  return `${amount}`
-}
-
-function daysLabel(days) {
-  if (days <= 0)  return 'today'
-  if (days < 1.5) return 'tomorrow'
-  return `in ${Math.round(days)}d`
-}
-
-function residualLabel(residual) {
-  if (Math.abs(residual) < 0.3) return null  // too small to mention
-  const diff = Math.abs(Math.round(residual * 10) / 10)
-  return residual > 0
-    ? `Last reading was ${diff} higher than predicted`
-    : `Last reading was ${diff} lower than predicted`
-}
 
 function relTime(ts) {
   const mins = Math.floor((Date.now() - new Date(ts)) / 60_000)
   if (mins < 60)  return `${mins}m ago`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24)   return `${hrs}h ago`
-  return 'today'
+  const days = Math.floor(hrs / 24)
+  if (days < 7)   return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  return `${weeks}w ago`
 }
 
 export default function PlantPrediction({ plant, careProfile }) {
@@ -44,12 +26,11 @@ export default function PlantPrediction({ plant, careProfile }) {
     watering && new Date(watering.timestamp) > new Date(reading.timestamp)
 
   if (wateredAfterReading) {
-    const wLabel = waterLabel(watering.amount, watering.unit)
     return (
       <div className={styles.wrap}>
         <div className={styles.row}>
           <span className={styles.settling}>
-            💧 {wLabel ? `${wLabel} · ` : ''}Watered {relTime(watering.timestamp)}
+            💧 Watered {relTime(watering.timestamp)}
           </span>
         </div>
         <p className={styles.confidence}>
@@ -59,12 +40,11 @@ export default function PlantPrediction({ plant, careProfile }) {
     )
   }
 
-  const model    = computeModel(plant)
-  const rec      = getRecommendation(plant, model, careProfile)
-  const residual = getLastResidual(plant, model)
+  const model = computeModel(plant)
+  const rec   = getRecommendation(plant, model, careProfile)
   if (!rec) return null
 
-  const { predicted, daysUntilDry, waterNeeded, dominantUnit, hasRange, confidence, usingDefaults, totalSamples } = rec
+  const { predicted, totalSamples, usingDefaults, confidence } = rec
 
   // ── Species default (still learning) ─────────────────────────────────────
   // When the model doesn't have enough data yet, show the species-level default
@@ -76,41 +56,40 @@ export default function PlantPrediction({ plant, careProfile }) {
     const nameStr   = name ? `${name} generally likes water` : 'This plant generally likes water'
     return (
       <div className={styles.wrap}>
+        <div className={styles.moistureRow}>
+          <span className={styles.moistureRaw}>◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})</span>
+        </div>
         {freq ? (
           <p className={styles.speciesDefault}>
             {nameStr} <strong>{freq}</strong>.
           </p>
         ) : null}
-        <p className={styles.confidence}>
-          Log a few more readings to get a personalized recommendation.
-        </p>
+        <div className={styles.progressRow}>
+          {[0, 1, 2].map(i => (
+            <span key={i} className={i < totalSamples ? styles.dotFilled : styles.dotEmpty} />
+          ))}
+          <span className={styles.progressLabel}>
+            {totalSamples === 0
+              ? 'Log paired readings to unlock predictions'
+              : totalSamples === 1
+              ? '1 of 3 observations — 2 more to go'
+              : '2 of 3 observations — almost there'}
+          </span>
+        </div>
       </div>
     )
   }
 
-  // ── Personalized prediction ───────────────────────────────────────────────
-  // isOverdue = model predicts moisture already *below* the dry threshold.
-  // daysUntilDry === 0 means "at the boundary right now" — treat as due-soon
-  // so the color agrees with the badge (which shows green/yellow when still in range).
-  const isOverdue = hasRange && daysUntilDry < 0
-  const isDueSoon = hasRange && daysUntilDry >= 0 && daysUntilDry <= 1
-  const recClass  = isOverdue ? styles.recUrgent : isDueSoon ? styles.recSoon : styles.recNormal
-
   return (
     <div className={styles.wrap}>
-      <div className={styles.row}>
-        {/* Estimated current moisture */}
-        <span className={styles.moisture}>
-          ◎ ~{Math.round(predicted)} now
+      {/* Raw reading (left) + estimated current (right) */}
+      <div className={styles.moistureRow}>
+        <span className={styles.moistureRaw}>
+          ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
         </span>
-
-        {/* Watering recommendation — only if we have a target range */}
-        {hasRange && (
-          <span className={`${styles.rec} ${recClass}`}>
-            💧 Water {daysLabel(daysUntilDry)}
-            {waterNeeded > 0 && ` · ${waterLabel(waterNeeded, dominantUnit)}`}
-          </span>
-        )}
+        <span className={styles.moistureEst}>
+          ◎ {Math.round(predicted)} (est.)
+        </span>
       </div>
 
       <p className={styles.confidence}>

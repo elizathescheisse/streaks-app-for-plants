@@ -52,7 +52,7 @@ function waterAbbr(unit, amount) {
   return String(amount).slice(0, 6)
 }
 
-export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M' }) {
+export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M', predictedMoisture = null }) {
   const containerRef = useRef(null)
   const [svgWidth, setSvgWidth] = useState(400)
   // tooltip: { kind: 'reading' | 'watering', event, x, y } | null
@@ -90,9 +90,13 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     ...visibleReadings.map(r => +new Date(r.timestamp)),
     ...visibleWaterings.map(w => +new Date(w.timestamp)),
   ]
-  const tMin = allTimestamps.length ? Math.min(...allTimestamps) : 0
-  const tMax = allTimestamps.length ? Math.max(...allTimestamps) : 1
-  const tSpan = tMax - tMin || 1
+  const nowTs  = Date.now()
+  const tMin   = allTimestamps.length ? Math.min(...allTimestamps) : 0
+  const tMax   = allTimestamps.length ? Math.max(...allTimestamps) : 1
+  // When showing an estimated "now" dot, extend the axis to the current time
+  // so the predicted point sits at the right edge rather than on top of the last reading.
+  const tMaxFull = predictedMoisture != null ? Math.max(tMax, nowTs) : tMax
+  const tSpan  = tMaxFull - tMin || 1
 
   function xAt(ts) {
     return PAD_X + ((+new Date(ts) - tMin) / tSpan) * usableW
@@ -162,9 +166,13 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
             <span className={styles.tooltipMoisture}>
               {tooltip.kind === 'watering'
                 ? `💧 ${tooltip.event.amount} ${tooltip.event.unit}`
+                : tooltip.kind === 'estimated'
+                ? `◎ ~${Math.round(predictedMoisture)} (estimated)`
                 : `◎ ${tooltip.event.moisture} / 10`}
             </span>
-            <span className={styles.tooltipDate}>{fmtDateTime(tooltip.event.timestamp)}</span>
+            {tooltip.kind !== 'estimated' && (
+              <span className={styles.tooltipDate}>{fmtDateTime(tooltip.event.timestamp)}</span>
+            )}
           </div>
         )}
         <svg width={svgWidth} height={SVG_H} className={styles.svg}>
@@ -217,6 +225,54 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
               />
             )
           })}
+
+          {/* Estimated "now" projection — dashed line + hollow dot */}
+          {predictedMoisture != null && visibleReadings.length >= 1 && (() => {
+            const lastR  = visibleReadings[visibleReadings.length - 1]
+            const estX   = xAt(nowTs)
+            const estY   = mToY(Math.min(10, Math.max(0, predictedMoisture)))
+            const lastX  = xAt(lastR.timestamp)
+            const lastY  = mToY(lastR.moisture)
+            const estColor = dotColor(predictedMoisture, careProfile?.moistureRange)
+            const isHovered = tooltip?.kind === 'estimated'
+            return (
+              <g key="est">
+                {/* Dashed continuation from last reading to now */}
+                <line
+                  x1={lastX} y1={lastY} x2={estX} y2={estY}
+                  stroke="rgba(140,204,235,0.35)"
+                  strokeWidth="1.5"
+                  strokeDasharray="3,3"
+                  strokeLinecap="round"
+                />
+                {/* Hollow dot: filled with near-black so the dashes show clearly */}
+                <circle
+                  cx={estX} cy={estY}
+                  r={isHovered ? 5.5 : 4}
+                  fill="rgba(13,23,10,0.85)"
+                  stroke={estColor}
+                  strokeWidth="1.5"
+                  strokeDasharray="3,2"
+                  opacity="0.9"
+                  style={{ cursor: 'pointer', transition: 'r 0.1s' }}
+                  onMouseEnter={() => setTooltip({ kind: 'estimated', x: estX, y: estY })}
+                  onMouseLeave={() => setTooltip(null)}
+                  onTouchStart={e => {
+                    e.stopPropagation()
+                    setTooltip(t => t?.kind === 'estimated' ? null : { kind: 'estimated', x: estX, y: estY })
+                  }}
+                />
+                {/* "Today" date label — centered on the estimated dot */}
+                <text
+                  x={estX} y={PLOT_BOT + 14}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fontFamily="Inter, sans-serif"
+                  fill="rgba(150,180,150,0.55)"
+                >today</text>
+              </g>
+            )
+          })()}
 
           {/* Watering annotations — hover to see exact amount + timestamp */}
           {visibleWaterings.map(w => {

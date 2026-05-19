@@ -69,7 +69,7 @@ function titleCase(s) {
 //   • bottom of range   → good color,       "Water soon"
 //   • in / just above   → thriving color,   "Watered"
 //   • well above range  → okay color,       "Overwatered"
-function moistureStatus(moisture, [min, max]) {
+function moistureStatus(moisture, [min, max], waterNeeded, waterUnit) {
   const val = Number(moisture)
   const w   = max - min                                  // range width
   // Thresholds blend "proportional to range width" with an absolute floor of
@@ -78,18 +78,24 @@ function moistureStatus(moisture, [min, max]) {
   const dryBuffer = Math.max(w * 0.75, 2)                // red kicks in this far below min
   const wetBuffer = Math.max(w * 0.5,  2)                // yellow over kicks in this far above max
 
-  if (val < min - dryBuffer)  return { label: '🚨 Water immediately', cls: 'struggling' }
-  if (val < min)               return { label: '💧 Water',             cls: 'okay'       }
-  if (val < min + w * 0.3)    return { label: '💧 Water soon',        cls: 'good'       }
-  if (val <= max + wetBuffer) return { label: '✓ Watered',             cls: 'thriving'   }
-  return                              { label: '⚠️ Overwatered',       cls: 'okay'       }
+  // Water amount appended only to actionable-now badges ("Water" / "Water immediately")
+  const water = waterNeeded > 0
+    ? ` · ${waterLabel(waterUnit, waterNeeded)}`
+    : ''
+
+  if (val < min - dryBuffer)  return { label: `🚨 Water immediately${water}`, cls: 'struggling' }
+  if (val < min)               return { label: `💧 Water${water}`,             cls: 'okay'       }
+  if (val < min + w * 0.3)    return { label: '💧 Water soon',                 cls: 'good'       }
+  if (val <= max + wetBuffer) return { label: '✓ Watered',                     cls: 'thriving'   }
+  return                              { label: '⚠️ Overwatered',               cls: 'okay'       }
 }
 
 
-export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow }) {
+export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
   const [infoOpen, setInfoOpen]       = useState(false)
+  const isCompact = cardView === 'compact'
 
   const careProfile  = lookupPlant(species)
   const hasStats     = !!careProfile?.moistureRange
@@ -128,7 +134,7 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
         return { label, cls: 'check', icon: faClock }
       })()
     : (hasStats && badgeMoisture != null)
-    ? moistureStatus(badgeMoisture, careProfile.moistureRange)
+    ? moistureStatus(badgeMoisture, careProfile.moistureRange, rec?.waterNeeded, rec?.dominantUnit)
     : null
 
   return (
@@ -157,8 +163,8 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               </span>
             </div>
 
-            {/* Current state row — mobile only; wide screens show this in the right stats block */}
-            {(reading || watering) && (
+            {/* ── CHART MODE only: mobile stat rows + chart + prediction-mobile ── */}
+            {!isCompact && (reading || watering) && (
               <div className={`${styles.meta} ${styles.metaMobileOnly}`}>
                 {watering && (
                   <span className={styles.water}>
@@ -173,25 +179,47 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               </div>
             )}
 
-            {/* Mobile-only moisture bar (when species has a known ideal range) */}
-            {hasStats && badgeMoisture != null && (
+            {!isCompact && hasStats && badgeMoisture != null && (
               <div className={styles.mobileBar}>
                 <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
               </div>
             )}
 
-            {/* History chart — inline, only if ≥2 readings */}
-            {readings.length >= 2 && (
+            {!isCompact && readings.length >= 2 && (
               <div className={styles.chartInline}>
-                <PlantHistoryChart readings={readings} waterings={waterings} careProfile={careProfile} window={chartWindow} />
+                <PlantHistoryChart
+                  readings={readings}
+                  waterings={waterings}
+                  careProfile={careProfile}
+                  window={chartWindow}
+                  predictedMoisture={isConfident ? (rec?.predicted ?? null) : null}
+                />
               </div>
             )}
 
-            {/* Prediction + watering recommendation */}
-            {reading && (
+            {!isCompact && reading && (
+              <div className={styles.predMobile}>
+                <PlantPrediction plant={plant} careProfile={careProfile} />
+              </div>
+            )}
+
+            {/* ── COMPACT MODE only: badge + bar + prediction full-width ── */}
+            {isCompact && status && (
+              <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+                {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+                {status.label}
+              </span>
+            )}
+
+            {isCompact && hasStats && badgeMoisture != null && (
+              <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
+            )}
+
+            {isCompact && reading && (
               <PlantPrediction plant={plant} careProfile={careProfile} />
             )}
 
+            {/* ── Actions row ── */}
             <div className={styles.actions}>
               <div className={styles.actionsLeft}>
                 {careProfile && (
@@ -207,14 +235,17 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
                   title="View history"
                 >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
               </div>
-              {/* Mobile-only Log button — hidden on desktop where it lives in the stats block */}
-              <button className={`${styles.logBtn} ${styles.logBtnMobile}`} onClick={onLog} title="Log entry">
-                + Log
-              </button>
+              {/* Compact: always-visible prominent Log button. Chart: mobile-only (desktop is in statsBlock) */}
+              <button
+                className={`${styles.logBtn} ${isCompact ? styles.logBtnCompact : styles.logBtnMobile}`}
+                onClick={onLog}
+                title="Log entry"
+              >+ Log</button>
             </div>
           </div>
 
-          {/* ── Right column: stats block — always rendered so Log button shows on desktop ── */}
+          {/* ── Right column: stats block — chart mode only ── */}
+          {!isCompact && (
           <div className={styles.statsBlock}>
 
             {/* Watering action badge — reuses the health badge styling */}
@@ -232,11 +263,19 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               </div>
             )}
 
+            {/* Prediction strip — desktop only (mobile version lives in cardLeft) */}
+            {reading && (
+              <div className={styles.predDesktop}>
+                <PlantPrediction plant={plant} careProfile={careProfile} />
+              </div>
+            )}
+
             {/* Log button — right edge of card, under the badge/bar */}
             <button className={`${styles.logBtn} ${styles.logBtnDesktop}`} onClick={onLog} title="Log entry">
               + Log
             </button>
           </div>
+          )}
         </div>
       </div>
 
