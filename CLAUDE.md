@@ -133,6 +133,17 @@ Before creating any PR, always:
 - `someday` — good idea, low priority, revisit later
 - `needs-discussion` — unclear, think it through before building
 
+### Staying in sync with main
+At the start of any new task, and whenever the user mentions that PRs have been merged, run:
+```
+git fetch && git status
+```
+If local `main` is behind `origin/main`, pull before doing anything else:
+```
+git checkout main && git pull
+```
+Then delete any local branches whose PRs have merged. Never start a new branch or commit new work on a stale local main — always pull first.
+
 ### Branch cleanup
 After any PR is merged, delete the corresponding local branch. Always check for stale local branches by running `git branch -vv` and deleting any whose remote PR has merged. Do this proactively at the end of a session or whenever switching tasks — don't wait to be asked.
 
