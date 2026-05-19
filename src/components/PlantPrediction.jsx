@@ -75,7 +75,7 @@ export default function PlantPrediction({ plant, careProfile }) {
         ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
       </span>
       <span className={styles.moistureEst}>
-        ◎ {Math.round(predicted)} (estimated)
+        ◎ {Math.round(predicted)} (estimated now)
       </span>
     </div>
   )
