@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styles from './PlantForm.module.css'
 import SpeciesInput from './SpeciesInput.jsx'
+import { lookupPlant } from '../utils/plantLookup.js'
 
 const EMOJI_OPTIONS = [
   '🌿','🪴','🌱','🌵','🌴','🌳','🌾','🍀',
@@ -14,22 +15,72 @@ export const EMPTY_PLANT_FORM = {
   name:    '',
 }
 
+const LIGHT_LABELS = {
+  'direct':          '☀️ Direct sun',
+  'bright-indirect': '🌤 Bright indirect',
+  'low-indirect':    '🌥 Low indirect',
+  'low':             '🌑 Low light',
+}
+const HUMIDITY_LABELS = {
+  'high':   '💧 High humidity',
+  'medium': '🌢 Medium humidity',
+  'low':    '🏜 Low humidity',
+}
+const WATERING_STYLE_LABELS = {
+  'flood-and-dry': '🌊 Flood & dry out',
+  'consistent':    '🪣 Consistent moisture',
+}
+
 export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, isEdit }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const canSave = form.species.trim() || form.name.trim()
+  const careProfile = lookupPlant(form.species)
+  const displayName = form.name || (form.species
+    ? form.species.replace(/\b\w/g, c => c.toUpperCase())
+    : null)
 
   return (
     <div className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <h2 className={styles.title}>{isEdit ? 'Edit plant' : 'Add a plant'}</h2>
-          <p className={styles.sub}>
-            {isEdit ? 'Update this plant’s identity.' : 'Identify your plant — log entries come later.'}
-          </p>
+          <h2 className={styles.title}>{isEdit ? (displayName || ‘Plant’) : ‘Add a plant’}</h2>
+          {!isEdit && (
+            <p className={styles.sub}>Identify your plant — log entries come later.</p>
+          )}
         </div>
         <button className={styles.closeBtn} onClick={onCancel} aria-label="Close">×</button>
       </div>
+
+      {isEdit && careProfile && (
+        <div className={styles.careInfo}>
+          <div className={styles.careWatering}>
+            <span className={styles.careWateringTitle}>
+              {WATERING_STYLE_LABELS[careProfile.wateringStyle]}
+              {careProfile.wateringFrequency && (
+                <strong className={styles.careFreq}> · {careProfile.wateringFrequency}</strong>
+              )}
+            </span>
+            {careProfile.wateringNote && (
+              <p className={styles.careNote}>{careProfile.wateringNote}</p>
+            )}
+          </div>
+          <div className={styles.careRow}>
+            {careProfile.light && <span className={styles.careTag}>{LIGHT_LABELS[careProfile.light]}</span>}
+            {careProfile.humidity && <span className={styles.careTag}>{HUMIDITY_LABELS[careProfile.humidity]}</span>}
+          </div>
+          {careProfile.tips?.length > 0 && (
+            <div className={styles.careTips}>
+              <p className={styles.careTipsLabel}>TIPS</p>
+              <ul className={styles.careTipsList}>
+                {careProfile.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isEdit && <div className={styles.editDivider}><span>Edit</span></div>}
 
       {/* Emoji picker */}
       <div className={styles.field}>

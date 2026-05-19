@@ -51,16 +51,8 @@ export default function PlantPrediction({ plant, careProfile }) {
   // instead of a noisy, inaccurate personalized prediction.
   const stillLearning = usingDefaults || confidence === 'low'
   if (stillLearning) {
-    const freq      = careProfile?.wateringFrequency
-    const name      = careProfile?.displayName ?? null
-    const nameStr   = name ? `${name} generally likes water` : 'This plant generally likes water'
     return (
       <div className={styles.wrap}>
-        {freq ? (
-          <p className={styles.speciesDefault}>
-            {nameStr} <strong>{freq}</strong>.
-          </p>
-        ) : null}
         <div className={styles.progressRow}>
           {[0, 1, 2].map(i => (
             <span key={i} className={i < totalSamples ? styles.dotFilled : styles.dotEmpty} />

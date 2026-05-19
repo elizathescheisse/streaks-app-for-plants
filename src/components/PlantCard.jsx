@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClock, faPen } from '@fortawesome/free-solid-svg-icons'
+import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantCard.module.css'
 import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
@@ -94,7 +94,6 @@ function moistureStatus(moisture, [min, max], waterNeeded, waterUnit) {
 export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [infoOpen, setInfoOpen]       = useState(false)
   const isCompact = cardView === 'compact'
 
   const careProfile  = lookupPlant(species)
@@ -147,16 +146,10 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
           {/* ── Left column ── */}
           <div className={styles.cardLeft}>
 
-            {/* Name + health-prefixed species line + edit icon */}
+            {/* Name + health-prefixed species line */}
             <div className={styles.top}>
-              <span className={styles.name}>{name || titleCase(species)}</span>
-              <button
-                className={styles.editIconBtn}
-                onClick={onEdit}
-                title="Edit plant"
-                type="button"
-              >
-                <FontAwesomeIcon icon={faPen} />
+              <button className={styles.nameBtn} onClick={onEdit} type="button">
+                {name || titleCase(species)}
               </button>
               <span className={styles.species}>
                 {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
@@ -222,16 +215,9 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
             {/* ── Actions row ── */}
             <div className={styles.actions}>
               <div className={styles.actionsLeft}>
-                {careProfile && (
-                  <button
-                    className={`${styles.historyBtn} ${infoOpen ? styles.historyBtnActive : ''}`}
-                    onClick={() => { setInfoOpen(o => !o); setHistoryOpen(false) }}
-                    title="Plant care info"
-                  >{infoOpen ? '▲' : '▼'} Info</button>
-                )}
                 <button
                   className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
-                  onClick={() => { setHistoryOpen(o => !o); setInfoOpen(false) }}
+                  onClick={() => setHistoryOpen(o => !o)}
                   title="View history"
                 >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
               </div>
@@ -278,34 +264,6 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
           )}
         </div>
       </div>
-
-      {/* ── Info panel ── */}
-      {infoOpen && careProfile && (
-        <div className={styles.historySection}>
-          <div className={styles.infoGrid}>
-            <div className={styles.infoRow}>
-              <span className={styles.infoIcon}>{WATERING_STYLE_LABELS[careProfile.wateringStyle]}</span>
-              <p className={styles.infoNote}>{careProfile.wateringNote}</p>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoIcon}>{LIGHT_LABELS[careProfile.light]}</span>
-              <p className={styles.infoNote}>{careProfile.lightNote}</p>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoIcon}>{HUMIDITY_LABELS[careProfile.humidity]}</span>
-              <p className={styles.infoNote}>{careProfile.humidityNote}</p>
-            </div>
-          </div>
-          {careProfile.tips?.length > 0 && (
-            <div className={styles.tipsSection}>
-              <p className={styles.tipsLabel}>TIPS</p>
-              <ul className={styles.tipsList}>
-                {careProfile.tips.map((tip, i) => <li key={i}>{tip}</li>)}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── History panel: log bundles ── */}
       {historyOpen && (

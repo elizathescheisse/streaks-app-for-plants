@@ -113,15 +113,3 @@
   line-height: 1.3;
 }
 
-/* Species default shown while the model is still learning */
-.speciesDefault {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.45;
-}
-
-.speciesDefault strong {
-  color: var(--text-secondary);
-  font-weight: 600;
-}
