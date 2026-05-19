@@ -135,12 +135,28 @@
   cursor: pointer;
   text-align: left;
   transition: color 0.15s;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: rgba(255,255,255,0.2);
+  text-underline-offset: 3px;
 }
 .nameBtn:hover {
-  color: var(--text-secondary);
-  text-decoration: underline;
-  text-decoration-color: rgba(255,255,255,0.2);
-  text-underline-offset: 2px;
+  color: var(--brand-bright);
+  text-decoration-style: solid;
+  text-decoration-color: rgba(69,209,87,0.4);
+}
+
+.nameBtnChevron {
+  margin-left: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+}
+.nameBtn:hover .nameBtnChevron {
+  opacity: 1;
+  color: var(--brand-bright);
 }
 
 .editIconBtn {

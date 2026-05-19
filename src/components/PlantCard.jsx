@@ -149,7 +149,7 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
             {/* Name + health-prefixed species line */}
             <div className={styles.top}>
               <button className={styles.nameBtn} onClick={onEdit} type="button">
-                {name || titleCase(species)}
+                {name || titleCase(species)}<span className={styles.nameBtnChevron}>›</span>
               </button>
               <span className={styles.species}>
                 {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
