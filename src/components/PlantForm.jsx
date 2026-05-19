@@ -44,7 +44,7 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
     <div className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <h2 className={styles.title}>{isEdit ? (displayName || ‘Plant’) : ‘Add a plant’}</h2>
+          <h2 className={styles.title}>{isEdit ? (displayName || 'Plant') : 'Add a plant'}</h2>
           {!isEdit && (
             <p className={styles.sub}>Identify your plant — log entries come later.</p>
           )}
