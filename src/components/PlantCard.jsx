@@ -84,14 +84,14 @@ function moistureStatus(moisture, [min, max], waterNeeded, waterUnit) {
     : ''
 
   if (val < min - dryBuffer)  return { label: `🚨 Water immediately${water}`, cls: 'struggling' }
-  if (val < min)               return { label: `💧 Water${water}`,             cls: 'okay'       }
+  if (val < min)               return { label: `💧 Water${water}`,             cls: 'water'      }
   if (val < min + w * 0.3)    return { label: '💧 Water soon',                 cls: 'good'       }
   if (val <= max + wetBuffer) return { label: '✓ Watered',                     cls: 'thriving'   }
   return                              { label: '⚠️ Overwatered',               cls: 'okay'       }
 }
 
 
-export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow, cardView = 'chart' }) {
+export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
   const isCompact = cardView === 'compact'
@@ -138,7 +138,7 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
 
   return (
     <div className={styles.cardWrap}>
-      <div className={`${styles.card} ${styles[health]}`}>
+      <div className={`${styles.card} ${styles[health]} ${isCompact && status ? styles[`cardStatus_${status.cls}`] : ''}`}>
         <div className={styles.iconCircle}>{emoji}</div>
 
         <div className={styles.cardInner}>
@@ -149,11 +149,13 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
             {/* Name + health-prefixed species line */}
             <div className={styles.top}>
               <button className={styles.nameBtn} onClick={onEdit} type="button">
-                {name || titleCase(species)}
+                {name || titleCase(species)}<span className={styles.nameBtnChevron}>›</span>
               </button>
-              <span className={styles.species}>
-                {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
-              </span>
+              {!isCompact && (
+                <span className={styles.species}>
+                  {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
+                </span>
+              )}
               {/* In compact mode the badge lives here (top-right), in chart mode it's in statsBlock */}
               {isCompact && status && (
                 <span className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline}`}>
@@ -211,18 +213,27 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
             {/* ── Actions row ── */}
             <div className={styles.actions}>
               <div className={styles.actionsLeft}>
-                <button
-                  className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
-                  onClick={() => setHistoryOpen(o => !o)}
-                  title="View history"
-                >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
+                {!isCompact && (
+                  <button
+                    className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
+                    onClick={() => setHistoryOpen(o => !o)}
+                    title="View history"
+                  >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
+                )}
               </div>
-              {/* Compact: always-visible prominent Log button. Chart: mobile-only (desktop is in statsBlock) */}
-              <button
-                className={`${styles.logBtn} ${isCompact ? styles.logBtnCompact : styles.logBtnMobile}`}
-                onClick={onLog}
-                title="Log entry"
-              >+ Log</button>
+              {/* Compact: two quick-log buttons. Chart: single Log button (mobile only; desktop is in statsBlock) */}
+              {isCompact ? (
+                <div className={styles.quickLogBtns}>
+                  <button className={styles.quickLogBtn} onClick={onQuickWater}   title="Log watering">💧 Water</button>
+                  <button className={styles.quickLogBtn} onClick={onQuickReading} title="Log reading">◎ Reading</button>
+                </div>
+              ) : (
+                <button
+                  className={`${styles.logBtn} ${styles.logBtnMobile}`}
+                  onClick={onLog}
+                  title="Log entry"
+                >+ Log</button>
+              )}
             </div>
           </div>
 

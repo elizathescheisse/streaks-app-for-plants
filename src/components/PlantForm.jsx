@@ -15,7 +15,15 @@ export const EMPTY_PLANT_FORM = {
   emoji:   '🌿',
   species: '',
   name:    '',
+  health:  null,
 }
+
+const HEALTH_OPTIONS = [
+  { value: 'thriving',   label: 'Thriving'   },
+  { value: 'good',       label: 'Healthy'    },
+  { value: 'okay',       label: 'Okay'       },
+  { value: 'struggling', label: 'Struggling' },
+]
 
 const LIGHT_LABELS = {
   'direct':          '☀️ Direct sun',
@@ -50,9 +58,24 @@ function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
 
+function toDateInput(date) {
+  // Returns YYYY-MM-DD in local time for use in <input type="date">
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function defaultDateRange() {
+  const today = new Date()
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  return { from: toDateInput(firstOfMonth), to: toDateInput(today) }
+}
+
 export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, isEdit, plant, onEditLog }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [activeTab, setActiveTab] = useState('edit')
+  const [dateRange, setDateRange] = useState(defaultDateRange)
 
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const canSave = form.species.trim() || form.name.trim()
@@ -60,7 +83,17 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
   const displayName = form.name || (form.species
     ? form.species.replace(/\b\w/g, c => c.toUpperCase())
     : null)
-  const bundles = plant ? logBundles(plant) : []
+  const allBundles = plant ? logBundles(plant) : []
+
+  // Filter by date range — 'to' date is inclusive through end of that day
+  const fromTs = dateRange.from ? new Date(dateRange.from).getTime() : null
+  const toTs   = dateRange.to   ? new Date(dateRange.to).getTime() + 86_400_000 - 1 : null
+  const bundles = allBundles.filter(b => {
+    const ts = new Date(b[0].timestamp).getTime()
+    if (fromTs && ts < fromTs) return false
+    if (toTs   && ts > toTs)   return false
+    return true
+  })
 
   return (
     <div className={styles.panel}>
@@ -150,6 +183,23 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
             />
           </div>
 
+          {/* Health — only shown when editing an existing plant */}
+          {isEdit && (
+            <div className={styles.field}>
+              <label className={styles.label}>HEALTH</label>
+              <div className={styles.healthPills}>
+                {HEALTH_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`${styles.pill} ${styles[`pill_${value}`]} ${form.health === value ? styles[`pillActive_${value}`] : ''}`}
+                    onClick={() => set('health', value)}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.formActions}>
             <button className={styles.saveBtn} onClick={onSave} disabled={!canSave}>
               {isEdit ? 'Save changes' : 'Add plant'}
@@ -181,8 +231,39 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
           ══════════════════════════════════════════ */}
       {isEdit && activeTab === 'history' && (
         <div className={styles.tabContent}>
+
+          {/* Date range picker */}
+          <div className={styles.dateRangeRow}>
+            <div className={styles.dateRangeInputs}>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={dateRange.from}
+                max={dateRange.to || undefined}
+                onChange={e => setDateRange(r => ({ ...r, from: e.target.value }))}
+                aria-label="From date"
+              />
+              <span className={styles.dateRangeSep}>–</span>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={dateRange.to}
+                min={dateRange.from || undefined}
+                onChange={e => setDateRange(r => ({ ...r, to: e.target.value }))}
+                aria-label="To date"
+              />
+            </div>
+            <span className={styles.historyCount}>
+              {bundles.length} {bundles.length === 1 ? 'entry' : 'entries'}
+            </span>
+          </div>
+
           {bundles.length === 0 ? (
-            <p className={styles.emptyHistory}>No log entries yet — tap "+ Log" on the card to record care data.</p>
+            <p className={styles.emptyHistory}>
+              {allBundles.length === 0
+                ? 'No log entries yet — tap "+ Log" on the card to record care data.'
+                : 'No entries in this period.'}
+            </p>
           ) : bundles.map((bundle, i) => {
             const ts       = bundle[0].timestamp
             const reading  = bundle.find(e => e.type === 'reading')

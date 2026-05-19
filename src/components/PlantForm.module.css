@@ -49,6 +49,53 @@
   margin-top: 24px;
 }
 
+/* ── History date range picker ── */
+.dateRangeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateRangeInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateInput {
+  height: 32px;
+  padding: 0 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  /* Remove default browser chrome on date inputs */
+  color-scheme: dark;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.dateRangeSep {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.historyCount {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
 /* ── History entries ── */
 .emptyHistory {
   font-size: 13px;
@@ -124,6 +171,7 @@
 .historyBadge_good      { color: var(--status-good);      background: rgba(140,217,102,0.1); border-color: rgba(140,217,102,0.4); }
 .historyBadge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.1);  border-color: rgba(224,199,64,0.4);  }
 .historyBadge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.1);   border-color: rgba(229,97,71,0.4);   }
+.historyBadge_water     { color: var(--status-water);     background: rgba(245,212,0,0.1);   border-color: rgba(245,212,0,0.45);  }
 
 .historyBar  { margin-top: 4px; }
 

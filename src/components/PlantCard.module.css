@@ -16,6 +16,45 @@
 
 .card:hover { border-color: rgba(71,133,61,0.55); }
 
+/* Focus-mode status tints — subtle background wash + colored border */
+.cardStatus_struggling {
+  background: rgba(229, 97, 71, 0.07);
+  border-color: rgba(229, 97, 71, 0.45);
+}
+.cardStatus_struggling:hover { border-color: rgba(229, 97, 71, 0.65); }
+
+/* water = actionable underwatered — prominent yellow, visually high priority */
+.cardStatus_water {
+  background: rgba(245, 212, 0, 0.1);
+  border-color: rgba(245, 212, 0, 0.55);
+}
+.cardStatus_water:hover { border-color: rgba(245, 212, 0, 0.75); }
+
+/* okay = overwatered — muted, nothing to do right now */
+.cardStatus_okay {
+  background: rgba(224, 199, 64, 0.03);
+  border-color: rgba(224, 199, 64, 0.2);
+}
+.cardStatus_okay:hover { border-color: rgba(224, 199, 64, 0.35); }
+
+.cardStatus_good {
+  background: rgba(140, 217, 102, 0.05);
+  border-color: rgba(140, 217, 102, 0.32);
+}
+.cardStatus_good:hover { border-color: rgba(140, 217, 102, 0.52); }
+
+.cardStatus_thriving {
+  background: rgba(64, 217, 97, 0.05);
+  border-color: rgba(64, 217, 97, 0.32);
+}
+.cardStatus_thriving:hover { border-color: rgba(64, 217, 97, 0.52); }
+
+.cardStatus_check {
+  background: rgba(24, 164, 232, 0.05);
+  border-color: rgba(24, 164, 232, 0.32);
+}
+.cardStatus_check:hover { border-color: rgba(24, 164, 232, 0.52); }
+
 .iconCircle {
   width: 48px; height: 48px;
   border-radius: 50%;
@@ -135,12 +174,28 @@
   cursor: pointer;
   text-align: left;
   transition: color 0.15s;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: rgba(255,255,255,0.2);
+  text-underline-offset: 3px;
 }
 .nameBtn:hover {
-  color: var(--text-secondary);
-  text-decoration: underline;
-  text-decoration-color: rgba(255,255,255,0.2);
-  text-underline-offset: 2px;
+  color: var(--brand-bright);
+  text-decoration-style: solid;
+  text-decoration-color: rgba(69,209,87,0.4);
+}
+
+.nameBtnChevron {
+  margin-left: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+}
+.nameBtn:hover .nameBtnChevron {
+  opacity: 1;
+  color: var(--brand-bright);
 }
 
 .editIconBtn {
@@ -177,7 +232,10 @@
 
 .badge_thriving  { color: var(--status-thriving);  background: rgba(64,217,97,0.14);  border-color: rgba(64,217,97,0.55);  }
 .badge_good      { color: var(--status-good);      background: rgba(140,217,102,0.14);border-color: rgba(140,217,102,0.55);}
-.badge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.14); border-color: rgba(224,199,64,0.55); }
+/* water = actionable underwatered — bright yellow, high contrast */
+.badge_water     { color: var(--status-water);     background: rgba(245,212,0,0.18);  border-color: rgba(245,212,0,0.7);   font-weight: 600; }
+/* okay = overwatered — muted, nothing actionable */
+.badge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.08); border-color: rgba(224,199,64,0.3);  }
 .badge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.14);  border-color: rgba(229,97,71,0.55);  }
 .badge_check     { color: #18A4E8;                 background: rgba(24,164,232,0.12); border-color: rgba(24,164,232,0.45);}
 
@@ -255,6 +313,34 @@
   padding: 7px 20px;
   font-size: 13px;
   font-weight: 700;
+}
+
+/* Compact-mode quick-log buttons */
+.quickLogBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.quickLogBtn {
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.75);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #0e1a0c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.1s, transform 0.08s, box-shadow 0.1s;
+}
+.quickLogBtn:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+.quickLogBtn:active {
+  background: rgba(255,255,255,0.9);
+  transform: scale(0.93) translateY(1px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .logBtn:active {

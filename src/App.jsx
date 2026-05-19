@@ -3,11 +3,12 @@ import Header from './components/Header.jsx'
 import PlantCard from './components/PlantCard.jsx'
 import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
 import LogEntryForm, { createEmptyLogForm } from './components/LogEntryForm.jsx'
+import QuickLogModal from './components/QuickLogModal.jsx'
 import EdgeGlow from './components/EdgeGlow.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import Modal from './components/Modal.jsx'
 import styles from './App.module.css'
-import { buildEventsFromForm } from './utils/plantSelectors.js'
+import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
 
 // 2×2 grid icon used for the view-switcher button
 function GridIcon() {
@@ -70,13 +71,24 @@ export default function App() {
     if (!canSave) return
 
     if (form.id) {
-      setPlants(ps => ps.map(p => p.id === form.id
-        ? { ...p, emoji: form.emoji, species: form.species, name: form.name }
-        : p
-      ))
+      setPlants(ps => ps.map(p => {
+        if (p.id !== form.id) return p
+        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name }
+        // Append a health_change event only if health actually changed
+        if (form.health && form.health !== currentHealth(p)) {
+          updated.events = [...p.events, {
+            id:        crypto.randomUUID(),
+            type:      'health_change',
+            timestamp: new Date().toISOString(),
+            bundleId:  crypto.randomUUID(),
+            health:    form.health,
+          }]
+        }
+        return updated
+      }))
     } else {
       setPlants(ps => [...ps, {
-        id: crypto.randomUUID(),
+        id:      crypto.randomUUID(),
         emoji:   form.emoji,
         species: form.species,
         name:    form.name,
@@ -93,7 +105,7 @@ export default function App() {
   function editPlant(plant) {
     setPanel({
       mode: 'identity',
-      form: { id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name }
+      form: { id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name, health: currentHealth(plant) }
     })
   }
 
@@ -154,6 +166,19 @@ export default function App() {
       if (p.id !== plantId) return p
       return { ...p, events: (p.events ?? []).filter(e => e.bundleId !== editBundleId) }
     }))
+    setPanel(null)
+  }
+
+  // ── Quick log ───────────────────────────────────────────
+  function openQuickLog(plant, type) {
+    setPanel({ mode: 'quickLog', plantId: plant.id, quickType: type })
+  }
+
+  function saveQuickLog(events) {
+    const { plantId } = panel
+    setPlants(ps => ps.map(p =>
+      p.id !== plantId ? p : { ...p, events: [...(p.events ?? []), ...events] }
+    ))
     setPanel(null)
   }
 
@@ -276,7 +301,7 @@ export default function App() {
             )}
           </div>
 
-          <div className={styles.plantList}>
+          <div className={`${styles.plantList} ${cardView === 'compact' ? styles.plantListCompact : ''}`}>
             {plants.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyIcon}>🌱</div>
@@ -303,6 +328,8 @@ export default function App() {
                   plant={p}
                   onEdit={() => editPlant(p)}
                   onLog={() => openLog(p)}
+                  onQuickWater={() => openQuickLog(p, 'water')}
+                  onQuickReading={() => openQuickLog(p, 'reading')}
                   onEditLog={(bundle) => openEditLog(p, bundle)}
                   chartWindow={chartWindow}
                   cardView={cardView}
@@ -328,6 +355,17 @@ export default function App() {
               const p = plants.find(p => p.id === panel.form.id)
               if (p) openEditLog(p, bundle)
             }}
+          />
+        </Modal>
+      )}
+
+      {panel?.mode === 'quickLog' && (
+        <Modal onClose={() => setPanel(null)}>
+          <QuickLogModal
+            type={panel.quickType}
+            plant={plants.find(p => p.id === panel.plantId)}
+            onSave={saveQuickLog}
+            onCancel={() => setPanel(null)}
           />
         </Modal>
       )}
