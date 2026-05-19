@@ -4,6 +4,13 @@
 
 At the start of each session, read `HUMAN.md`. During the conversation, if a reminder in it is directly relevant to what we're currently doing, append it quietly at the bottom of your response under a `---` divider. Only surface a reminder when it genuinely applies — not on every response.
 
+## Loose threads
+
+Never leave a discussed idea, problem, or decision unresolved without capturing it. Specifically:
+- If a discussion reaches a natural "do you want me to file a GitHub issue?" moment and the conversation moves on before confirming, **file the issue anyway** — don't wait for confirmation. An extra issue is easier to close than a lost idea is to recover.
+- If multiple topics are in flight and one gets dropped when the user pivots to something new, flag the unresolved thread at the bottom of the next response before it gets lost.
+- At the end of a session, if anything was discussed but not captured in a GitHub issue or committed code, call it out explicitly.
+
 ## Shorthand commands
 
 - **`gh <description>`** — means "file a GitHub issue: <description>". Create the issue immediately without asking for confirmation. Use good judgment on labels, detail, and whether it relates to any open issues.
