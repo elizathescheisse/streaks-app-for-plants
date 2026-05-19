@@ -201,18 +201,6 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
                 </span>
               )}
 
-              {/* Last watered — how long ago, not just amount */}
-              {watering && (
-                <span className={styles.statWater}>
-                  💧 {waterLabel(watering.unit, watering.amount)} · {relTime(watering.timestamp)}
-                </span>
-              )}
-
-              {/* Last reading */}
-              {reading && (
-                <span className={styles.statMoisture}>◎ {reading.moisture} / 10 · {relTime(reading.timestamp)}</span>
-              )}
-
               {/* Moisture bar */}
               {hasStats && reading && (
                 <div className={styles.statsBar}>
