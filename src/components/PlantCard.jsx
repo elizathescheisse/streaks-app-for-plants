@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClock } from '@fortawesome/free-solid-svg-icons'
+import { faClock, faPen } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantCard.module.css'
 import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
-import Modal from './Modal.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
 import { computeModel, getRecommendation } from '../utils/plantModel.js'
@@ -87,11 +86,10 @@ function moistureStatus(moisture, [min, max]) {
 }
 
 
-export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog }) {
+export default function PlantCard({ plant, onEdit, onLog, onEditLog }) {
   const { emoji = '🌿', species, name } = plant
-  const [historyOpen, setHistoryOpen]     = useState(false)
-  const [infoOpen, setInfoOpen]           = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [infoOpen, setInfoOpen]       = useState(false)
 
   const careProfile  = lookupPlant(species)
   const hasStats     = !!careProfile?.moistureRange
@@ -143,9 +141,17 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
           {/* ── Left column ── */}
           <div className={styles.cardLeft}>
 
-            {/* Name + health-prefixed species line */}
+            {/* Name + health-prefixed species line + edit icon */}
             <div className={styles.top}>
               <span className={styles.name}>{name || titleCase(species)}</span>
+              <button
+                className={styles.editIconBtn}
+                onClick={onEdit}
+                title="Edit plant"
+                type="button"
+              >
+                <FontAwesomeIcon icon={faPen} />
+              </button>
               <span className={styles.species}>
                 {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
               </span>
@@ -187,46 +193,50 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
             )}
 
             <div className={styles.actions}>
-              <button className={styles.logBtn} onClick={onLog} title="Log entry">
+              <div className={styles.actionsLeft}>
+                {careProfile && (
+                  <button
+                    className={`${styles.historyBtn} ${infoOpen ? styles.historyBtnActive : ''}`}
+                    onClick={() => { setInfoOpen(o => !o); setHistoryOpen(false) }}
+                    title="Plant care info"
+                  >{infoOpen ? '▲' : '▼'} Info</button>
+                )}
+                <button
+                  className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
+                  onClick={() => { setHistoryOpen(o => !o); setInfoOpen(false) }}
+                  title="View history"
+                >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
+              </div>
+              {/* Mobile-only Log button — hidden on desktop where it lives in the stats block */}
+              <button className={`${styles.logBtn} ${styles.logBtnMobile}`} onClick={onLog} title="Log entry">
                 + Log
               </button>
-              {careProfile && (
-                <button
-                  className={`${styles.historyBtn} ${infoOpen ? styles.historyBtnActive : ''}`}
-                  onClick={() => { setInfoOpen(o => !o); setHistoryOpen(false) }}
-                  title="Plant care info"
-                >{infoOpen ? '▲' : '▼'} Info</button>
-              )}
-              <button
-                className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
-                onClick={() => { setHistoryOpen(o => !o); setInfoOpen(false) }}
-                title="View history"
-              >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
-              <button className={styles.editBtn} onClick={onEdit}>Edit</button>
-              <button className={styles.deleteBtn} onClick={() => setShowDeleteModal(true)}>Delete</button>
             </div>
           </div>
 
-          {/* ── Right column: stats block ── */}
-          {(reading || watering) && (
-            <div className={styles.statsBlock}>
+          {/* ── Right column: stats block — always rendered so Log button shows on desktop ── */}
+          <div className={styles.statsBlock}>
 
-              {/* Watering action badge — reuses the health badge styling */}
-              {status && (
-                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
-                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                  {status.label}
-                </span>
-              )}
+            {/* Watering action badge — reuses the health badge styling */}
+            {status && (
+              <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+                {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+                {status.label}
+              </span>
+            )}
 
-              {/* Moisture bar — uses predicted moisture when drift is significant */}
-              {hasStats && badgeMoisture != null && (
-                <div className={styles.statsBar}>
-                  <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
-                </div>
-              )}
-            </div>
-          )}
+            {/* Moisture bar — uses predicted moisture when drift is significant */}
+            {hasStats && badgeMoisture != null && (
+              <div className={styles.statsBar}>
+                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
+              </div>
+            )}
+
+            {/* Log button — right edge of card, under the badge/bar */}
+            <button className={`${styles.logBtn} ${styles.logBtnDesktop}`} onClick={onLog} title="Log entry">
+              + Log
+            </button>
+          </div>
         </div>
       </div>
 
@@ -301,25 +311,6 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
             )
           })}
         </div>
-      )}
-      {showDeleteModal && (
-        <Modal onClose={() => setShowDeleteModal(false)}>
-          <div className={styles.deleteModal}>
-            <div className={styles.deleteModalIcon}>{emoji}</div>
-            <h2 className={styles.deleteModalTitle}>Delete {name || titleCase(species)}?</h2>
-            <p className={styles.deleteModalBody}>
-              This will permanently remove this plant and all its log history. This can't be undone.
-            </p>
-            <div className={styles.deleteModalActions}>
-              <button className={styles.deleteModalCancel} onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-              <button className={styles.deleteModalConfirm} onClick={onDelete}>
-                Yes, delete
-              </button>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   )
