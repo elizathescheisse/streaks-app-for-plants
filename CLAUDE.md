@@ -16,6 +16,19 @@ Never leave a discussed idea, problem, or decision unresolved without capturing 
 2. Add a `loose-thread` label
 3. In the issue body, include the relevant conversation excerpt — what Eliza said, what Claude responded, and why it wasn't explicitly confirmed — so future-Eliza has full context on why it ended up in the backlog unconfirmed
 
+## Before building anything new
+
+Always check whether what's being asked for already exists, partially or fully, before writing any code. Search the codebase for related components, utilities, or patterns first. The plant detail modal existing while I assumed it didn't is a concrete example of why this matters — building on top of what's there is almost always better than duplicating it.
+
+## "Is this worth building?"
+
+When Eliza asks whether something is worth doing, don't just say yes. Give a grounded answer:
+- **Effort**: rough sense of how much work (one-liner / afternoon / multi-session)
+- **Value**: what problem it actually solves and for whom
+- **Unlocks / blocks**: does it enable future features, or does something else need to happen first?
+
+Enthusiasm is not useful here. A honest "this is low value for the effort" or "wait until #78 lands first" is more helpful than reflexive encouragement.
+
 ## Shorthand commands
 
 - **`gh <description>`** — means "file a GitHub issue: <description>". Create the issue immediately without asking for confirmation. Use good judgment on labels, detail, and whether it relates to any open issues.
