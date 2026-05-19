@@ -6,8 +6,8 @@ export default function MoistureBar({ value, range }) {
 
   // Distance outside the ideal range (0 if in range)
   const dist = value < lo ? lo - value : value > hi ? value - hi : 0
-  // Matches the dotColor() buffer used in PlantHistoryChart
-  const slightlyOutside = dist > 0 && dist <= 2
+  // 1 unit outside = "a little off" (yellow); more than 1 = problem (red)
+  const slightlyOutside = dist > 0 && dist <= 1
 
   let statusLabel, statusClass, dotClass
   if (dist === 0) {

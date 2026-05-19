@@ -41,7 +41,7 @@ function dotColor(moisture, range) {
   const val = Number(moisture)
   if (val >= lo && val <= hi) return 'var(--status-thriving)'   // in range — green
   const dist = val < lo ? lo - val : val - hi
-  if (dist <= 2) return 'var(--status-okay)'                    // slightly outside — yellow
+  if (dist <= 1) return 'var(--status-okay)'                    // slightly outside — yellow
   return 'var(--status-struggling)'                             // far outside — red
 }
 
