@@ -323,6 +323,11 @@ export default function App() {
             onCancel={() => setPanel(null)}
             onDelete={panel.form.id ? () => { deletePlant(panel.form.id); setPanel(null) } : undefined}
             isEdit={!!panel.form.id}
+            plant={plants.find(p => p.id === panel.form.id)}
+            onEditLog={(bundle) => {
+              const p = plants.find(p => p.id === panel.form.id)
+              if (p) openEditLog(p, bundle)
+            }}
           />
         </Modal>
       )}
