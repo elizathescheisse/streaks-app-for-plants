@@ -27,6 +27,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 6px;
 }
 
 .addBtn {
@@ -54,23 +55,49 @@
   color: var(--text-primary);
 }
 
-.subDate {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.hintRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 6px;
-}
 
 .hint {
   font-size: 14px;
   color: var(--text-placeholder);
+  margin-bottom: 12px;
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.searchInput {
+  flex: 1;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.searchInput::placeholder { color: var(--text-placeholder); }
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(69,209,87,0.12);
+}
+
+/* hide the browser's native ✕ clear button — we style our own feel */
+.searchInput::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.noResults {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 24px 0;
+  text-align: center;
 }
 
 .chartToggle {
