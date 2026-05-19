@@ -58,9 +58,17 @@ function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
 
+const HISTORY_WINDOWS = [
+  { key: '1W',  label: '1W',  days: 7   },
+  { key: '1M',  label: '1M',  days: 30  },
+  { key: '3M',  label: '3M',  days: 90  },
+  { key: 'all', label: 'All', days: null },
+]
+
 export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, isEdit, plant, onEditLog }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [activeTab, setActiveTab] = useState('edit')
+  const [historyWindow, setHistoryWindow] = useState('all')
 
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const canSave = form.species.trim() || form.name.trim()
@@ -68,7 +76,13 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
   const displayName = form.name || (form.species
     ? form.species.replace(/\b\w/g, c => c.toUpperCase())
     : null)
-  const bundles = plant ? logBundles(plant) : []
+  const allBundles = plant ? logBundles(plant) : []
+
+  const windowDays = HISTORY_WINDOWS.find(w => w.key === historyWindow)?.days
+  const cutoff = windowDays ? Date.now() - windowDays * 86_400_000 : null
+  const bundles = cutoff
+    ? allBundles.filter(b => new Date(b[0].timestamp) >= cutoff)
+    : allBundles
 
   return (
     <div className={styles.panel}>
@@ -206,8 +220,28 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
           ══════════════════════════════════════════ */}
       {isEdit && activeTab === 'history' && (
         <div className={styles.tabContent}>
+
+          {/* Date range toggle */}
+          <div className={styles.historyWindowRow}>
+            {HISTORY_WINDOWS.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                className={`${styles.historyWindowBtn} ${historyWindow === key ? styles.historyWindowBtnActive : ''}`}
+                onClick={() => setHistoryWindow(key)}
+              >{label}</button>
+            ))}
+            <span className={styles.historyCount}>
+              {bundles.length} {bundles.length === 1 ? 'entry' : 'entries'}
+            </span>
+          </div>
+
           {bundles.length === 0 ? (
-            <p className={styles.emptyHistory}>No log entries yet — tap "+ Log" on the card to record care data.</p>
+            <p className={styles.emptyHistory}>
+              {allBundles.length === 0
+                ? 'No log entries yet — tap "+ Log" on the card to record care data.'
+                : 'No entries in this period.'}
+            </p>
           ) : bundles.map((bundle, i) => {
             const ts       = bundle[0].timestamp
             const reading  = bundle.find(e => e.type === 'reading')
