@@ -29,7 +29,7 @@
 .cardInner {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 20px;
   min-width: 0;
 }
@@ -91,7 +91,7 @@
 
 @media (min-width: 640px) {
   .metaMobileOnly { display: none !important; }
-  .logBtnDesktop  { display: block; width: 100%; }
+  .logBtnDesktop  { display: block; width: 100%; margin-top: auto; }
   .logBtnMobile   { display: none !important; }
 }
 
