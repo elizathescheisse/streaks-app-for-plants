@@ -66,10 +66,32 @@ export default function PlantPrediction({ plant, careProfile }) {
 
   const { predicted, daysUntilDry, waterNeeded, dominantUnit, hasRange, confidence, usingDefaults, totalSamples } = rec
 
+  // ── Species default (still learning) ─────────────────────────────────────
+  // When the model doesn't have enough data yet, show the species-level default
+  // instead of a noisy, inaccurate personalized prediction.
+  const stillLearning = usingDefaults || confidence === 'low'
+  if (stillLearning) {
+    const freq      = careProfile?.wateringFrequency
+    const name      = careProfile?.displayName ?? null
+    const nameStr   = name ? `${name} generally likes water` : 'This plant generally likes water'
+    return (
+      <div className={styles.wrap}>
+        {freq ? (
+          <p className={styles.speciesDefault}>
+            {nameStr} <strong>{freq}</strong>.
+          </p>
+        ) : null}
+        <p className={styles.confidence}>
+          Log a few more readings to get a personalized recommendation.
+        </p>
+      </div>
+    )
+  }
+
+  // ── Personalized prediction ───────────────────────────────────────────────
   const isOverdue = hasRange && daysUntilDry <= 0
   const isDueSoon = hasRange && daysUntilDry > 0 && daysUntilDry <= 1
-
-  const recClass = isOverdue ? styles.recUrgent : isDueSoon ? styles.recSoon : styles.recNormal
+  const recClass  = isOverdue ? styles.recUrgent : isDueSoon ? styles.recSoon : styles.recNormal
 
   return (
     <div className={styles.wrap}>
@@ -88,21 +110,8 @@ export default function PlantPrediction({ plant, careProfile }) {
         )}
       </div>
 
-      {/* Residual feedback — shown when last prediction was off */}
-      {residual && residualLabel(residual.residual) && (
-        <p className={styles.residual}>
-          {residualLabel(residual.residual)} · updating model
-        </p>
-      )}
-
-      {/* Confidence / learning status */}
       <p className={styles.confidence}>
-        {usingDefaults
-          ? 'Using defaults — log readings + waterings to personalize'
-          : confidence === 'low'
-          ? 'Still learning · log more entries to improve predictions'
-          : `Based on ${totalSamples} data points`
-        }
+        Based on {totalSamples} data points
       </p>
     </div>
   )
