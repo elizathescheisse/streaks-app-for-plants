@@ -104,10 +104,9 @@
 }
 
 .wateringStyle {
-  font-size: 10px;
-  color: var(--text-muted);
-  opacity: 0.5;
-  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
 }
 
 .progressLabel {

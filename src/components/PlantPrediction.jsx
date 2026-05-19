@@ -75,15 +75,15 @@ export default function PlantPrediction({ plant, careProfile }) {
 
   return (
     <div className={styles.wrap}>
+      {wateringStyleLabel && (
+        <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+      )}
       <span className={styles.moistureRaw}>
         ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
       </span>
       <span className={styles.moistureEst}>
         ◎ {Math.round(predicted)} (estimated now)
       </span>
-      {wateringStyleLabel && (
-        <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
-      )}
     </div>
   )
 }
