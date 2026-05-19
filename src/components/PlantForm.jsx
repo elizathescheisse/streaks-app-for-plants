@@ -183,9 +183,8 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
             />
           </div>
 
-          {/* Health — only shown when editing an existing plant */}
-          {isEdit && (
-            <div className={styles.field}>
+          {/* Health */}
+          <div className={styles.field}>
               <label className={styles.label}>HEALTH</label>
               <div className={styles.healthPills}>
                 {HEALTH_OPTIONS.map(({ value, label }) => (
@@ -198,7 +197,6 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
                 ))}
               </div>
             </div>
-          )}
 
           <div className={styles.formActions}>
             <button className={styles.saveBtn} onClick={onSave} disabled={!canSave}>

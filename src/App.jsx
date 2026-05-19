@@ -87,12 +87,22 @@ export default function App() {
         return updated
       }))
     } else {
+      const initialEvents = []
+      if (form.health) {
+        initialEvents.push({
+          id:        crypto.randomUUID(),
+          type:      'health_change',
+          timestamp: new Date().toISOString(),
+          bundleId:  crypto.randomUUID(),
+          health:    form.health,
+        })
+      }
       setPlants(ps => [...ps, {
         id:      crypto.randomUUID(),
         emoji:   form.emoji,
         species: form.species,
         name:    form.name,
-        events:  [],
+        events:  initialEvents,
       }])
     }
     setPanel(null)
