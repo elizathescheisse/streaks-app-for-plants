@@ -226,7 +226,6 @@ export default function App() {
                 key={p.id}
                 plant={p}
                 onEdit={() => editPlant(p)}
-                onDelete={() => deletePlant(p.id)}
                 onLog={() => openLog(p)}
                 onEditLog={(bundle) => openEditLog(p, bundle)}
               />
@@ -243,6 +242,7 @@ export default function App() {
             onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
             onSave={savePlantIdentity}
             onCancel={() => setPanel(null)}
+            onDelete={panel.form.id ? () => { deletePlant(panel.form.id); setPanel(null) } : undefined}
             isEdit={!!panel.form.id}
           />
         </Modal>

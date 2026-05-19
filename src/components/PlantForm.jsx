@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import styles from './PlantForm.module.css'
 import SpeciesInput from './SpeciesInput.jsx'
 
@@ -13,7 +14,8 @@ export const EMPTY_PLANT_FORM = {
   name:    '',
 }
 
-export default function PlantForm({ form, onChange, onSave, onCancel, isEdit }) {
+export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, isEdit }) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const canSave = form.species.trim() || form.name.trim()
 
@@ -88,6 +90,24 @@ export default function PlantForm({ form, onChange, onSave, onCancel, isEdit }) 
           {isEdit ? 'Save changes' : 'Add plant'}
         </button>
       </div>
+
+      {isEdit && onDelete && (
+        <div className={styles.deleteZone}>
+          {confirmingDelete ? (
+            <>
+              <p className={styles.deleteConfirmText}>Delete this plant and all its history? This can't be undone.</p>
+              <div className={styles.deleteConfirmActions}>
+                <button className={styles.deleteCancelBtn} type="button" onClick={() => setConfirmingDelete(false)}>Keep it</button>
+                <button className={styles.deleteConfirmBtn} type="button" onClick={onDelete}>Yes, delete</button>
+              </div>
+            </>
+          ) : (
+            <button className={styles.deleteEntryBtn} type="button" onClick={() => setConfirmingDelete(true)}>
+              Delete this plant
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
