@@ -9,6 +9,7 @@ import SettingsModal from './components/SettingsModal.jsx'
 import Modal from './components/Modal.jsx'
 import styles from './App.module.css'
 import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
+import { getPlantSortPriority } from './utils/plantStatus.js'
 
 // 2×2 grid icon used for the view-switcher button
 function GridIcon() {
@@ -322,13 +323,14 @@ export default function App() {
               </div>
             ) : (() => {
               const q = searchQuery.trim().toLowerCase()
-              const filtered = q
+              const filtered = (q
                 ? plants.filter(p =>
                     (p.name    && p.name.toLowerCase().includes(q)) ||
                     (p.species && p.species.toLowerCase().includes(q)) ||
                     (p.emoji   && p.emoji.includes(searchQuery.trim()))
                   )
                 : plants
+              ).slice().sort((a, b) => getPlantSortPriority(a) - getPlantSortPriority(b))
               if (filtered.length === 0) return (
                 <p className={styles.noResults}>No plants match "{searchQuery.trim()}"</p>
               )

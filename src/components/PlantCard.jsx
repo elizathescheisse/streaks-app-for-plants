@@ -7,6 +7,7 @@ import PlantHistoryChart from './PlantHistoryChart.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
 import { computeModel, getRecommendation } from '../utils/plantModel.js'
+import { moistureStatus } from '../utils/plantStatus.js'
 import PlantPrediction from './PlantPrediction.jsx'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Healthy', okay:'Okay', struggling:'Struggling' }
@@ -59,46 +60,6 @@ function relTime(ts) {
 function titleCase(s) {
   if (!s) return s
   return s.replace(/\b\w/g, c => c.toUpperCase())
-}
-
-// Returns a badge label + which badge color to reuse, based on where the current
-// moisture reading sits relative to the plant's ideal range. The badge is action-
-// oriented ("what should I do about water right now?") — see designed-out cases:
-//   • very dry          → struggling color, "Water immediately"
-//   • below range       → okay color,       "Water"
-//   • bottom of range   → good color,       "Water soon"
-//   • in / just above   → thriving color,   "Watered"
-//   • well above range  → okay color,       "Overwatered"
-function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
-  const val = Number(moisture)
-  const [min, max] = careProfile?.moistureRange ?? [3, 6]
-
-  // Water amount appended only to actionable-now badges
-  const water = waterNeeded > 0
-    ? ` · ${waterLabel(waterUnit, waterNeeded)}`
-    : ''
-
-  // ── Flood-and-dry plants ─────────────────────────────────────────────────
-  // These plants want to dry out completely between waterings. The relevant
-  // threshold is dryThreshold (when to water), not a mid-range band.
-  if (careProfile?.wateringStyle === 'flood-and-dry') {
-    const dry = careProfile.dryThreshold ?? min
-    const wetBuffer = Math.max((max - min) * 0.5, 2)
-    if (val <= dry)              return { label: `💧 Water${water}`,      cls: 'water'    }
-    if (val <= max + wetBuffer)  return { label: '🌿 Drying out',         cls: 'thriving' }
-    return                              { label: '⚠️ Overwatered',        cls: 'okay'     }
-  }
-
-  // ── Consistent-moisture plants ───────────────────────────────────────────
-  const w         = max - min
-  const dryBuffer = Math.max(w * 0.75, 2)
-  const wetBuffer = Math.max(w * 0.5,  2)
-
-  if (val < min - dryBuffer)  return { label: `🚨 Water immediately${water}`, cls: 'struggling' }
-  if (val < min)               return { label: `💧 Water${water}`,             cls: 'water'      }
-  if (val < min + w * 0.3)    return { label: '💧 Water soon',                 cls: 'good'       }
-  if (val <= max + wetBuffer) return { label: '✓ Watered',                     cls: 'thriving'   }
-  return                              { label: '⚠️ Overwatered',               cls: 'okay'       }
 }
 
 
