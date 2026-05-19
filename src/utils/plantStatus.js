@@ -31,7 +31,7 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
   if (careProfile?.wateringStyle === 'flood-and-dry') {
     const dry       = careProfile.dryThreshold ?? min
     const wetBuffer = Math.max((max - min) * 0.5, 2)
-    if (val <= dry)             return { label: `💧 Water${water}`,  cls: 'water'    }
+    if (val < dry)              return { label: `💧 Water${water}`,  cls: 'water'    }
     if (val <= dry + 1)         return { label: '💧 Water soon',     cls: 'good'     }
     if (val <= max + wetBuffer) return { label: '🌿 Drying out',     cls: 'thriving' }
     return                             { label: '⚠️ Overwatered',    cls: 'okay'     }

@@ -13,8 +13,8 @@ export default function MoistureBar({ value, range, careProfile, isPredicted = f
   // ── Consistent:    dot color based on ideal range ────────────────────────
   let statusLabel, dotClass
   if (isFloodAndDry) {
-    if (value <= dryThreshold) {
-      statusLabel = `Water now — at dry threshold (${dryThreshold})`
+    if (value < dryThreshold) {
+      statusLabel = `Below dry threshold (${dryThreshold}) — water now`
       dotClass    = styles.dotOut
     } else if (value <= dryThreshold + 1) {
       statusLabel = `Getting dry — water soon (threshold: ${dryThreshold})`

@@ -43,8 +43,8 @@ function dotColor(moisture, careProfile) {
 
   if (careProfile?.wateringStyle === 'flood-and-dry') {
     const dry = careProfile.dryThreshold ?? lo
-    if (val <= dry)       return 'var(--status-struggling)'  // needs water — red
-    if (val <= dry + 1)   return 'var(--status-okay)'        // getting close — yellow
+    if (val < dry)        return 'var(--status-struggling)'  // below threshold — red
+    if (val <= dry + 1)   return 'var(--status-okay)'        // at/near threshold — yellow
     return                       'var(--status-thriving)'    // drying out, healthy — green
   }
 
