@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from './MoistureBar.module.css'
 
-export default function MoistureBar({ value, range }) {
+export default function MoistureBar({ value, range, isPredicted = false }) {
   const [tooltip, setTooltip] = useState(null) // 'dot' | 'range' | null
   const [lo, hi] = range
   const pct = (v) => `${(v / 10) * 100}%`
@@ -32,10 +32,14 @@ export default function MoistureBar({ value, range }) {
       {tooltip && (
         <div className={styles.tooltip}>
           <span className={styles.tooltipValue}>
-            {tooltip === 'dot' ? `◎ ${value} / 10` : statusLabel}
+            {tooltip === 'dot'
+              ? `${isPredicted ? '~' : '◎'} ${value} / 10`
+              : statusLabel}
           </span>
           {tooltip === 'dot' && (
-            <span className={styles.tooltipLabel}>{statusLabel}</span>
+            <span className={styles.tooltipLabel}>
+              {isPredicted ? 'estimated current value' : statusLabel}
+            </span>
           )}
         </div>
       )}

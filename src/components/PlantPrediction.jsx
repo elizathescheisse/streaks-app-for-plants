@@ -98,7 +98,7 @@ export default function PlantPrediction({ plant, careProfile }) {
       <div className={styles.row}>
         {/* Estimated current moisture */}
         <span className={styles.moisture}>
-          ◎ ~{predicted} now
+          ◎ ~{Math.round(predicted)} now
         </span>
 
         {/* Watering recommendation — only if we have a target range */}

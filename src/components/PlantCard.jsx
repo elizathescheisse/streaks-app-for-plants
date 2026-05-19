@@ -7,6 +7,7 @@ import PlantHistoryChart from './PlantHistoryChart.jsx'
 import Modal from './Modal.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../utils/plantSelectors.js'
+import { computeModel, getRecommendation } from '../utils/plantModel.js'
 import PlantPrediction from './PlantPrediction.jsx'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Healthy', okay:'Okay', struggling:'Struggling' }
@@ -104,6 +105,23 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
   const wateredAfterReading =
     watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
 
+  // Decide whether to show the model's predicted current moisture or the raw
+  // last reading. Rules:
+  //   • Always use integers (moisture meter readings are whole numbers).
+  //   • Only switch to predicted when the model is confident (≥3 data points)
+  //     AND the predicted value has drifted ≥1 whole unit from the raw reading.
+  //   • Below that threshold the raw value is still accurate enough and the
+  //     model output would just be noise.
+  const model      = reading && !wateredAfterReading ? computeModel(plant) : null
+  const rec        = model ? getRecommendation(plant, model, careProfile) : null
+  const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
+  const rawMoisture  = reading ? Math.round(Number(reading.moisture)) : null
+  const predMoisture = isConfident ? Math.round(rec.predicted) : null
+  const drift        = (rawMoisture != null && predMoisture != null)
+    ? Math.abs(predMoisture - rawMoisture) : 0
+  const usePredicted = isConfident && drift >= 1
+  const badgeMoisture = usePredicted ? predMoisture : rawMoisture
+
   const status = wateredAfterReading
     ? (() => {
         const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
@@ -111,8 +129,8 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
         const label = minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now'
         return { label, cls: 'check', icon: faClock }
       })()
-    : (hasStats && reading)
-    ? moistureStatus(reading.moisture, careProfile.moistureRange)
+    : (hasStats && badgeMoisture != null)
+    ? moistureStatus(badgeMoisture, careProfile.moistureRange)
     : null
 
   return (
@@ -150,9 +168,9 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
             )}
 
             {/* Mobile-only moisture bar (when species has a known ideal range) */}
-            {hasStats && reading && (
+            {hasStats && badgeMoisture != null && (
               <div className={styles.mobileBar}>
-                <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
+                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
               </div>
             )}
 
@@ -201,10 +219,10 @@ export default function PlantCard({ plant, onEdit, onDelete, onLog, onEditLog })
                 </span>
               )}
 
-              {/* Moisture bar */}
-              {hasStats && reading && (
+              {/* Moisture bar — uses predicted moisture when drift is significant */}
+              {hasStats && badgeMoisture != null && (
                 <div className={styles.statsBar}>
-                  <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
+                  <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
                 </div>
               )}
             </div>
