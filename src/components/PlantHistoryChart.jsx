@@ -102,10 +102,13 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     return PAD_X + ((+new Date(ts) - tMin) / tSpan) * usableW
   }
 
-  // Ideal range
-  const [rLo, rHi] = careProfile?.moistureRange ?? [null, null]
-  const rangeY1 = rHi != null ? mToY(rHi) : null
-  const rangeY2 = rLo != null ? mToY(rLo) : null
+  // Ideal range / dry threshold
+  const isFloodAndDry   = careProfile?.wateringStyle === 'flood-and-dry'
+  const [rLo, rHi]      = careProfile?.moistureRange ?? [null, null]
+  const rangeY1         = rHi != null ? mToY(rHi) : null
+  const rangeY2         = rLo != null ? mToY(rLo) : null
+  const dryThreshold    = careProfile?.dryThreshold ?? rLo
+  const thresholdY      = dryThreshold != null ? mToY(dryThreshold) : null
 
   // Build per-date groups so same-day readings share one centered label
   const dateMap = new Map()
@@ -177,8 +180,14 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
         )}
         <svg width={svgWidth} height={SVG_H} className={styles.svg}>
 
-          {/* Ideal moisture range band */}
-          {rangeY1 != null && (
+          {/* Flood-and-dry: single dashed threshold line */}
+          {isFloodAndDry && thresholdY != null && (
+            <line x1={PAD_X} y1={thresholdY} x2={svgWidth - PAD_X} y2={thresholdY}
+              stroke="rgba(245,212,0,0.5)" strokeWidth="1" strokeDasharray="4,3"/>
+          )}
+
+          {/* Consistent: ideal moisture range band */}
+          {!isFloodAndDry && rangeY1 != null && (
             <>
               <rect
                 x={PAD_X} y={rangeY1}

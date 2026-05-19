@@ -69,19 +69,30 @@ function titleCase(s) {
 //   • bottom of range   → good color,       "Water soon"
 //   • in / just above   → thriving color,   "Watered"
 //   • well above range  → okay color,       "Overwatered"
-function moistureStatus(moisture, [min, max], waterNeeded, waterUnit) {
+function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
   const val = Number(moisture)
-  const w   = max - min                                  // range width
-  // Thresholds blend "proportional to range width" with an absolute floor of
-  // 2 moisture points — otherwise narrow ranges (e.g. fiddle leaf fig 4–5)
-  // trip the alarm states on tiny dips.
-  const dryBuffer = Math.max(w * 0.75, 2)                // red kicks in this far below min
-  const wetBuffer = Math.max(w * 0.5,  2)                // yellow over kicks in this far above max
+  const [min, max] = careProfile?.moistureRange ?? [3, 6]
 
-  // Water amount appended only to actionable-now badges ("Water" / "Water immediately")
+  // Water amount appended only to actionable-now badges
   const water = waterNeeded > 0
     ? ` · ${waterLabel(waterUnit, waterNeeded)}`
     : ''
+
+  // ── Flood-and-dry plants ─────────────────────────────────────────────────
+  // These plants want to dry out completely between waterings. The relevant
+  // threshold is dryThreshold (when to water), not a mid-range band.
+  if (careProfile?.wateringStyle === 'flood-and-dry') {
+    const dry = careProfile.dryThreshold ?? min
+    const wetBuffer = Math.max((max - min) * 0.5, 2)
+    if (val <= dry)              return { label: `💧 Water${water}`,      cls: 'water'    }
+    if (val <= max + wetBuffer)  return { label: '🌿 Drying out',         cls: 'thriving' }
+    return                              { label: '⚠️ Overwatered',        cls: 'okay'     }
+  }
+
+  // ── Consistent-moisture plants ───────────────────────────────────────────
+  const w         = max - min
+  const dryBuffer = Math.max(w * 0.75, 2)
+  const wetBuffer = Math.max(w * 0.5,  2)
 
   if (val < min - dryBuffer)  return { label: `🚨 Water immediately${water}`, cls: 'struggling' }
   if (val < min)               return { label: `💧 Water${water}`,             cls: 'water'      }
@@ -115,7 +126,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   //     AND the predicted value has drifted ≥1 whole unit from the raw reading.
   //   • Below that threshold the raw value is still accurate enough and the
   //     model output would just be noise.
-  const model      = reading && !wateredAfterReading ? computeModel(plant) : null
+  const model      = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
   const rec        = model ? getRecommendation(plant, model, careProfile) : null
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
   const rawMoisture  = reading ? Math.round(Number(reading.moisture)) : null
@@ -133,7 +144,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
         return { label, cls: 'check', icon: faClock }
       })()
     : (hasStats && badgeMoisture != null)
-    ? moistureStatus(badgeMoisture, careProfile.moistureRange, rec?.waterNeeded, rec?.dominantUnit)
+    ? moistureStatus(badgeMoisture, careProfile, rec?.waterNeeded, rec?.dominantUnit)
     : null
 
   return (
@@ -183,7 +194,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
 
             {!isCompact && hasStats && badgeMoisture != null && (
               <div className={styles.mobileBar}>
-                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
+                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
               </div>
             )}
 
@@ -207,7 +218,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
 
             {/* ── COMPACT MODE only: bar + prediction full-width ── */}
             {isCompact && hasStats && badgeMoisture != null && (
-              <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
+              <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
             )}
 
             {/* ── Actions row ── */}
@@ -252,7 +263,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
             {/* Moisture bar — uses predicted moisture when drift is significant */}
             {hasStats && badgeMoisture != null && (
               <div className={styles.statsBar}>
-                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
+                <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
               </div>
             )}
 
@@ -307,7 +318,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
                 </div>
                 {careProfile?.moistureRange && reading && (
                   <div className={styles.logBar}>
-                    <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
+                    <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} careProfile={careProfile} />
                   </div>
                 )}
                 {note && <p className={styles.logNotes}>{note.text}</p>}

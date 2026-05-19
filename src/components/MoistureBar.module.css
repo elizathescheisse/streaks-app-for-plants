@@ -54,6 +54,18 @@
   cursor: pointer;
 }
 
+/* Flood-and-dry: vertical tick at the dryThreshold position */
+.thresholdTick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(245, 212, 0, 0.7);
+  border-radius: 1px;
+  cursor: pointer;
+}
+
 .dot {
   position: absolute;
   top: 50%;
