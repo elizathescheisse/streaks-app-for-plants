@@ -129,6 +129,9 @@ If a test fails unexpectedly: fix the code (not the test) unless the test itself
 
 ## GitHub Workflow
 
+### When to nudge about a PR
+If a conversation has produced meaningful committed work on a branch and no PR exists yet, proactively suggest opening one. Specifically: after 2+ commits on a non-main branch, or when the user says something like "ok that looks good" / "let's move on" / "what's next" — check whether there's an open branch with unpushed or un-PR'd commits and remind the user. Don't wait to be asked. A good prompt is: "We have N commits on `branch-name` — want me to open a PR?"
+
 ### PRs — Always check issues first
 Before creating any PR, always:
 1. Run `gh issue list --state open` to fetch all open issues

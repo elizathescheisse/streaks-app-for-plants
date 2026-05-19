@@ -47,9 +47,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
-  width: 160px;
+  width: 180px;
 }
 
 
@@ -66,11 +66,15 @@
 }
 
 .statsBar {
-  width: 150px;
+  width: 100%;
 }
 
 /* Mobile bar (inside left column, only shown on mobile) */
 .mobileBar { display: none; }
+
+/* Prediction strip — mobile shows in left column, desktop shows in right stats block */
+.predMobile  { display: block; }
+.predDesktop { display: none; }
 
 /* Log history bar */
 .logBar {
@@ -87,12 +91,16 @@
   .statsBlock    { display: none; }
   .metaMobileOnly { display: flex !important; }
   .mobileBar     { display: block; }
+  .predMobile    { display: block; }
+  .predDesktop   { display: none; }
 }
 
 @media (min-width: 640px) {
   .metaMobileOnly { display: none !important; }
   .logBtnDesktop  { display: block; width: 100%; margin-top: auto; }
   .logBtnMobile   { display: none !important; }
+  .predMobile     { display: none; }
+  .predDesktop    { display: block; width: 100%; }
 }
 
 /* Legacy .info — kept for safety */
@@ -217,6 +225,13 @@
   background: #ffffff;
   box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
   transform: translateY(-1px);
+}
+
+/* Compact-mode Log button — always visible, slightly larger */
+.logBtnCompact {
+  padding: 7px 20px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .logBtn:active {
