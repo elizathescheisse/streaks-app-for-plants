@@ -71,19 +71,12 @@ export default function PlantPrediction({ plant, careProfile }) {
 
   return (
     <div className={styles.wrap}>
-      {/* Raw reading (left) + estimated current (right) */}
-      <div className={styles.moistureRow}>
-        <span className={styles.moistureRaw}>
-          ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
-        </span>
-        <span className={styles.moistureEst}>
-          ◎ {Math.round(predicted)} (est.)
-        </span>
-      </div>
-
-      <p className={styles.confidence}>
-        Based on {totalSamples} data points
-      </p>
+      <span className={styles.moistureRaw}>
+        ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
+      </span>
+      <span className={styles.moistureEst}>
+        ◎ {Math.round(predicted)} (estimated)
+      </span>
     </div>
   )
 }

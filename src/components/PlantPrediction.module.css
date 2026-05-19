@@ -17,13 +17,6 @@
   flex-wrap: wrap;
 }
 
-/* Side-by-side raw reading + estimated current moisture */
-.moistureRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-}
-
 .moistureRaw {
   font-size: 12px;
   color: rgba(140, 204, 235, 0.85);
