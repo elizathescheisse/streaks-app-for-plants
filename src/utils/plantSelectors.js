@@ -38,6 +38,19 @@ export function logBundles(plant) {
   )
 }
 
+// Returns true if a watering event meets the species' minimum threshold.
+// For flood-and-dry plants with a minWaterAmount, a tiny top-off doesn't
+// count as a real watering (won't reset the badge, won't feed the α model).
+// For consistent plants or unrecognized species, every watering counts.
+export function isSignificantWatering(watering, careProfile) {
+  const min = careProfile?.minWaterAmount
+  if (!min) return true
+  const amount = parseFloat(watering?.amount)
+  if (!amount || isNaN(amount)) return false
+  const threshold = min[watering?.unit] ?? min.cups
+  return amount >= threshold
+}
+
 // Convenience: get events relevant to charting (readings + waterings)
 export function chartEvents(plant) {
   if (!plant?.events) return { readings: [], waterings: [] }

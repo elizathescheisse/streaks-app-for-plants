@@ -347,3 +347,11 @@
   background: rgba(229,97,71,0.24);
   border-color: rgba(229,97,71,0.7);
 }
+
+.minWaterHint {
+  font-size: 11px;
+  color: var(--status-okay);
+  opacity: 0.85;
+  line-height: 1.4;
+  margin-top: 4px;
+}

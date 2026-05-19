@@ -11,7 +11,7 @@
  * Cold-start defaults are used when not enough data exists yet.
  */
 
-import { lastReading, getEvents } from './plantSelectors.js'
+import { lastReading, getEvents, isSignificantWatering } from './plantSelectors.js'
 
 const DEFAULT_ALPHA = 1.5   // moisture points per cup (generic prior)
 const DEFAULT_BETA  = 0.5   // moisture points per day (generic prior)
@@ -44,7 +44,7 @@ function parseAmount(s) {
   return isNaN(v) ? null : v
 }
 
-export function computeModel(plant) {
+export function computeModel(plant, careProfile) {
   const timeline = (plant.events ?? [])
     .filter(e => e.type === 'reading' || e.type === 'watering')
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
@@ -76,6 +76,9 @@ export function computeModel(plant) {
       const watering = timeline[i + 1]
       const waterAmt = parseAmount(watering.amount)
       if (!waterAmt || waterAmt <= 0) continue
+      // Skip insignificant waterings for flood-and-dry plants — a tablespoon
+      // of water doesn't count as a real soak and would corrupt the α estimate.
+      if (!isSignificantWatering(watering, careProfile)) continue
 
       // Find next reading after the watering; abort if another watering appears first
       let afterIdx = -1
@@ -201,7 +204,13 @@ export function getRecommendation(plant, model, careProfile) {
   const hasRange = !!careProfile?.moistureRange
   const [rangeLo, rangeHi] = careProfile?.moistureRange ?? [3, 6]
 
-  const daysUntilDry = Math.max(0, (predicted - rangeLo) / beta)
+  // For flood-and-dry plants use dryThreshold (the moisture level at which
+  // the plant actually needs water) rather than the bottom of the range.
+  const waterTarget = careProfile?.wateringStyle === 'flood-and-dry'
+    ? (careProfile.dryThreshold ?? rangeLo)
+    : rangeLo
+
+  const daysUntilDry = Math.max(0, (predicted - waterTarget) / beta)
   const waterNeeded  = Math.max(0, (rangeHi - predicted) / alpha)
 
   const totalSamples = model.betaSamples + model.alphaSamples

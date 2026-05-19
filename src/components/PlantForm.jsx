@@ -295,7 +295,7 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
                 </div>
                 {careProfile?.moistureRange && reading && (
                   <div className={styles.historyBar}>
-                    <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} />
+                    <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} careProfile={careProfile} />
                   </div>
                 )}
                 {note && <p className={styles.historyNotes}>{note.text}</p>}

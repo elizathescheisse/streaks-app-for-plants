@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import styles from './LogEntryForm.module.css'
+import { lookupPlant } from '../utils/plantLookup.js'
+import { isSignificantWatering } from '../utils/plantSelectors.js'
 
 const HEALTH_OPTIONS = [
   { value: 'no_change',  label: 'No change'    },
@@ -53,6 +55,7 @@ function describePending(form) {
 
 export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, onCancel, onDelete }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const careProfile = lookupPlant(plant?.species)
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const moistureInt = form.moisture === '' ? null : Number(form.moisture)
   const summary = describePending(form)
@@ -150,6 +153,13 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
             {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
           </select>
         </div>
+        {careProfile?.minWaterAmount && String(form.waterAmount).trim() &&
+          !isSignificantWatering({ amount: form.waterAmount, unit: form.waterUnit }, careProfile) && (
+          <p className={styles.minWaterHint}>
+            For a flood-and-dry plant, consider watering more thoroughly
+            (at least {form.waterUnit === 'liters' ? `${careProfile.minWaterAmount.liters} L` : `${careProfile.minWaterAmount.cups} cups`}).
+          </p>
+        )}
       </div>
 
       {/* ── Health ── */}

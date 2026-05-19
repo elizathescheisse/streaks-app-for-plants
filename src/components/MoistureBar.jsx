@@ -1,30 +1,41 @@
 import { useState } from 'react'
 import styles from './MoistureBar.module.css'
 
-export default function MoistureBar({ value, range, isPredicted = false }) {
-  const [tooltip, setTooltip] = useState(null) // 'dot' | 'range' | null
+export default function MoistureBar({ value, range, careProfile, isPredicted = false }) {
+  const [tooltip, setTooltip] = useState(null) // 'dot' | 'threshold' | 'range' | null
   const [lo, hi] = range
   const pct = (v) => `${(v / 10) * 100}%`
 
-  // Distance outside the ideal range (0 if in range)
-  const dist = value < lo ? lo - value : value > hi ? value - hi : 0
-  // 1 unit outside = "a little off" (yellow); more than 1 = problem (red)
-  const slightlyOutside = dist > 0 && dist <= 1
+  const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
+  const dryThreshold  = careProfile?.dryThreshold ?? lo
 
+  // ── Flood-and-dry: dot color based on dryThreshold ───────────────────────
+  // ── Consistent:    dot color based on ideal range ────────────────────────
   let statusLabel, dotClass
-  if (dist === 0) {
-    statusLabel = `In range (${lo}–${hi})`
-    dotClass    = styles.dotOk
-  } else if (slightlyOutside) {
-    statusLabel = value < lo
-      ? `A little dry — ideal is ${lo}–${hi}`
-      : `A little wet — ideal is ${lo}–${hi}`
-    dotClass    = styles.dotClose
+  if (isFloodAndDry) {
+    if (value <= dryThreshold) {
+      statusLabel = `Water now — at dry threshold (${dryThreshold})`
+      dotClass    = styles.dotOut
+    } else if (value <= dryThreshold + 1) {
+      statusLabel = `Getting dry — water soon (threshold: ${dryThreshold})`
+      dotClass    = styles.dotClose
+    } else {
+      statusLabel = `Drying out — water at ${dryThreshold}`
+      dotClass    = styles.dotOk
+    }
   } else {
-    statusLabel = value < lo
-      ? `Too dry — ideal is ${lo}–${hi}`
-      : `Too wet — ideal is ${lo}–${hi}`
-    dotClass    = styles.dotOut
+    const dist          = value < lo ? lo - value : value > hi ? value - hi : 0
+    const slightlyOut   = dist > 0 && dist <= 1
+    if (dist === 0) {
+      statusLabel = `In range (${lo}–${hi})`
+      dotClass    = styles.dotOk
+    } else if (slightlyOut) {
+      statusLabel = value < lo ? `A little dry — ideal is ${lo}–${hi}` : `A little wet — ideal is ${lo}–${hi}`
+      dotClass    = styles.dotClose
+    } else {
+      statusLabel = value < lo ? `Too dry — ideal is ${lo}–${hi}` : `Too wet — ideal is ${lo}–${hi}`
+      dotClass    = styles.dotOut
+    }
   }
 
   return (
@@ -44,15 +55,26 @@ export default function MoistureBar({ value, range, isPredicted = false }) {
         </div>
       )}
       <div className={styles.track}>
-        {/* Ideal range fill — hover/tap shows status label */}
-        <div
-          className={styles.rangeFill}
-          style={{ left: pct(lo), width: pct(hi - lo) }}
-          onMouseEnter={() => setTooltip('range')}
-          onMouseLeave={() => setTooltip(null)}
-          onTouchStart={e => { e.stopPropagation(); setTooltip(t => t === 'range' ? null : 'range') }}
-        />
-        {/* Current value dot — hover/tap shows exact moisture reading */}
+        {isFloodAndDry ? (
+          /* Flood-and-dry: single threshold tick instead of a range band */
+          <div
+            className={styles.thresholdTick}
+            style={{ left: pct(dryThreshold) }}
+            onMouseEnter={() => setTooltip('threshold')}
+            onMouseLeave={() => setTooltip(null)}
+            onTouchStart={e => { e.stopPropagation(); setTooltip(t => t === 'threshold' ? null : 'threshold') }}
+          />
+        ) : (
+          /* Consistent: green ideal range band */
+          <div
+            className={styles.rangeFill}
+            style={{ left: pct(lo), width: pct(hi - lo) }}
+            onMouseEnter={() => setTooltip('range')}
+            onMouseLeave={() => setTooltip(null)}
+            onTouchStart={e => { e.stopPropagation(); setTooltip(t => t === 'range' ? null : 'range') }}
+          />
+        )}
+        {/* Current value dot */}
         <div
           className={`${styles.dot} ${dotClass}`}
           style={{ left: pct(value) }}

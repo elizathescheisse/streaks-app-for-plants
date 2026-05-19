@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
-import { lastWatering } from '../utils/plantSelectors.js'
+import { lastWatering, isSignificantWatering } from '../utils/plantSelectors.js'
 import { lookupPlant } from '../utils/plantLookup.js'
 
 function titleCase(s) {
@@ -88,6 +88,12 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
               ))}
             </div>
           </div>
+          {careProfile?.minWaterAmount && String(amount).trim() && !isSignificantWatering({ amount, unit }, careProfile) && (
+            <p className={styles.minWaterHint}>
+              For a flood-and-dry plant, consider watering more thoroughly
+              (at least {unit === 'liters' ? `${careProfile.minWaterAmount.liters} L` : `${careProfile.minWaterAmount.cups} cups`}).
+            </p>
+          )}
         </div>
       ) : (
         <div className={styles.field}>
