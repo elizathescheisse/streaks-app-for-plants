@@ -84,7 +84,7 @@ function moistureStatus(moisture, [min, max], waterNeeded, waterUnit) {
     : ''
 
   if (val < min - dryBuffer)  return { label: `🚨 Water immediately${water}`, cls: 'struggling' }
-  if (val < min)               return { label: `💧 Water${water}`,             cls: 'okay'       }
+  if (val < min)               return { label: `💧 Water${water}`,             cls: 'water'      }
   if (val < min + w * 0.3)    return { label: '💧 Water soon',                 cls: 'good'       }
   if (val <= max + wetBuffer) return { label: '✓ Watered',                     cls: 'thriving'   }
   return                              { label: '⚠️ Overwatered',               cls: 'okay'       }

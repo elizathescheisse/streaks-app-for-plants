@@ -23,11 +23,19 @@
 }
 .cardStatus_struggling:hover { border-color: rgba(229, 97, 71, 0.65); }
 
-.cardStatus_okay {
-  background: rgba(224, 199, 64, 0.06);
-  border-color: rgba(224, 199, 64, 0.38);
+/* water = actionable underwatered — prominent amber, visually high priority */
+.cardStatus_water {
+  background: rgba(245, 196, 0, 0.1);
+  border-color: rgba(245, 196, 0, 0.55);
 }
-.cardStatus_okay:hover { border-color: rgba(224, 199, 64, 0.58); }
+.cardStatus_water:hover { border-color: rgba(245, 196, 0, 0.75); }
+
+/* okay = overwatered — muted, nothing to do right now */
+.cardStatus_okay {
+  background: rgba(224, 199, 64, 0.03);
+  border-color: rgba(224, 199, 64, 0.2);
+}
+.cardStatus_okay:hover { border-color: rgba(224, 199, 64, 0.35); }
 
 .cardStatus_good {
   background: rgba(140, 217, 102, 0.05);
@@ -224,7 +232,10 @@
 
 .badge_thriving  { color: var(--status-thriving);  background: rgba(64,217,97,0.14);  border-color: rgba(64,217,97,0.55);  }
 .badge_good      { color: var(--status-good);      background: rgba(140,217,102,0.14);border-color: rgba(140,217,102,0.55);}
-.badge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.14); border-color: rgba(224,199,64,0.55); }
+/* water = actionable underwatered — bright amber, high contrast */
+.badge_water     { color: #f5c400;                 background: rgba(245,196,0,0.18);  border-color: rgba(245,196,0,0.7);   font-weight: 600; }
+/* okay = overwatered — muted, nothing actionable */
+.badge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.08); border-color: rgba(224,199,64,0.3);  }
 .badge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.14);  border-color: rgba(229,97,71,0.55);  }
 .badge_check     { color: #18A4E8;                 background: rgba(24,164,232,0.12); border-color: rgba(24,164,232,0.45);}
 
