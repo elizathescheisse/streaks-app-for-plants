@@ -5,7 +5,9 @@
  *   α (alpha) — moisture rise per unit of water  (e.g. 1.5 moisture points per cup)
  *   β (beta)  — moisture drop per day            (e.g. 0.5 points/day)
  *
- * Both are estimated from the event timeline using exponential smoothing (γ = 0.25).
+ * Both are estimated from the most recent N observations using exponential
+ * smoothing (γ = 0.25). Older observations outside the window are dropped so
+ * the estimate adapts to seasonal changes (e.g. slower drying in winter).
  * Cold-start defaults are used when not enough data exists yet.
  */
 
@@ -13,7 +15,9 @@ import { lastReading, getEvents } from './plantSelectors.js'
 
 const DEFAULT_ALPHA = 1.5   // moisture points per cup (generic prior)
 const DEFAULT_BETA  = 0.5   // moisture points per day (generic prior)
-const GAMMA         = 0.25  // smoothing factor: recent obs weighted more
+const GAMMA         = 0.25  // EMA smoothing factor: recent obs weighted more
+const BETA_WINDOW   = 6     // only use the N most recent β observations
+const ALPHA_WINDOW  = 4     // only use the N most recent α observations
 
 // ─────────────────────────────────────────────────────────
 // computeModel
@@ -109,11 +113,17 @@ export function computeModel(plant) {
     }
   }
 
-  // Apply exponential smoothing: each new observation nudges the estimate
+  // Apply EMA over a rolling window of the most recent N observations.
+  // Older samples (outside the window) are discarded so the estimate adapts
+  // to seasonal drift — e.g. slower drying in winter — without anchoring
+  // to stale summer data. Total sample counts are preserved for confidence.
+  const recentBeta  = betaObs.slice(-BETA_WINDOW)
+  const recentAlpha = alphaObs.slice(-ALPHA_WINDOW)
+
   let beta  = null
-  for (const obs of betaObs)  { beta  = beta  == null ? obs : GAMMA * obs + (1 - GAMMA) * beta  }
+  for (const obs of recentBeta)  { beta  = beta  == null ? obs : GAMMA * obs + (1 - GAMMA) * beta  }
   let alpha = null
-  for (const obs of alphaObs) { alpha = alpha == null ? obs : GAMMA * obs + (1 - GAMMA) * alpha }
+  for (const obs of recentAlpha) { alpha = alpha == null ? obs : GAMMA * obs + (1 - GAMMA) * alpha }
 
   // Dominant watering unit — for displaying recommendation in the right unit
   const waterings = (plant.events ?? []).filter(e => e.type === 'watering')
