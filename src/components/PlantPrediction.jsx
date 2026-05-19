@@ -46,6 +46,12 @@ export default function PlantPrediction({ plant, careProfile }) {
 
   const { predicted, totalSamples, usingDefaults, confidence } = rec
 
+  const wateringStyleLabel = careProfile?.wateringStyle === 'flood-and-dry'
+    ? '🌊 Flood & dry out'
+    : careProfile?.wateringStyle === 'consistent'
+    ? '🪣 Consistent moisture'
+    : null
+
   // ── Species default (still learning) ─────────────────────────────────────
   // When the model doesn't have enough data yet, show the species-level default
   // instead of a noisy, inaccurate personalized prediction.
@@ -53,6 +59,9 @@ export default function PlantPrediction({ plant, careProfile }) {
   if (stillLearning) {
     return (
       <div className={styles.wrap}>
+        {wateringStyleLabel && (
+          <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+        )}
         <div className={styles.progressRow}>
           {[0, 1, 2].map(i => (
             <span key={i} className={i < totalSamples ? styles.dotFilled : styles.dotEmpty} />
@@ -69,6 +78,9 @@ export default function PlantPrediction({ plant, careProfile }) {
 
   return (
     <div className={styles.wrap}>
+      {wateringStyleLabel && (
+        <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+      )}
       <span className={styles.moistureRaw}>
         ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
       </span>
