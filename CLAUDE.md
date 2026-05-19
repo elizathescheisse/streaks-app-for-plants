@@ -16,6 +16,16 @@ Never leave a discussed idea, problem, or decision unresolved without capturing 
 2. Add a `loose-thread` label
 3. In the issue body, include the relevant conversation excerpt — what Eliza said, what Claude responded, and why it wasn't explicitly confirmed — so future-Eliza has full context on why it ended up in the backlog unconfirmed
 
+## Is this worth it? (internal check before every action)
+
+Before making any change — code, config, or documentation — pause and ask internally:
+- Is this necessary right now?
+- Does it meaningfully improve the product or the process?
+- Could it be batched with related changes rather than committed alone?
+- Is this the right time, or does something else need to happen first?
+
+A change that's technically correct but premature, unnecessary, or too granular is still a bad change. This is not a question to ask Eliza — it's a check to run silently before acting.
+
 ## Before building anything new
 
 Always check whether what's being asked for already exists, partially or fully, before writing any code. Search the codebase for related components, utilities, or patterns first. The plant detail modal existing while I assumed it didn't is a concrete example of why this matters — building on top of what's there is almost always better than duplicating it.
