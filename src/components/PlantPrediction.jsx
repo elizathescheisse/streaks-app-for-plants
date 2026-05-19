@@ -1,6 +1,8 @@
 import styles from './PlantPrediction.module.css'
 import { computeModel, getRecommendation } from '../utils/plantModel.js'
 import { lastReading, lastWatering } from '../utils/plantSelectors.js'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDroplet } from '@fortawesome/free-solid-svg-icons'
 
 function relTime(ts) {
   const mins = Math.floor((Date.now() - new Date(ts)) / 60_000)
@@ -49,8 +51,10 @@ export default function PlantPrediction({ plant, careProfile }) {
   const wateringStyleLabel = careProfile?.wateringStyle === 'flood-and-dry'
     ? '🌊 Flood & dry out'
     : careProfile?.wateringStyle === 'consistent'
-    ? '🪣 Consistent moisture'
+    ? <><FontAwesomeIcon icon={faDroplet} style={{ marginRight: '5px', fontSize: '8px', opacity: 0.8 }} />Consistent moisture</>
     : null
+
+  const wateringFrequency = careProfile?.wateringFrequency ?? null
 
   // ── Species default (still learning) ─────────────────────────────────────
   // When the model doesn't have enough data yet, show the species-level default
@@ -61,6 +65,9 @@ export default function PlantPrediction({ plant, careProfile }) {
       <div className={styles.wrap}>
         {wateringStyleLabel && (
           <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+        )}
+        {wateringFrequency && (
+          <span className={styles.wateringFrequency}>{wateringFrequency}</span>
         )}
         <div className={styles.progressRow}>
           {[0, 1, 2].map(i => (
@@ -80,6 +87,9 @@ export default function PlantPrediction({ plant, careProfile }) {
     <div className={styles.wrap}>
       {wateringStyleLabel && (
         <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+      )}
+      {wateringFrequency && (
+        <span className={styles.wateringFrequency}>{wateringFrequency}</span>
       )}
       <span className={styles.moistureRaw}>
         ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
