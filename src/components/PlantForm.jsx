@@ -58,17 +58,24 @@ function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
 
-const HISTORY_WINDOWS = [
-  { key: '1W',  label: '1W',  days: 7   },
-  { key: '1M',  label: '1M',  days: 30  },
-  { key: '3M',  label: '3M',  days: 90  },
-  { key: 'all', label: 'All', days: null },
-]
+function toDateInput(date) {
+  // Returns YYYY-MM-DD in local time for use in <input type="date">
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function defaultDateRange() {
+  const today = new Date()
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  return { from: toDateInput(firstOfMonth), to: toDateInput(today) }
+}
 
 export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, isEdit, plant, onEditLog }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [activeTab, setActiveTab] = useState('edit')
-  const [historyWindow, setHistoryWindow] = useState('all')
+  const [dateRange, setDateRange] = useState(defaultDateRange)
 
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const canSave = form.species.trim() || form.name.trim()
@@ -78,11 +85,15 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
     : null)
   const allBundles = plant ? logBundles(plant) : []
 
-  const windowDays = HISTORY_WINDOWS.find(w => w.key === historyWindow)?.days
-  const cutoff = windowDays ? Date.now() - windowDays * 86_400_000 : null
-  const bundles = cutoff
-    ? allBundles.filter(b => new Date(b[0].timestamp) >= cutoff)
-    : allBundles
+  // Filter by date range — 'to' date is inclusive through end of that day
+  const fromTs = dateRange.from ? new Date(dateRange.from).getTime() : null
+  const toTs   = dateRange.to   ? new Date(dateRange.to).getTime() + 86_400_000 - 1 : null
+  const bundles = allBundles.filter(b => {
+    const ts = new Date(b[0].timestamp).getTime()
+    if (fromTs && ts < fromTs) return false
+    if (toTs   && ts > toTs)   return false
+    return true
+  })
 
   return (
     <div className={styles.panel}>
@@ -221,16 +232,27 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
       {isEdit && activeTab === 'history' && (
         <div className={styles.tabContent}>
 
-          {/* Date range toggle */}
-          <div className={styles.historyWindowRow}>
-            {HISTORY_WINDOWS.map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                className={`${styles.historyWindowBtn} ${historyWindow === key ? styles.historyWindowBtnActive : ''}`}
-                onClick={() => setHistoryWindow(key)}
-              >{label}</button>
-            ))}
+          {/* Date range picker */}
+          <div className={styles.dateRangeRow}>
+            <div className={styles.dateRangeInputs}>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={dateRange.from}
+                max={dateRange.to || undefined}
+                onChange={e => setDateRange(r => ({ ...r, from: e.target.value }))}
+                aria-label="From date"
+              />
+              <span className={styles.dateRangeSep}>–</span>
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={dateRange.to}
+                min={dateRange.from || undefined}
+                onChange={e => setDateRange(r => ({ ...r, to: e.target.value }))}
+                aria-label="To date"
+              />
+            </div>
             <span className={styles.historyCount}>
               {bundles.length} {bundles.length === 1 ? 'entry' : 'entries'}
             </span>

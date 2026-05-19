@@ -49,34 +49,43 @@
   margin-top: 24px;
 }
 
-/* ── History window toggle ── */
-.historyWindowRow {
+/* ── History date range picker ── */
+.dateRangeRow {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
-.historyWindowBtn {
-  height: 28px;
-  padding: 0 10px;
-  background: transparent;
+.dateRangeInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateInput {
+  height: 32px;
+  padding: 0 8px;
+  background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 500;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  /* Remove default browser chrome on date inputs */
+  color-scheme: dark;
 }
 
-.historyWindowBtn:hover {
-  background: var(--bg-surface-raised);
-  color: var(--text-secondary);
+.dateInput:focus {
+  outline: none;
+  border-color: var(--border-focus);
 }
 
-.historyWindowBtnActive {
-  background: var(--bg-surface-raised);
-  border-color: rgba(71,133,61,0.5);
-  color: var(--text-secondary);
+.dateRangeSep {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .historyCount {
@@ -84,6 +93,7 @@
   font-size: 11px;
   color: var(--text-muted);
   opacity: 0.7;
+  white-space: nowrap;
 }
 
 /* ── History entries ── */
