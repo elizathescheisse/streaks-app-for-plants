@@ -7,7 +7,7 @@ import EdgeGlow from './components/EdgeGlow.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
 import Modal from './components/Modal.jsx'
 import styles from './App.module.css'
-import { buildEventsFromForm } from './utils/plantSelectors.js'
+import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
 
 // 2×2 grid icon used for the view-switcher button
 function GridIcon() {
@@ -70,13 +70,24 @@ export default function App() {
     if (!canSave) return
 
     if (form.id) {
-      setPlants(ps => ps.map(p => p.id === form.id
-        ? { ...p, emoji: form.emoji, species: form.species, name: form.name }
-        : p
-      ))
+      setPlants(ps => ps.map(p => {
+        if (p.id !== form.id) return p
+        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name }
+        // Append a health_change event only if health actually changed
+        if (form.health && form.health !== currentHealth(p)) {
+          updated.events = [...p.events, {
+            id:        crypto.randomUUID(),
+            type:      'health_change',
+            timestamp: new Date().toISOString(),
+            bundleId:  crypto.randomUUID(),
+            health:    form.health,
+          }]
+        }
+        return updated
+      }))
     } else {
       setPlants(ps => [...ps, {
-        id: crypto.randomUUID(),
+        id:      crypto.randomUUID(),
         emoji:   form.emoji,
         species: form.species,
         name:    form.name,
@@ -93,7 +104,7 @@ export default function App() {
   function editPlant(plant) {
     setPanel({
       mode: 'identity',
-      form: { id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name }
+      form: { id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name, health: currentHealth(plant) }
     })
   }
 

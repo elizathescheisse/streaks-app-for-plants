@@ -15,7 +15,15 @@ export const EMPTY_PLANT_FORM = {
   emoji:   '🌿',
   species: '',
   name:    '',
+  health:  null,
 }
+
+const HEALTH_OPTIONS = [
+  { value: 'thriving',   label: '🌟 Thriving'   },
+  { value: 'good',       label: '✓ Healthy'     },
+  { value: 'okay',       label: '~ Okay'        },
+  { value: 'struggling', label: '⚠ Struggling'  },
+]
 
 const LIGHT_LABELS = {
   'direct':          '☀️ Direct sun',
@@ -149,6 +157,23 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
               onChange={e => set('name', e.target.value)}
             />
           </div>
+
+          {/* Health — only shown when editing an existing plant */}
+          {isEdit && (
+            <div className={styles.field}>
+              <label className={styles.label}>HEALTH</label>
+              <div className={styles.healthPills}>
+                {HEALTH_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`${styles.pill} ${styles[`pill_${value}`]} ${form.health === value ? styles[`pillActive_${value}`] : ''}`}
+                    onClick={() => set('health', value)}
+                  >{label}</button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className={styles.formActions}>
             <button className={styles.saveBtn} onClick={onSave} disabled={!canSave}>
