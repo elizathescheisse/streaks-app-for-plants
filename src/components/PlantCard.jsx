@@ -208,10 +208,6 @@ export default function PlantCard({ plant, onEdit, onLog, onEditLog, chartWindow
               <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} isPredicted={usePredicted} />
             )}
 
-            {isCompact && reading && (
-              <PlantPrediction plant={plant} careProfile={careProfile} />
-            )}
-
             {/* ── Actions row ── */}
             <div className={styles.actions}>
               <div className={styles.actionsLeft}>
