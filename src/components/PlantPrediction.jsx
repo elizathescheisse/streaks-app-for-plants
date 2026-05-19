@@ -89,8 +89,11 @@ export default function PlantPrediction({ plant, careProfile }) {
   }
 
   // ── Personalized prediction ───────────────────────────────────────────────
-  const isOverdue = hasRange && daysUntilDry <= 0
-  const isDueSoon = hasRange && daysUntilDry > 0 && daysUntilDry <= 1
+  // isOverdue = model predicts moisture is already *below* the dry threshold (daysUntilDry < 0).
+  // daysUntilDry === 0 means "at the threshold right now" — treat as due-soon, not urgent,
+  // so the color agrees with the badge which shows green/yellow when still in range.
+  const isOverdue = hasRange && daysUntilDry < 0
+  const isDueSoon = hasRange && daysUntilDry >= 0 && daysUntilDry <= 1
   const recClass  = isOverdue ? styles.recUrgent : isDueSoon ? styles.recSoon : styles.recNormal
 
   return (
