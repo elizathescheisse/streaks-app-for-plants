@@ -174,8 +174,18 @@ If a test fails unexpectedly: fix the code (not the test) unless the test itself
 
 ## GitHub Workflow
 
+### Parked PRs — surface when their blocker is resolved
+Some PRs are parked with a known blocker. When that blocker ships, remind Eliza to revisit the parked PR. Current list:
+
+- **PR #87** (`feature/inline-timeline-expand`) — parked because card actions got cluttered (▼ Timeline + 💧 + ◎ + Log = too many). The design fix before resuming: reduce to 3 actions max (💧, ◎, ▼ Timeline) and move + Log into the expanded section. No hard blocker — can be picked up any time.
+
 ### When to nudge about a PR
 If a conversation has produced meaningful committed work on a branch and no PR exists yet, proactively suggest opening one. Specifically: after 2+ commits on a non-main branch, or when the user says something like "ok that looks good" / "let's move on" / "what's next" — check whether there's an open branch with unpushed or un-PR'd commits and remind the user. Don't wait to be asked. A good prompt is: "We have N commits on `branch-name` — want me to open a PR?"
+
+### Never manually close issues for unmerged work
+Never use `gh issue close` to close an issue unless the code that resolves it is already in `main`. Instead, put `closes #N` in the PR description — GitHub will close the issue automatically when the PR merges. If you manually close an issue before merge and the PR gets abandoned, the issue is silently lost.
+
+The one exception: closing issues that are genuinely invalidated (e.g. a bug that no longer applies because the feature was removed), not just "resolved by a pending PR."
 
 ### PRs — Always check issues first
 Before creating any PR, always:
