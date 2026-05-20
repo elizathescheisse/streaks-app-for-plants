@@ -19,7 +19,7 @@ function waterLabel(unit, amount) {
 
 // Returns { label, cls } describing the current watering status of a plant,
 // given a moisture value and care profile.
-//   cls values: 'struggling' | 'water' | 'good' | 'check' | 'thriving' | 'okay'
+//   cls values: 'struggling' | 'water' | 'check' | 'thriving' | 'okay'
 export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
   const val = Number(moisture)
   const [min, max] = careProfile?.moistureRange ?? [3, 6]
@@ -31,8 +31,7 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
   if (careProfile?.wateringStyle === 'flood-and-dry') {
     const dry       = careProfile.dryThreshold ?? min
     const wetBuffer = Math.max((max - min) * 0.5, 2)
-    if (val <= dry)             return { label: `💧 Water${water}`,  cls: 'water'    }
-    if (val <= dry + 1)         return { label: '💧 Water soon',     cls: 'good'     }
+    if (val <= dry + 1)         return { label: `💧 Water${water}`,  cls: 'water'    }
     if (val <= max + wetBuffer) return { label: '🌿 Drying out',     cls: 'thriving' }
     return                             { label: '⚠️ Overwatered',    cls: 'okay'     }
   }
@@ -43,7 +42,6 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
 
   if (val < min - dryBuffer)  return { label: `🚨 Water immediately${water}`, cls: 'struggling' }
   if (val < min)               return { label: `💧 Water${water}`,             cls: 'water'      }
-  if (val < min + w * 0.3)    return { label: '💧 Water soon',                 cls: 'good'       }
   if (val <= max + wetBuffer) return { label: '✓ Watered',                     cls: 'thriving'   }
   return                              { label: '⚠️ Overwatered',               cls: 'okay'       }
 }
@@ -51,11 +49,10 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
 // Priority order for sorting — lower number = shown first.
 const STATUS_PRIORITY = {
   struggling: 0,  // Water immediately
-  water:      1,  // Water / Water soon (flood-and-dry)
-  good:       2,  // Water soon (consistent)
-  check:      3,  // Check in Xm — recently watered, settling
-  thriving:   4,  // Watered / Drying out — all good
-  okay:       5,  // Overwatered
+  water:      1,  // Water now
+  check:      2,  // Check in Xm — recently watered, settling
+  thriving:   3,  // Watered / Drying out — all good
+  okay:       4,  // Overwatered
 }
 const NO_STATUS_PRIORITY = 6  // No readings yet
 

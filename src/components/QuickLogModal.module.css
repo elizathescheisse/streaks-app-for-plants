@@ -100,42 +100,45 @@
   color: var(--text-secondary);
 }
 
-/* ── Moisture reading ── */
-.moistureRow {
+/* ── Moisture stepper ── */
+.stepper {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
-.slider {
+.stepBtn {
+  width: 52px;
+  height: 52px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  transition: background 0.1s, border-color 0.1s;
+  flex-shrink: 0;
+}
+.stepBtn:hover:not(:disabled) {
+  background: var(--bg-surface-raised);
+  border-color: rgba(71,133,61,0.5);
+}
+.stepBtn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+.stepValue {
   flex: 1;
-  -webkit-appearance: none;
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    var(--brand-primary) 0%,
-    var(--brand-primary) var(--val, 50%),
-    var(--bg-surface-raised) var(--val, 50%)
-  );
-  outline: none;
-  cursor: pointer;
-}
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: var(--brand-bright);
-  cursor: pointer;
-  box-shadow: 0 0 8px rgba(69,209,87,0.5);
-}
-
-.moistureValue {
-  font-size: 28px;
+  text-align: center;
+  font-size: 42px;
   font-weight: 700;
   color: var(--text-primary);
-  min-width: 32px;
-  text-align: right;
+  line-height: 1;
+}
+
+.stepUnit {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .rangeHint {
