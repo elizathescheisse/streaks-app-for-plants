@@ -45,7 +45,7 @@ export const PLANT_DB = {
   'fiddle leaf fig': {
     displayName: 'Fiddle Leaf Fig',
     commonNames: ['Ficus lyrata'],
-    moistureRange: [3, 7],
+    moistureRange: [3, 8],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   3,
     minWaterAmount: { cups: 2, liters: 0.5 },
