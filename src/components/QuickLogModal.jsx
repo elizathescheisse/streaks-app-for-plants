@@ -98,18 +98,20 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
       ) : (
         <div className={styles.field}>
           <label className={styles.label}>MOISTURE LEVEL (0 – 10)</label>
-          <div className={styles.moistureRow}>
-            <input
-              type="range"
-              min="0"
-              max="10"
-              step="1"
-              value={moisture}
-              className={styles.slider}
-              style={{ '--val': `${moisture * 10}%` }}
-              onChange={e => setMoisture(Number(e.target.value))}
-            />
-            <span className={styles.moistureValue}>{moisture}</span>
+          <div className={styles.stepper}>
+            <button
+              className={styles.stepBtn}
+              type="button"
+              onClick={() => setMoisture(m => Math.max(0, m - 1))}
+              disabled={moisture <= 0}
+            >−</button>
+            <span className={styles.stepValue}>{moisture}<span className={styles.stepUnit}> / 10</span></span>
+            <button
+              className={styles.stepBtn}
+              type="button"
+              onClick={() => setMoisture(m => Math.min(10, m + 1))}
+              disabled={moisture >= 10}
+            >+</button>
           </div>
           {careProfile?.moistureRange && (
             <p className={styles.rangeHint}>

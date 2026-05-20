@@ -182,25 +182,6 @@
   color: var(--text-muted);
 }
 
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--bg-surface-raised);
-  outline: none;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--brand-bright);
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(69,209,87,0.4);
-}
-
 .clearBtn {
   align-self: flex-start;
   background: transparent;

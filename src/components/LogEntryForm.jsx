@@ -119,12 +119,6 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
                 type="button"
               >+</button>
             </div>
-            <input
-              type="range" min="0" max="10" step="1"
-              className={styles.slider}
-              value={form.moisture}
-              onChange={e => set('moisture', parseFloat(e.target.value))}
-            />
             <button
               className={styles.clearBtn}
               type="button"
