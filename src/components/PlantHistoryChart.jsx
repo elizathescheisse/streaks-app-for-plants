@@ -11,7 +11,7 @@ const WINDOWS = [
 // SVG vertical layout (fixed pixel heights)
 const PAD_X    = 16
 const TOP_ZONE = 26
-const BOT_ZONE = 20
+const BOT_ZONE = 30
 const PLOT_H   = 60
 const SVG_H    = TOP_ZONE + PLOT_H + BOT_ZONE
 const PLOT_TOP = TOP_ZONE
@@ -141,9 +141,11 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     .map(g => ({ dateStr: g.key, x: (g.minX + g.maxX) / 2 }))
 
   // Sample up to 6 unique dates (evenly spaced), then drop any that are
-  // still too close together after sampling (min 38px gap)
-  const MAX_LABELS  = 6
-  const MIN_SPACING = 38
+  // truly too close to render even staggered (min 18px gap).
+  // Labels that are close but renderable get a row=1 bump so they stagger down.
+  const MAX_LABELS   = 6
+  const DROP_SPACING = 18   // drop if closer than this even with stagger
+  const STAGGER_AT   = 42   // stagger (bump to lower row) if closer than this
   const nd = uniqueDates.length
   let sampled
   if (nd <= MAX_LABELS) {
@@ -155,10 +157,15 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     }
     sampled = [...picked].sort((a, b) => a - b).map(i => uniqueDates[i])
   }
+  // Build labels, dropping only truly colliding ones, staggering the rest
   const dateLabels = []
   let lastLabelX = -Infinity
   for (const l of sampled) {
-    if (l.x - lastLabelX >= MIN_SPACING) { dateLabels.push(l); lastLabelX = l.x }
+    const gap = l.x - lastLabelX
+    if (gap < DROP_SPACING) continue
+    const row = gap < STAGGER_AT ? 1 : 0
+    dateLabels.push({ ...l, row })
+    lastLabelX = l.x
   }
 
   const polyPoints = visibleReadings
@@ -337,13 +344,14 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
             )
           })}
 
-          {/* Date labels along the bottom — one per unique date, centered on same-day groups */}
+          {/* Date labels along the bottom — stagger down when labels are close */}
           {dateLabels.map((l, i) => {
             const anchor = i === 0 ? 'start' : i === dateLabels.length - 1 ? 'end' : 'middle'
+            const y = PLOT_BOT + 14 + (l.row ?? 0) * 11
             return (
               <text
                 key={`dl-${l.dateStr}`}
-                x={l.x} y={PLOT_BOT + 14}
+                x={l.x} y={y}
                 textAnchor={anchor}
                 fontSize="9"
                 fontFamily="Inter, sans-serif"
