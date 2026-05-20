@@ -61,10 +61,9 @@ function waterAbbr(unit, amount) {
   return String(amount).slice(0, 6)
 }
 
-export default function PlantHistoryChart({ readings, waterings, careProfile, predictedMoisture = null }) {
+export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M', predictedMoisture = null }) {
   const containerRef = useRef(null)
   const [svgWidth, setSvgWidth] = useState(400)
-  const [win, setWin] = useState('1M')
   // tooltip: { kind: 'reading' | 'watering', event, x, y } | null
   const [tooltip, setTooltip] = useState(null)
 
@@ -164,15 +163,6 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, pr
 
   return (
     <div className={styles.wrap} ref={containerRef} onTouchStart={() => setTooltip(null)}>
-      <div className={styles.windowToggle}>
-        {WINDOWS.map(w => (
-          <button
-            key={w.key}
-            className={`${styles.windowBtn} ${win === w.key ? styles.windowBtnActive : ''}`}
-            onClick={() => setWin(w.key)}
-          >{w.label}</button>
-        ))}
-      </div>
       {n < 2 ? (
         <p className={styles.empty}>Not enough readings for this range</p>
       ) : (

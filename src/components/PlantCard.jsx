@@ -63,7 +63,7 @@ function titleCase(s) {
 }
 
 
-export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, cardView = 'chart' }) {
+export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
   const isCompact = cardView === 'compact'
@@ -166,6 +166,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
                   waterings={waterings}
                   careProfile={careProfile}
 
+                  window={chartWindow}
                   predictedMoisture={usePredicted ? rec.predicted : null}
                 />
               </div>

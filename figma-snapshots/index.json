@@ -1,0 +1,39 @@
+{
+  "lastSyncedPR": 28,
+  "lastSyncedDate": "2026-05-18",
+  "lastSyncedCommit": "main (after PR #28 merge)",
+  "note": "Moisture bars rebuilt to match coded MoistureBar.jsx: gray track, green ideal-range zone, colored dot (green if in range / red if out), and status label ('In range (lo–hi)', 'Too dry…', 'Too wet…'). Each desktop card has bars in both the left column (300px) and right stats block (150px). Mobile has one 200px bar per card.",
+  "frames": {
+    "Desktop – Plant Streaks": {
+      "nodeId": "22:2",
+      "snapshot": "2026-05-18-desktop-pr28-moisturebar.png",
+      "cardGroupIds": {
+        "PlantCard – Monstera":       "123:60",
+        "PlantCard – Fiddle Leaf Fig": "123:119",
+        "PlantCard – Cactus":          "123:176"
+      }
+    },
+    "Home – Today's Log": {
+      "nodeId": "2:2",
+      "snapshot": "2026-05-18-mobile-pr28-moisturebar.png",
+      "cardGroupIds": {
+        "PlantCard – Monstera":       "131:48",
+        "PlantCard – Fiddle Leaf Fig": "131:95",
+        "PlantCard – Cactus":          "131:140"
+      }
+    },
+    "Log Entry Modal": {
+      "nodeId": "99:2",
+      "snapshot": "2026-05-17-log-entry-modal-pr28.png",
+      "dialogId": "119:2"
+    },
+    "Add Plant Modal": {
+      "nodeId": "98:2",
+      "snapshot": null
+    },
+    "Settings Modal": {
+      "nodeId": "2:3",
+      "snapshot": null
+    }
+  }
+}

@@ -55,6 +55,7 @@ export default function App() {
   //   { mode: 'log', plantId, form }         — log-entry form
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [chartWindow, setChartWindow] = useState('1M')
   const [cardView, setCardView]       = useState('chart')   // 'chart' | 'compact'
   const [viewMenuOpen, setViewMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -265,6 +266,19 @@ export default function App() {
                   onChange={e => setSearchQuery(e.target.value)}
                 />
 
+                {/* Chart window toggle — only shown in chart view */}
+                {cardView === 'chart' && (
+                  <div className={styles.chartToggle}>
+                    {['1W','1M','3M','all'].map(key => (
+                      <button
+                        key={key}
+                        className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
+                        onClick={() => setChartWindow(key)}
+                      >{key === 'all' ? 'All' : key}</button>
+                    ))}
+                  </div>
+                )}
+
                 {/* View-switcher: grid icon + dropdown — always rightmost so it doesn't shift */}
                 <div className={styles.viewSwitcher}>
                   <button
@@ -329,6 +343,7 @@ export default function App() {
                   onQuickWater={() => openQuickLog(p, 'water')}
                   onQuickReading={() => openQuickLog(p, 'reading')}
                   onEditLog={(bundle) => openEditLog(p, bundle)}
+                  chartWindow={chartWindow}
                   cardView={cardView}
                 />
               ))
