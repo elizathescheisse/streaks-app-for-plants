@@ -12,22 +12,6 @@ import PlantPrediction from './PlantPrediction.jsx'
 
 const HEALTH_LABELS = { thriving:'Thriving', good:'Healthy', okay:'Okay', struggling:'Struggling' }
 
-const LIGHT_LABELS = {
-  'direct':         '☀️ Direct sun',
-  'bright-indirect':'🌤 Bright indirect',
-  'low-indirect':   '🌥 Low indirect',
-  'low':            '🌑 Low light',
-}
-const HUMIDITY_LABELS = {
-  'high':   '💧 High humidity',
-  'medium': '🌢 Medium humidity',
-  'low':    '🏜 Low humidity',
-}
-const WATERING_STYLE_LABELS = {
-  'flood-and-dry': '🌊 Flood & dry out',
-  'consistent':    '🪣 Consistent moisture',
-}
-
 function waterLabel(unit, amount) {
   if (!amount) return '—'
   const n = parseFloat(amount)
@@ -63,10 +47,8 @@ function titleCase(s) {
 }
 
 
-export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, chartWindow, cardView = 'chart' }) {
+export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, expanded, onExpand }) {
   const { emoji = '🌿', species, name } = plant
-  const [historyOpen, setHistoryOpen] = useState(false)
-  const isCompact = cardView === 'compact'
 
   const careProfile  = lookupPlant(species)
   const hasStats     = !!careProfile?.moistureRange
@@ -80,13 +62,6 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   const wateredAfterReading =
     watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
 
-  // Decide whether to show the model's predicted current moisture or the raw
-  // last reading. Rules:
-  //   • Always use integers (moisture meter readings are whole numbers).
-  //   • Only switch to predicted when the model is confident (≥3 data points)
-  //     AND the predicted value has drifted ≥1 whole unit from the raw reading.
-  //   • Below that threshold the raw value is still accurate enough and the
-  //     model output would just be noise.
   const model      = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
   const rec        = model ? getRecommendation(plant, model, careProfile) : null
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
@@ -110,7 +85,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
 
   return (
     <div className={styles.cardWrap}>
-      <div className={`${styles.card} ${styles[health]} ${isCompact && status ? styles[`cardStatus_${status.cls}`] : ''}`}>
+      <div className={`${styles.card} ${styles[health]} ${status ? styles[`cardStatus_${status.cls}`] : ''}`}>
         <div className={styles.iconCircle}>{emoji}</div>
 
         <div className={styles.cardInner}>
@@ -118,18 +93,15 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
           {/* ── Left column ── */}
           <div className={styles.cardLeft}>
 
-            {/* Name + health-prefixed species line */}
+            {/* Name + health/species line + badge */}
             <div className={styles.top}>
               <button className={styles.nameBtn} onClick={onEdit} type="button">
                 {name || titleCase(species)}<span className={styles.nameBtnChevron}>›</span>
               </button>
-              {!isCompact && (
-                <span className={styles.species}>
-                  {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
-                </span>
-              )}
-              {/* In compact mode the badge lives here (top-right), in chart mode it's in statsBlock */}
-              {isCompact && status && (
+              <span className={styles.species}>
+                {HEALTH_LABELS[health]}{name && species ? ` · ${titleCase(species)}` : ''}
+              </span>
+              {status && (
                 <span className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline}`}>
                   {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
                   {status.label}
@@ -137,8 +109,8 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
               )}
             </div>
 
-            {/* ── CHART MODE only: mobile stat rows + chart + prediction-mobile ── */}
-            {!isCompact && (reading || watering) && (
+            {/* Mobile: last water + reading stats */}
+            {(reading || watering) && (
               <div className={`${styles.meta} ${styles.metaMobileOnly}`}>
                 {watering && (
                   <span className={styles.water}>
@@ -153,109 +125,90 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
               </div>
             )}
 
-            {!isCompact && hasStats && badgeMoisture != null && (
+            {/* Mobile: moisture bar */}
+            {hasStats && badgeMoisture != null && (
               <div className={styles.mobileBar}>
                 <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
               </div>
             )}
 
-            {!isCompact && readings.length >= 2 && (
-              <div className={styles.chartInline}>
-                <PlantHistoryChart
-                  readings={readings}
-                  waterings={waterings}
-                  careProfile={careProfile}
-
-                  window={chartWindow}
-                  predictedMoisture={usePredicted ? rec.predicted : null}
-                />
-              </div>
-            )}
-
-            {!isCompact && reading && (
+            {/* Mobile: prediction */}
+            {reading && (
               <div className={styles.predMobile}>
                 <PlantPrediction plant={plant} careProfile={careProfile} />
               </div>
             )}
 
-            {/* ── COMPACT MODE only: bar + prediction full-width ── */}
-            {isCompact && hasStats && badgeMoisture != null && (
-              <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
-            )}
-
             {/* ── Actions row ── */}
             <div className={styles.actions}>
               <div className={styles.actionsLeft}>
-                {!isCompact && (
-                  <button
-                    className={`${styles.historyBtn} ${historyOpen ? styles.historyBtnActive : ''}`}
-                    onClick={() => setHistoryOpen(o => !o)}
-                    title="View history"
-                  >{historyOpen ? '▲' : '▼'} History ({bundles.length})</button>
-                )}
-              </div>
-              {/* Compact: two quick-log buttons. Chart: single Log button (mobile only; desktop is in statsBlock) */}
-              {isCompact ? (
-                <div className={styles.quickLogBtns}>
-                  <button className={styles.quickLogBtn} onClick={onQuickWater}   title="Log watering">💧 Water</button>
-                  <button className={styles.quickLogBtn} onClick={onQuickReading} title="Log reading">◎ Reading</button>
-                </div>
-              ) : (
                 <button
-                  className={`${styles.logBtn} ${styles.logBtnMobile}`}
-                  onClick={onLog}
-                  title="Log entry"
-                >+ Log</button>
-              )}
+                  className={`${styles.historyBtn} ${expanded ? styles.historyBtnActive : ''}`}
+                  onClick={onExpand}
+                  type="button"
+                  title="Toggle timeline"
+                >
+                  {expanded ? '▲' : '▼'} Timeline
+                </button>
+              </div>
+              <div className={styles.quickLogBtns}>
+                <button className={styles.quickLogBtn} onClick={onQuickWater}   title="Log watering">💧 Water</button>
+                <button className={styles.quickLogBtn} onClick={onQuickReading} title="Log reading">◎ Reading</button>
+              </div>
             </div>
           </div>
 
-          {/* ── Right column: stats block — chart mode only ── */}
-          {!isCompact && (
+          {/* ── Right column: stats block (desktop only) ── */}
           <div className={styles.statsBlock}>
-
-            {/* Watering action badge — reuses the health badge styling */}
             {status && (
               <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
                 {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
                 {status.label}
               </span>
             )}
-
-            {/* Moisture bar — uses predicted moisture when drift is significant */}
             {hasStats && badgeMoisture != null && (
               <div className={styles.statsBar}>
                 <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
               </div>
             )}
-
-            {/* Prediction strip — desktop only (mobile version lives in cardLeft) */}
             {reading && (
               <div className={styles.predDesktop}>
                 <PlantPrediction plant={plant} careProfile={careProfile} />
               </div>
             )}
-
-            {/* Log button — right edge of card, under the badge/bar */}
             <button className={`${styles.logBtn} ${styles.logBtnDesktop}`} onClick={onLog} title="Log entry">
               + Log
             </button>
           </div>
-          )}
         </div>
       </div>
 
-      {/* ── History panel: log bundles ── */}
-      {historyOpen && !isCompact && (
+      {/* ── Expanded section: timeline chart + history ── */}
+      {expanded && (
         <div className={styles.historySection}>
+
+          {/* Chart — fixed 1M window */}
+          {readings.length >= 2 && (
+            <div className={styles.chartExpanded}>
+              <PlantHistoryChart
+                readings={readings}
+                waterings={waterings}
+                careProfile={careProfile}
+                window="1M"
+                predictedMoisture={usePredicted ? rec.predicted : null}
+              />
+            </div>
+          )}
+
+          {/* Log bundles */}
           {bundles.length === 0 ? (
-            <p className={styles.emptyHistory}>No log entries yet — tap "+ Log" to record care data.</p>
+            <p className={styles.emptyHistory}>No log entries yet — tap "💧 Water" or "◎ Reading" to start.</p>
           ) : bundles.map((bundle, i) => {
             const ts = bundle[0].timestamp
-            const reading  = bundle.find(e => e.type === 'reading')
-            const watering = bundle.find(e => e.type === 'watering')
-            const healthEv = bundle.find(e => e.type === 'health_change')
-            const note     = bundle.find(e => e.type === 'note')
+            const readingEv  = bundle.find(e => e.type === 'reading')
+            const wateringEv = bundle.find(e => e.type === 'watering')
+            const healthEv   = bundle.find(e => e.type === 'health_change')
+            const note       = bundle.find(e => e.type === 'note')
             return (
               <div key={bundle[0].bundleId} className={`${styles.logEntry} ${i < bundles.length - 1 ? styles.logEntryDivider : ''}`}>
                 <div className={styles.logTop}>
@@ -270,17 +223,17 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
                   )}
                 </div>
                 <div className={styles.logMeta}>
-                  {reading && <span className={styles.moisture}>◎ {reading.moisture} / 10</span>}
-                  {watering && <span className={styles.water}>💧 {waterLabel(watering.unit, watering.amount)}</span>}
+                  {readingEv  && <span className={styles.moisture}>◎ {readingEv.moisture} / 10</span>}
+                  {wateringEv && <span className={styles.water}>💧 {waterLabel(wateringEv.unit, wateringEv.amount)}</span>}
                   {healthEv && (
                     <span className={`${styles.badge} ${styles[`badge_${healthEv.health}`]}`}>
                       {HEALTH_LABELS[healthEv.health]}
                     </span>
                   )}
                 </div>
-                {careProfile?.moistureRange && reading && (
+                {careProfile?.moistureRange && readingEv && (
                   <div className={styles.logBar}>
-                    <MoistureBar value={Number(reading.moisture)} range={careProfile.moistureRange} careProfile={careProfile} />
+                    <MoistureBar value={Number(readingEv.moisture)} range={careProfile.moistureRange} careProfile={careProfile} />
                   </div>
                 )}
                 {note && <p className={styles.logNotes}>{note.text}</p>}

@@ -1,11 +1,9 @@
 .cardWrap {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .card {
-  flex: 1;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -477,9 +475,11 @@
   border-color: rgba(71,133,61,0.6);
 }
 
-/* Chart inline in card */
-.chartInline {
-  margin-top: 4px;
+/* Chart in expanded timeline section */
+.chartExpanded {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-default);
 }
 
 /* History panel */

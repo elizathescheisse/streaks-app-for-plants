@@ -11,17 +11,6 @@ import styles from './App.module.css'
 import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
 import { getPlantSortPriority } from './utils/plantStatus.js'
 
-// 2×2 grid icon used for the view-switcher button
-function GridIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
-      <rect x="0" y="0" width="4" height="4" rx="0.5"/>
-      <rect x="6" y="0" width="4" height="4" rx="0.5"/>
-      <rect x="0" y="6" width="4" height="4" rx="0.5"/>
-      <rect x="6" y="6" width="4" height="4" rx="0.5"/>
-    </svg>
-  )
-}
 
 const SCHEMA_VERSION = '2'
 const STORAGE_KEY    = 'plant-streaks'
@@ -55,9 +44,7 @@ export default function App() {
   //   { mode: 'log', plantId, form }         — log-entry form
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [chartWindow, setChartWindow] = useState('1M')
-  const [cardView, setCardView]       = useState('chart')   // 'chart' | 'compact'
-  const [viewMenuOpen, setViewMenuOpen] = useState(false)
+  const [expandedPlantId, setExpandedPlantId] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const importRef = useRef()
 
@@ -265,54 +252,11 @@ export default function App() {
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                 />
-
-                {/* Chart window toggle — only shown in chart view */}
-                {cardView === 'chart' && (
-                  <div className={styles.chartToggle}>
-                    {['1W','1M','3M','all'].map(key => (
-                      <button
-                        key={key}
-                        className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
-                        onClick={() => setChartWindow(key)}
-                      >{key === 'all' ? 'All' : key}</button>
-                    ))}
-                  </div>
-                )}
-
-                {/* View-switcher: grid icon + dropdown — always rightmost so it doesn't shift */}
-                <div className={styles.viewSwitcher}>
-                  <button
-                    className={`${styles.viewSwitcherBtn} ${viewMenuOpen ? styles.viewSwitcherBtnOpen : ''}`}
-                    onClick={() => setViewMenuOpen(o => !o)}
-                    title="Switch card view"
-                    type="button"
-                  >
-                    <GridIcon />
-                  </button>
-                  {viewMenuOpen && (
-                    <>
-                      <div className={styles.viewMenuBackdrop} onClick={() => setViewMenuOpen(false)} />
-                      <div className={styles.viewMenu}>
-                        {[
-                          { key: 'chart',   label: 'Timeline' },
-                          { key: 'compact', label: 'Focus'    },
-                        ].map(({ key, label }) => (
-                          <button
-                            key={key}
-                            className={`${styles.viewMenuItem} ${cardView === key ? styles.viewMenuItemActive : ''}`}
-                            onClick={() => { setCardView(key); setViewMenuOpen(false) }}
-                            type="button"
-                          >{label}</button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
               </div>
             )}
           </div>
 
-          <div className={`${styles.plantList} ${cardView === 'compact' ? styles.plantListCompact : ''}`}>
+          <div className={styles.plantList}>
             {plants.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyIcon}>🌱</div>
@@ -343,8 +287,8 @@ export default function App() {
                   onQuickWater={() => openQuickLog(p, 'water')}
                   onQuickReading={() => openQuickLog(p, 'reading')}
                   onEditLog={(bundle) => openEditLog(p, bundle)}
-                  chartWindow={chartWindow}
-                  cardView={cardView}
+                  expanded={expandedPlantId === p.id}
+                  onExpand={() => setExpandedPlantId(id => id === p.id ? null : p.id)}
                 />
               ))
             })()}
