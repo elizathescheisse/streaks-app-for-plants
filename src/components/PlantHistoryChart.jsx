@@ -94,13 +94,17 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
   const n = visibleReadings.length
   const usableW = svgWidth - PAD_X * 2
 
-  // Time-based x-axis: spans from earliest visible event to latest
+  // Time-based x-axis: spans from the start of the selected window to latest event.
+  // Anchoring to the window cutoff (not just the earliest data point) means all plants
+  // share the same time scale — a plant with only 1 week of data viewed in 3M shows
+  // its data on the right, with empty space on the left, rather than stretching to fill.
   const allTimestamps = [
     ...visibleReadings.map(r => +new Date(r.timestamp)),
     ...visibleWaterings.map(w => +new Date(w.timestamp)),
   ]
   const nowTs  = Date.now()
-  const tMin   = allTimestamps.length ? Math.min(...allTimestamps) : 0
+  const windowStart = cutoff ? +cutoff : (allTimestamps.length ? Math.min(...allTimestamps) : 0)
+  const tMin   = allTimestamps.length ? Math.min(windowStart, Math.min(...allTimestamps)) : windowStart
   const tMax   = allTimestamps.length ? Math.max(...allTimestamps) : 1
   // When showing an estimated "now" dot, extend the axis to the current time
   // so the predicted point sits at the right edge rather than on top of the last reading.

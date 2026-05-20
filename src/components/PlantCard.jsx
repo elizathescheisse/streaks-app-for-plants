@@ -165,8 +165,9 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
                   readings={readings}
                   waterings={waterings}
                   careProfile={careProfile}
+
                   window={chartWindow}
-                  predictedMoisture={isConfident ? (rec?.predicted ?? null) : null}
+                  predictedMoisture={usePredicted ? rec.predicted : null}
                 />
               </div>
             )}
@@ -245,7 +246,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
       </div>
 
       {/* ── History panel: log bundles ── */}
-      {historyOpen && (
+      {historyOpen && !isCompact && (
         <div className={styles.historySection}>
           {bundles.length === 0 ? (
             <p className={styles.emptyHistory}>No log entries yet — tap "+ Log" to record care data.</p>

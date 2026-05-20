@@ -266,7 +266,7 @@ export default function App() {
                   onChange={e => setSearchQuery(e.target.value)}
                 />
 
-                {/* Chart window toggle — hidden when there's no chart */}
+                {/* Chart window toggle — only shown in chart view */}
                 {cardView === 'chart' && (
                   <div className={styles.chartToggle}>
                     {['1W','1M','3M','all'].map(key => (
