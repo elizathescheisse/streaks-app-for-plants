@@ -13,9 +13,14 @@ export default function MoistureBar({ value, range, careProfile, isPredicted = f
   // ── Consistent:    dot color based on ideal range ────────────────────────
   let statusLabel, dotClass
   if (isFloodAndDry) {
-    if (value <= dryThreshold) {
-      statusLabel = `Water now — at dry threshold (${dryThreshold})`
+    if (value < dryThreshold - 1) {
+      // Significantly below threshold — overdue, more urgent
+      statusLabel = `Overdue for water (threshold: ${dryThreshold})`
       dotClass    = styles.dotOut
+    } else if (value <= dryThreshold) {
+      // At or just below threshold — normal watering time, not alarming
+      statusLabel = `Water now — at dry threshold (${dryThreshold})`
+      dotClass    = styles.dotClose
     } else if (value <= dryThreshold + 1) {
       statusLabel = `Getting dry — water soon (threshold: ${dryThreshold})`
       dotClass    = styles.dotClose
