@@ -5,7 +5,7 @@ export const PLANT_DB = {
   'monstera deliciosa': {
     displayName: 'Monstera deliciosa',
     commonNames: ['Swiss Cheese Plant', 'Monstera'],
-    moistureRange: [3, 4],
+    moistureRange: [2, 8],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 2, liters: 0.5 },
@@ -45,7 +45,7 @@ export const PLANT_DB = {
   'fiddle leaf fig': {
     displayName: 'Fiddle Leaf Fig',
     commonNames: ['Ficus lyrata'],
-    moistureRange: [3, 6],
+    moistureRange: [3, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   3,
     minWaterAmount: { cups: 2, liters: 0.5 },
@@ -86,7 +86,7 @@ export const PLANT_DB = {
   'bird of paradise': {
     displayName: 'Bird of Paradise',
     commonNames: ['Strelitzia reginae', 'Strelitzia nicolai'],
-    moistureRange: [4, 5],
+    moistureRange: [2, 8],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 3, liters: 0.75 },
@@ -124,7 +124,7 @@ export const PLANT_DB = {
   'snake plant': {
     displayName: 'Snake Plant',
     commonNames: ['Sansevieria', 'Dracaena trifasciata', 'Mother-in-Law\'s Tongue'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 1, liters: 0.25 },
@@ -144,7 +144,7 @@ export const PLANT_DB = {
   'zz plant': {
     displayName: 'ZZ Plant',
     commonNames: ['Zamioculcas zamiifolia', 'Zanzibar Gem'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 1, liters: 0.25 },
@@ -165,7 +165,7 @@ export const PLANT_DB = {
   'rubber plant': {
     displayName: 'Rubber Plant',
     commonNames: ['Ficus elastica', 'Rubber Tree'],
-    moistureRange: [3, 5],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 2, liters: 0.5 },
@@ -239,7 +239,7 @@ export const PLANT_DB = {
   'orchid': {
     displayName: 'Orchid',
     commonNames: ['Phalaenopsis', 'Moth Orchid'],
-    moistureRange: [3, 4],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 0.5, liters: 0.12 },
@@ -296,7 +296,7 @@ export const PLANT_DB = {
   'hoya': {
     displayName: 'Hoya',
     commonNames: ['Wax Plant', 'Wax Flower', 'Hoya carnosa'],
-    moistureRange: [2, 4],
+    moistureRange: [1, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 1, liters: 0.25 },
@@ -316,7 +316,7 @@ export const PLANT_DB = {
   'aloe vera': {
     displayName: 'Aloe Vera',
     commonNames: ['Burn Plant', 'Medicinal Aloe'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 1, liters: 0.25 },
@@ -337,7 +337,7 @@ export const PLANT_DB = {
   'jade plant': {
     displayName: 'Jade Plant',
     commonNames: ['Crassula ovata', 'Money Plant', 'Friendship Plant'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 1, liters: 0.25 },
@@ -358,7 +358,7 @@ export const PLANT_DB = {
   'string of pearls': {
     displayName: 'String of Pearls',
     commonNames: ['Senecio rowleyanus', 'Curio rowleyanus'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 6],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 0.5, liters: 0.12 },
@@ -378,7 +378,7 @@ export const PLANT_DB = {
   'dracaena': {
     displayName: 'Dracaena',
     commonNames: ['Corn Plant', 'Dracaena fragrans', 'Dracaena marginata', 'Dragon Tree'],
-    moistureRange: [3, 5],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 2, liters: 0.5 },
@@ -436,7 +436,7 @@ export const PLANT_DB = {
   'pilea peperomioides': {
     displayName: 'Pilea peperomioides',
     commonNames: ['Chinese Money Plant', 'UFO Plant', 'Pancake Plant'],
-    moistureRange: [4, 6],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 1, liters: 0.25 },
@@ -475,7 +475,7 @@ export const PLANT_DB = {
   'aglaonema': {
     displayName: 'Aglaonema',
     commonNames: ['Chinese Evergreen'],
-    moistureRange: [4, 6],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 1.5, liters: 0.35 },
@@ -532,7 +532,7 @@ export const PLANT_DB = {
   'peperomia': {
     displayName: 'Peperomia',
     commonNames: ['Radiator Plant', 'Baby Rubber Plant'],
-    moistureRange: [3, 5],
+    moistureRange: [1, 6],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 0.5, liters: 0.12 },
@@ -552,7 +552,7 @@ export const PLANT_DB = {
   'succulent': {
     displayName: 'Succulent (general)',
     commonNames: ['Echeveria', 'Sedum', 'Haworthia', 'Crassula', 'Sempervivum'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 6],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 0.5, liters: 0.12 },
@@ -573,7 +573,7 @@ export const PLANT_DB = {
   'cactus': {
     displayName: 'Cactus (general)',
     commonNames: ['Desert Cactus'],
-    moistureRange: [0, 2],
+    moistureRange: [1, 5],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 0.5, liters: 0.12 },
@@ -612,7 +612,7 @@ export const PLANT_DB = {
   'cast iron plant': {
     displayName: 'Cast Iron Plant',
     commonNames: ['Aspidistra elatior'],
-    moistureRange: [3, 5],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 1.5, liters: 0.35 },
@@ -632,7 +632,7 @@ export const PLANT_DB = {
   'yucca': {
     displayName: 'Yucca',
     commonNames: ['Yucca elephantipes', 'Spineless Yucca'],
-    moistureRange: [1, 3],
+    moistureRange: [1, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   1,
     minWaterAmount: { cups: 1.5, liters: 0.35 },
@@ -652,7 +652,7 @@ export const PLANT_DB = {
   'umbrella plant': {
     displayName: 'Umbrella Plant',
     commonNames: ['Schefflera', 'Schefflera arboricola', 'Dwarf Umbrella'],
-    moistureRange: [4, 6],
+    moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
     dryThreshold:   2,
     minWaterAmount: { cups: 2, liters: 0.5 },
