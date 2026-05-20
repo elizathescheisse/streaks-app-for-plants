@@ -56,7 +56,7 @@ export default function App() {
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [chartWindow, setChartWindow] = useState('1M')
-  const [cardView, setCardView]       = useState('chart')   // 'chart' | 'compact'
+  const [cardView, setCardView]       = useState('compact') // 'chart' | 'compact'
   const [viewMenuOpen, setViewMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const importRef = useRef()
