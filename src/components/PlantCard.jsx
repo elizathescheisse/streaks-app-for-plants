@@ -150,10 +150,11 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
                 >
                   {expanded ? '▲' : '▼'} Timeline
                 </button>
+                <button className={`${styles.logBtn} ${styles.logBtnMobile}`} onClick={onLog} title="Log entry">+ Log</button>
               </div>
               <div className={styles.quickLogBtns}>
-                <button className={styles.quickLogBtn} onClick={onQuickWater}   title="Log watering">💧 Water</button>
-                <button className={styles.quickLogBtn} onClick={onQuickReading} title="Log reading">◎ Reading</button>
+                <button className={`${styles.quickLogBtn} ${styles.quickLogBtnIcon}`} onClick={onQuickWater}   title="Log watering">💧</button>
+                <button className={`${styles.quickLogBtn} ${styles.quickLogBtnIcon}`} onClick={onQuickReading} title="Log reading">◎</button>
               </div>
             </div>
           </div>

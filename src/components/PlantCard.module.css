@@ -216,9 +216,13 @@
   color: var(--text-secondary);
 }
 
-/* Compact-mode badge sits in the name row, pushed to the right */
+/* Badge in the name row — mobile only. Desktop uses the statsBlock badge. */
 .badgeInline {
   margin-left: auto;
+}
+
+@media (min-width: 640px) {
+  .badgeInline { display: none; }
 }
 
 .badge {
@@ -319,6 +323,13 @@
 .quickLogBtns {
   display: flex;
   gap: 6px;
+}
+
+/* Icon-only variant of quick log button */
+.quickLogBtnIcon {
+  padding: 6px 10px;
+  min-width: 36px;
+  font-size: 15px;
 }
 
 .quickLogBtn {
