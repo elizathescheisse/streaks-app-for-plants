@@ -145,7 +145,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
   // Labels that are close but renderable get a row=1 bump so they stagger down.
   const MAX_LABELS   = 6
   const DROP_SPACING = 18   // drop if closer than this even with stagger
-  const STAGGER_AT   = 42   // stagger (bump to lower row) if closer than this
+  const STAGGER_AT   = 56   // stagger (bump to lower row) if closer than this (~label width + gap)
   const nd = uniqueDates.length
   let sampled
   if (nd <= MAX_LABELS) {
