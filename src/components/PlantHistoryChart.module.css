@@ -2,6 +2,33 @@
   width: 100%;
 }
 
+.windowToggle {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.windowBtn {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.windowBtn:hover {
+  color: var(--text-secondary);
+}
+
+.windowBtnActive {
+  background: rgba(56, 178, 71, 0.15);
+  border-color: rgba(56, 178, 71, 0.3);
+  color: var(--text-primary);
+}
+
 
 .svg {
   display: block;
