@@ -29,11 +29,11 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
     : ''
 
   if (careProfile?.wateringStyle === 'flood-and-dry') {
-    const dry       = careProfile.dryThreshold ?? min
-    const wetBuffer = Math.max((max - min) * 0.5, 2)
-    if (val <= dry + 1)         return { label: `💧 Water${water}`,  cls: 'water'    }
-    if (val <= max + wetBuffer) return { label: '🌿 Drying out',     cls: 'thriving' }
-    return                             { label: '⚠️ Overwatered',    cls: 'okay'     }
+    const dry = careProfile.dryThreshold ?? min
+    // Badge fires strictly below the dry threshold — anywhere in [dry, max+1] is normal cycle
+    if (val < dry)          return { label: `💧 Water${water}`,  cls: 'water'    }
+    if (val <= max + 1)     return { label: '🌿 Drying out',     cls: 'thriving' }
+    return                         { label: '⚠️ Overwatered',    cls: 'okay'     }
   }
 
   const w         = max - min
