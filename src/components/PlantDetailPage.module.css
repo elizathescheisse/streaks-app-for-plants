@@ -22,13 +22,61 @@
 .topNav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border-default);
   background: var(--bg-base);
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+/* Health tints on top nav */
+.topNav.thriving  { background: linear-gradient(to right, rgba(69,209,87,0.06), var(--bg-base) 40%); }
+.topNav.good      { background: linear-gradient(to right, rgba(120,200,100,0.06), var(--bg-base) 40%); }
+.topNav.okay      { background: linear-gradient(to right, rgba(245,166,35,0.06), var(--bg-base) 40%); }
+.topNav.struggling{ background: linear-gradient(to right, rgba(229,97,71,0.06), var(--bg-base) 40%); }
+
+/* Inline plant identity in the nav */
+.heroInline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.heroEmoji {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.heroName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.heroSpecies {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .backBtn {
@@ -55,49 +103,6 @@
   transition: background 0.15s, color 0.15s;
 }
 .editBtn:hover { background: var(--bg-surface-raised); color: var(--text-primary); }
-
-/* ── Hero section ── */
-.hero {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 20px 20px;
-  border-bottom: 1px solid var(--border-default);
-}
-
-.heroEmoji {
-  font-size: 52px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.heroText {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.heroName {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.1;
-  margin: 0;
-}
-
-.heroSpecies {
-  font-size: 14px;
-  color: var(--text-muted);
-  font-style: italic;
-  margin: 0;
-}
-
-/* ── Health tints on hero (match card health classes) ── */
-.hero.thriving  { background: rgba(69,209,87,0.04); }
-.hero.good      { background: rgba(120,200,100,0.04); }
-.hero.okay      { background: rgba(245,166,35,0.04); }
-.hero.struggling{ background: rgba(229,97,71,0.04); }
 
 /* ── Badges ── */
 .badge {
@@ -466,7 +471,9 @@
 
 /* ── Mobile tweaks ── */
 @media (max-width: 639px) {
-  .heroName { font-size: 22px; }
-  .heroEmoji { font-size: 44px; }
+  .topNav { gap: 10px; padding: 10px 14px; }
+  .heroName { font-size: 16px; }
+  .heroEmoji { font-size: 24px; }
+  .heroSpecies { font-size: 11px; }
   .careGrid { grid-template-columns: 1fr; }
 }

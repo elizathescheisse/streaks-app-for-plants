@@ -122,24 +122,19 @@ export default function PlantDetailPage({
 
   return (
     <div className={styles.page}>
-      {/* ── Top nav ── */}
-      <div className={styles.topNav}>
+      {/* ── Top nav with inline plant identity ── */}
+      <div className={`${styles.topNav} ${styles[health]}`}>
         <button className={styles.backBtn} onClick={() => navigate('/')} type="button">
           ← Plants
         </button>
-        <button className={styles.editBtn} onClick={() => onEdit(plant)} type="button">
-          Edit
-        </button>
-      </div>
-
-      {/* ── Plant hero ── */}
-      <div className={`${styles.hero} ${styles[health]}`}>
-        <div className={styles.heroEmoji}>{emoji}</div>
-        <div className={styles.heroText}>
-          <h1 className={styles.heroName}>{name || titleCase(species)}</h1>
-          {name && species && (
-            <p className={styles.heroSpecies}>{titleCase(species)}</p>
-          )}
+        <div className={styles.heroInline}>
+          <span className={styles.heroEmoji}>{emoji}</span>
+          <div className={styles.heroText}>
+            <h1 className={styles.heroName}>{name || titleCase(species)}</h1>
+            {name && species && (
+              <p className={styles.heroSpecies}>{titleCase(species)}</p>
+            )}
+          </div>
           {status && (
             <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
               {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
@@ -147,6 +142,9 @@ export default function PlantDetailPage({
             </span>
           )}
         </div>
+        <button className={styles.editBtn} onClick={() => onEdit(plant)} type="button">
+          Edit
+        </button>
       </div>
 
       <div className={styles.content}>
