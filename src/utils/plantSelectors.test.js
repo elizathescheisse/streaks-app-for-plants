@@ -338,6 +338,68 @@ describe('smoothedCurrentMoisture', () => {
     // No post-watering readings → falls back to the last available reading (3)
     expect(smoothedCurrentMoisture(plant)).toBe(3)
   })
+
+  // ── Reject impossible-low post-watering readings (#101) ────────────────
+
+  it('excludes a post-watering reading that is below the pre-watering baseline', () => {
+    // Pre 3 → water → reading 2 (probe in dry pocket) and 6 (good probe), 5min apart
+    // The 2 is physically impossible (water can't make soil drier than 3) → drop it.
+    // Smoothed = median of [6] = 6, NOT median of [2, 6] = 4.
+    const plant = {
+      events: [
+        { id: 'r0', type: 'reading',  timestamp: tsHours(28), moisture: 3, bundleId: 'b0' },
+        { id: 'w1', type: 'watering', timestamp: tsHours(26), amount: '2', unit: 'cups', bundleId: 'b1' },
+        { id: 'r1', type: 'reading',  timestamp: tsHours(25),     moisture: 2, bundleId: 'b2' },
+        { id: 'r2', type: 'reading',  timestamp: tsHours(24.917), moisture: 6, bundleId: 'b3' },
+      ],
+    }
+    expect(smoothedCurrentMoisture(plant)).toBe(6)
+  })
+
+  it('keeps post-watering readings equal to the pre-watering baseline', () => {
+    // A post-watering reading equal to pre-watering is plausible (insufficient
+    // watering or just-not-yet-soaked-in). Should be kept, not dropped.
+    const plant = {
+      events: [
+        { id: 'r0', type: 'reading',  timestamp: tsHours(28), moisture: 4, bundleId: 'b0' },
+        { id: 'w1', type: 'watering', timestamp: tsHours(26), amount: '2', unit: 'cups', bundleId: 'b1' },
+        { id: 'r1', type: 'reading',  timestamp: tsHours(25), moisture: 4, bundleId: 'b2' },
+        { id: 'r2', type: 'reading',  timestamp: tsHours(24), moisture: 6, bundleId: 'b3' },
+      ],
+    }
+    // Both 4 and 6 kept → median = 5
+    expect(smoothedCurrentMoisture(plant)).toBe(5)
+  })
+
+  it('falls back to the raw cycle set when EVERY post-watering reading is below pre-watering', () => {
+    // Pathological case: all post-watering readings are bad. Rather than
+    // returning null, fall back to using them so the user still sees something.
+    const plant = {
+      events: [
+        { id: 'r0', type: 'reading',  timestamp: tsHours(28), moisture: 6, bundleId: 'b0' },
+        { id: 'w1', type: 'watering', timestamp: tsHours(26), amount: '2', unit: 'cups', bundleId: 'b1' },
+        { id: 'r1', type: 'reading',  timestamp: tsHours(25), moisture: 2, bundleId: 'b2' },
+        { id: 'r2', type: 'reading',  timestamp: tsHours(24), moisture: 3, bundleId: 'b3' },
+      ],
+    }
+    // Both 2 and 3 are below pre (6), so the filter would empty the set —
+    // fall back to using them, median of [2, 3] = 2.5
+    expect(smoothedCurrentMoisture(plant)).toBe(2.5)
+  })
+
+  it('does not filter when there is no pre-watering reading', () => {
+    // First-ever watering with no prior reading → no baseline to compare against.
+    // Should behave like the original logic.
+    const plant = {
+      events: [
+        { id: 'w1', type: 'watering', timestamp: tsHours(26), amount: '2', unit: 'cups', bundleId: 'b1' },
+        { id: 'r1', type: 'reading',  timestamp: tsHours(25), moisture: 2, bundleId: 'b2' },
+        { id: 'r2', type: 'reading',  timestamp: tsHours(24), moisture: 6, bundleId: 'b3' },
+      ],
+    }
+    // No pre-reading → no filter → median of [2, 6] = 4
+    expect(smoothedCurrentMoisture(plant)).toBe(4)
+  })
 })
 
 // ── buildEventsFromForm ────────────────────────────────────────────────────
