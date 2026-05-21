@@ -172,6 +172,16 @@ Skip running tests for pure CSS changes, JSX layout tweaks, or new components th
 
 If a test fails unexpectedly: fix the code (not the test) unless the test itself is wrong. A failing test on a "safe" change is a signal something unexpected broke.
 
+### Scenario fixtures for real-data bugs
+
+When a bug surfaces in Eliza's actual plant data (chart looks wrong, recommendation makes no sense, prediction is bizarre), **also add a scenario fixture** alongside the unit-test fix:
+
+1. Save a trimmed plant JSON to `tests/fixtures/<plant>-YYYY-MM-DD-<tag>.json` with just the events needed to reproduce.
+2. Add a `describe` block in `tests/scenarios.test.js` that loads the fixture and asserts the user-observable outcome (not just the selector output — the integrated `getRecommendation` / display behavior).
+3. Reference the issue and PR in a comment so the fixture's purpose is self-documenting.
+
+Unit tests cover *why* a fix works; scenario fixtures cover *that the bug stays fixed end-to-end*. Both are cheap and the scenario suite becomes a living catalogue of past failure modes. See `tests/fixtures/README.md` for the convention.
+
 ---
 
 ## GitHub Workflow

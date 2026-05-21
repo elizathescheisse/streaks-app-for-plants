@@ -1,0 +1,13 @@
+{
+  "id": "fixture-alocasia",
+  "emoji": "🌿",
+  "species": "alocasia portora",
+  "name": "Alocasia",
+  "_note": "Repro for #101 — probe placement variance right after watering. Pre-watering reading was 3; user watered 2 cups; first post-watering reading landed in a dry pocket (2) and a second reading 5 minutes later in a wetter spot (6). The 2 is physically impossible (water can't make soil drier than 3) and should be rejected from smoothing. Timestamps are anchored to a fixed past date so the fixture is deterministic.",
+  "events": [
+    { "id": "r1", "type": "reading",  "timestamp": "2026-05-20T15:16:00.000Z", "moisture": 3, "bundleId": "b1" },
+    { "id": "w1", "type": "watering", "timestamp": "2026-05-20T17:19:00.000Z", "amount": "2", "unit": "cups", "bundleId": "b2" },
+    { "id": "r2", "type": "reading",  "timestamp": "2026-05-20T18:28:00.000Z", "moisture": 2, "bundleId": "b3" },
+    { "id": "r3", "type": "reading",  "timestamp": "2026-05-20T18:33:00.000Z", "moisture": 6, "bundleId": "b4" }
+  ]
+}
