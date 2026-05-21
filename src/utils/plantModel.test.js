@@ -109,11 +109,13 @@ describe('predictMoisture', () => {
   })
 
   it('uses the learned beta when available', () => {
-    // β estimated at ~1.0/day; reading was 8 two days ago → predicted ≈ 6
+    // β estimated at ~1.0/day; readings are 4 days ago (8) and 2 days ago (6)
     const p = plant([reading(8, 4), reading(6, 2)])  // β≈1.0
     const m = computeModel(p)
     expect(m.beta).toBeCloseTo(1.0, 1)
-    // lastReading is the one 2 days ago at moisture=6; predicted = 6 - 1.0*2 = 4
+    // Layer 2: readings are 48 h apart — outside the 24-h smoothing window.
+    // Only the most recent reading (6, 2 days ago) is used as start.
+    // predicted = 6 - 1.0*2 = 4
     const pred = predictMoisture(p, m)
     expect(pred).toBeCloseTo(4, 0)
   })
