@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from './LogEntryForm.module.css'
 import { lookupPlant } from '../utils/plantLookup.js'
-import { isSignificantWatering } from '../utils/plantSelectors.js'
+import { isSignificantWatering, isSuspiciousReading } from '../utils/plantSelectors.js'
 
 const HEALTH_OPTIONS = [
   { value: 'no_change',  label: 'No change'    },
@@ -125,6 +125,11 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
               onClick={() => set('moisture', '')}
             >Clear reading</button>
           </div>
+        )}
+        {isSuspiciousReading(plant, form.moisture, form.timestamp) && (
+          <p className={styles.probeHint}>
+            📍 Lower than before you watered — probe placement can cause this. Try a few spots and use the highest.
+          </p>
         )}
       </div>
 

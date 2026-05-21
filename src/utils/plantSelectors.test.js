@@ -7,12 +7,17 @@ import {
   logBundles,
   chartEvents,
   buildEventsFromForm,
+  isSuspiciousReading,
 } from './plantSelectors.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function ts(daysAgo = 0) {
   return new Date(Date.now() - daysAgo * 86_400_000).toISOString()
+}
+
+function tsHours(hoursAgo = 0) {
+  return new Date(Date.now() - hoursAgo * 3_600_000).toISOString()
 }
 
 function makeReading(moisture, daysAgo = 0, bundleId = 'b1') {
@@ -158,6 +163,89 @@ describe('chartEvents', () => {
     const { readings, waterings } = chartEvents(plant)
     expect(readings).toHaveLength(2)
     expect(waterings).toHaveLength(1)
+  })
+})
+
+// ── isSuspiciousReading ────────────────────────────────────────────────────
+
+describe('isSuspiciousReading', () => {
+  it('returns false for a plant with no watering history', () => {
+    const plant = { events: [makeReading(3, 0)] }
+    expect(isSuspiciousReading(plant, 3, null)).toBe(false)
+  })
+
+  it('returns false when moisture is empty or null', () => {
+    const plant = { events: [makeReading(6, 1), makeWatering(2, 0)] }
+    expect(isSuspiciousReading(plant, '',   null)).toBe(false)
+    expect(isSuspiciousReading(plant, null, null)).toBe(false)
+  })
+
+  it('flags a reading lower than the pre-watering level taken within 6 hours', () => {
+    // Pre-watering reading: 6.  Watered 2 hours ago.  New reading: 4 (suspicious).
+    const plant = {
+      events: [
+        { id: 'r1', type: 'reading',  timestamp: tsHours(3), moisture: 6, bundleId: 'b1' },
+        { id: 'w1', type: 'watering', timestamp: tsHours(2), amount: '2', unit: 'cups', bundleId: 'b2' },
+      ]
+    }
+    expect(isSuspiciousReading(plant, 4, null)).toBe(true)
+  })
+
+  it('flags a reading equal to the pre-watering level (should have risen)', () => {
+    const plant = {
+      events: [
+        { id: 'r1', type: 'reading',  timestamp: tsHours(3), moisture: 5, bundleId: 'b1' },
+        { id: 'w1', type: 'watering', timestamp: tsHours(2), amount: '2', unit: 'cups', bundleId: 'b2' },
+      ]
+    }
+    expect(isSuspiciousReading(plant, 5, null)).toBe(true)
+  })
+
+  it('does NOT flag a reading higher than the pre-watering level', () => {
+    // Plant went from 4 → watered → reading is now 7. Normal.
+    const plant = {
+      events: [
+        { id: 'r1', type: 'reading',  timestamp: tsHours(3), moisture: 4, bundleId: 'b1' },
+        { id: 'w1', type: 'watering', timestamp: tsHours(2), amount: '2', unit: 'cups', bundleId: 'b2' },
+      ]
+    }
+    expect(isSuspiciousReading(plant, 7, null)).toBe(false)
+  })
+
+  it('does NOT flag when the watering was more than 6 hours ago', () => {
+    // Watered yesterday — any reading today is a genuine dry-out measurement.
+    const plant = {
+      events: [
+        makeReading(6, 2),
+        makeWatering(2, 1),   // 1 day ago = 24 h, well outside the 6-hour window
+      ]
+    }
+    expect(isSuspiciousReading(plant, 3, null)).toBe(false)
+  })
+
+  it('does NOT flag when there is no pre-watering reading to compare against', () => {
+    // Watering exists but no reading before it — nothing to compare to.
+    const plant = {
+      events: [
+        { id: 'w1', type: 'watering', timestamp: tsHours(1), amount: '2', unit: 'cups', bundleId: 'b1' },
+      ]
+    }
+    expect(isSuspiciousReading(plant, 3, null)).toBe(false)
+  })
+
+  it('uses the provided timestamp to evaluate the 6-hour window', () => {
+    // Back-filling a log entry: "I watered 5 hours ago and checked right after."
+    // The explicit timestamp for the reading is 4.5 h after the watering.
+    const wateringTs = new Date(Date.now() - 5 * 3_600_000).toISOString()
+    const readingTs  = new Date(Date.now() - 0.5 * 3_600_000).toISOString() // 4.5 h later
+    const plant = {
+      events: [
+        { id: 'r1', type: 'reading',  timestamp: new Date(Date.now() - 6 * 3_600_000).toISOString(), moisture: 6, bundleId: 'b1' },
+        { id: 'w1', type: 'watering', timestamp: wateringTs, amount: '2', unit: 'cups', bundleId: 'b2' },
+      ]
+    }
+    // New reading is 3, which is < 6 (pre-watering) and within the 6-h window
+    expect(isSuspiciousReading(plant, 3, readingTs)).toBe(true)
   })
 })
 
