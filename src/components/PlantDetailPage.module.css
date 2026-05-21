@@ -50,6 +50,12 @@
   font-size: 28px;
   line-height: 1;
   flex-shrink: 0;
+  /* For SVG icon variant — sizes the icon to roughly match the emoji metric */
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .heroText {

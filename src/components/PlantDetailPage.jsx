@@ -6,6 +6,7 @@ import styles from './PlantDetailPage.module.css'
 import MoistureBar from './MoistureBar.jsx'
 import PlantHistoryChart from './PlantHistoryChart.jsx'
 import PlantPrediction from './PlantPrediction.jsx'
+import PlantIcon, { hasIcon } from './plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '../utils/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents
@@ -122,7 +123,11 @@ export default function PlantDetailPage({
           ‹
         </button>
         <div className={styles.heroInline}>
-          <span className={styles.heroEmoji}>{emoji}</span>
+          <span className={styles.heroEmoji}>
+            {hasIcon(species)
+              ? <PlantIcon species={species} health={health} ariaLabel={`${name || species} — ${health}`} />
+              : emoji}
+          </span>
           <div className={styles.heroText}>
             <div className={styles.heroNameRow}>
               <h1 className={styles.heroName}>{name || titleCase(species)}</h1>

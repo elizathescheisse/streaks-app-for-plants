@@ -1,0 +1,65 @@
+/* Shared styles for animated plant icons.
+   Each species component sets its own paths but inherits these CSS vars
+   and animation hooks. */
+
+.icon {
+  /* Geometry — slightly inset so leaves have breathing room inside the
+     parent container (e.g. PlantCard's 48px iconCircle) */
+  width:  92%;
+  height: 92%;
+  display: block;
+  overflow: visible;  /* hover sway can swing leaves slightly past the viewBox */
+  /* Leaf rendering — overridden per health state below */
+  color:       var(--leaf-color);
+  --vein:      rgba(0, 0, 0, 0.25);
+  --tip-burn:  transparent;       /* shows brown tips only on struggling */
+  --droop:     0deg;              /* extra leaf rotation when wilting */
+  transition:  color 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+}
+
+/* ── Health states — drive color, droop, and tip burn ── */
+.thriving   { --leaf-color: #4FB055; --vein: rgba(0, 0, 0, 0.28); --droop: 0deg;  filter: saturate(1.1); }
+.good       { --leaf-color: #7FA950; --vein: rgba(0, 0, 0, 0.24); --droop: 0deg;  }
+.okay       { --leaf-color: #B8A040; --vein: rgba(0, 0, 0, 0.22); --droop: 3deg;  --tip-burn: rgba(122, 78, 30, 0.25); filter: saturate(0.85); }
+.struggling { --leaf-color: #8B7A45; --vein: rgba(0, 0, 0, 0.20); --droop: 7deg;  --tip-burn: rgba(122, 60, 30, 0.45); filter: saturate(0.6); }
+
+/* ── Leaf groups: applied per-leaf in each species file ── */
+.leafGroup {
+  transform-origin: var(--origin-x, 50px) var(--origin-y, 95px);
+  /* Idle rest position (with health-driven droop baked in via rotate) */
+  transform: rotate(var(--rest-rotate, 0deg)) rotate(var(--droop));
+  transition: transform 0.6s ease;
+}
+
+/* Hover: each leaf sways at slightly different phase for a "living" feel */
+.icon:hover .leafGroup { animation: sway 2.4s ease-in-out infinite alternate; }
+.icon:hover .leaf2     { animation-delay: -0.4s; }
+.icon:hover .leaf3     { animation-delay: -0.9s; }
+
+@keyframes sway {
+  from { transform: rotate(var(--rest-rotate, 0deg)) rotate(var(--droop)) rotate(-2deg); }
+  to   { transform: rotate(var(--rest-rotate, 0deg)) rotate(var(--droop)) rotate(2.5deg); }
+}
+
+/* Leaf fill (color comes from the SVG's `currentColor` via the icon's color var) */
+.leafBlade {
+  fill: currentColor;
+}
+
+/* Midrib + lateral veins */
+.vein {
+  stroke: var(--vein);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  fill: none;
+}
+
+/* Brown tip overlay — invisible unless the health state turns it on */
+.tipBurn {
+  fill: var(--tip-burn);
+}
+
+/* Respect users who don't want motion */
+@media (prefers-reduced-motion: reduce) {
+  .icon:hover .leafGroup { animation: none; }
+}
