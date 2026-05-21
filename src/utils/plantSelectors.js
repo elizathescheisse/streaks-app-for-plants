@@ -51,6 +51,31 @@ export function isSignificantWatering(watering, careProfile) {
   return amount >= threshold
 }
 
+// Returns the smoothed "current" moisture for a plant — median of the last
+// 2–3 readings within the current drying cycle (since the most recent watering).
+// This dampens noise from probe placement variance.  Returns null if no readings.
+export function smoothedCurrentMoisture(plant) {
+  const allReadings = getEvents(plant, 'reading')
+  if (!allReadings.length) return null
+
+  const lastWat = lastWatering(plant)
+  const cycleReadings = lastWat
+    ? allReadings.filter(r => new Date(r.timestamp) > new Date(lastWat.timestamp))
+    : allReadings
+
+  const SMOOTH_N = 3
+  const recent = cycleReadings.slice(-SMOOTH_N)
+  // Fallback: if no readings in current cycle use the single last reading
+  const vals = (recent.length ? recent : allReadings.slice(-1))
+    .map(r => Number(r.moisture))
+    .sort((a, b) => a - b)
+
+  const mid = Math.floor(vals.length / 2)
+  return vals.length % 2 === 0
+    ? (vals[mid - 1] + vals[mid]) / 2
+    : vals[mid]
+}
+
 // Convenience: get events relevant to charting (readings + waterings)
 export function chartEvents(plant) {
   if (!plant?.events) return { readings: [], waterings: [] }
