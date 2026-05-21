@@ -191,14 +191,16 @@ describe('isSuspiciousReading', () => {
     expect(isSuspiciousReading(plant, 4, null)).toBe(true)
   })
 
-  it('flags a reading equal to the pre-watering level (should have risen)', () => {
+  it('does NOT flag a reading equal to the pre-watering level', () => {
+    // Equal could mean "didn't water enough to move the needle" — more plausible
+    // than bad probe placement, so don't show the warning.
     const plant = {
       events: [
         { id: 'r1', type: 'reading',  timestamp: tsHours(3), moisture: 5, bundleId: 'b1' },
         { id: 'w1', type: 'watering', timestamp: tsHours(2), amount: '2', unit: 'cups', bundleId: 'b2' },
       ]
     }
-    expect(isSuspiciousReading(plant, 5, null)).toBe(true)
+    expect(isSuspiciousReading(plant, 5, null)).toBe(false)
   })
 
   it('does NOT flag a reading higher than the pre-watering level', () => {

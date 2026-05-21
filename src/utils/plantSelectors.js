@@ -84,7 +84,9 @@ export function isSuspiciousReading(plant, moisture, timestamp) {
   )
   if (!preWaterReading) return false
 
-  return newMoisture <= Number(preWaterReading.moisture)
+  // Strictly less than — equal means "didn't water enough to move the needle,"
+  // which is plausible and doesn't warrant a probe-placement warning.
+  return newMoisture < Number(preWaterReading.moisture)
 }
 
 // Convenience: get events relevant to charting (readings + waterings)
