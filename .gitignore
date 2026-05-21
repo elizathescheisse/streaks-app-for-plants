@@ -26,3 +26,6 @@ dist/
 archive/
 plant-streaks-*.json
 temporary_screenshots/
+
+# Ad-hoc local files
+branch-map.html

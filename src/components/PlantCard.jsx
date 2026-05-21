@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantCard.module.css'
@@ -66,6 +67,7 @@ function titleCase(s) {
 export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
+  const navigate = useNavigate()
   const isCompact = cardView === 'compact'
 
   const careProfile  = lookupPlant(species)
@@ -120,7 +122,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
 
             {/* Name + health-prefixed species line */}
             <div className={styles.top}>
-              <button className={styles.nameBtn} onClick={onEdit} type="button">
+              <button className={styles.nameBtn} onClick={() => navigate(`/plant/${plant.id}`)} type="button">
                 {name || titleCase(species)}<span className={styles.nameBtnChevron}>›</span>
               </button>
               {!isCompact && (
