@@ -51,6 +51,45 @@ export function isSignificantWatering(watering, careProfile) {
   return amount >= threshold
 }
 
+// Returns true when a new reading looks physically suspicious: there was a
+// watering within the last 6 hours, yet the new reading is strictly below
+// the moisture level recorded just before that watering.  The most likely
+// explanation is probe placement — the sensor was pushed into a drier pocket
+// of soil after watering.  Used to show an inline hint prompting the user to
+// re-measure.
+//
+// `moisture`  — the new reading value (number or string)
+// `timestamp` — ISO string or null (defaults to now)
+export function isSuspiciousReading(plant, moisture, timestamp) {
+  if (moisture === '' || moisture == null) return false
+  const newMoisture = Number(moisture)
+  const newTs       = timestamp ? new Date(timestamp).getTime() : Date.now()
+  const WINDOW_MS   = 6 * 3_600_000   // 6 hours
+
+  const timeline = (plant?.events ?? [])
+    .filter(e => e.type === 'reading' || e.type === 'watering')
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+
+  // Most recent watering within 6 h before this reading
+  const recentWatering = [...timeline].reverse().find(e => {
+    if (e.type !== 'watering') return false
+    const wTs = new Date(e.timestamp).getTime()
+    return wTs < newTs && (newTs - wTs) <= WINDOW_MS
+  })
+  if (!recentWatering) return false
+
+  // Reading just before that watering
+  const wateringTs      = new Date(recentWatering.timestamp).getTime()
+  const preWaterReading = [...timeline].reverse().find(
+    e => e.type === 'reading' && new Date(e.timestamp).getTime() < wateringTs
+  )
+  if (!preWaterReading) return false
+
+  // Strictly less than — equal means "didn't water enough to move the needle,"
+  // which is plausible and doesn't warrant a probe-placement warning.
+  return newMoisture < Number(preWaterReading.moisture)
+}
+
 // Returns the smoothed "current" moisture for a plant — median of readings
 // taken within 24 hours of the most recent reading in the current drying
 // cycle (since the most recent watering).

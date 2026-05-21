@@ -154,6 +154,17 @@
   line-height: 1.4;
 }
 
+.probeHint {
+  font-size: 11px;
+  color: var(--status-okay);
+  line-height: 1.5;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(245, 166, 35, 0.08);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid rgba(245, 166, 35, 0.4);
+}
+
 /* ── Save ── */
 .saveBtn {
   width: 100%;

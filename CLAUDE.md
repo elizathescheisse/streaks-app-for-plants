@@ -160,6 +160,8 @@ This is a pre-flight check, not an afterthought — run it before writing any `u
 
 ## Testing
 
+**Write tests for any new function added to `plantModel.js` or `plantSelectors.js`.** These are pure utility functions with no UI dependencies — they're straightforward to test and high-value to cover. Tests go in the corresponding `.test.js` file and must be written before the PR is opened, not as a follow-up. Cover the happy path, edge cases (empty/null input, boundary values), and any behaviour that was explicitly designed (e.g. a 24-hour window, a strict-less-than comparison) — those decisions are the most likely to quietly regress.
+
 Run `npm test` in these situations — not mechanically on every change, but as a safety check when it matters:
 
 1. **After editing `plantModel.js` or `plantSelectors.js`** — these are the files the tests cover. Run before committing.

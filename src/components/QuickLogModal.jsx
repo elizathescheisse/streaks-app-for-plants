@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
-import { lastWatering, isSignificantWatering } from '../utils/plantSelectors.js'
+import { lastWatering, isSignificantWatering, isSuspiciousReading } from '../utils/plantSelectors.js'
 import { lookupPlant } from '../utils/plantLookup.js'
 
 function titleCase(s) {
@@ -116,6 +116,11 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
           {careProfile?.moistureRange && (
             <p className={styles.rangeHint}>
               Ideal range: {min} – {max}
+            </p>
+          )}
+          {isSuspiciousReading(plant, moisture, null) && (
+            <p className={styles.probeHint}>
+              📍 Lower than before you watered — probe placement can cause this. Try a few spots and use the highest.
             </p>
           )}
         </div>
