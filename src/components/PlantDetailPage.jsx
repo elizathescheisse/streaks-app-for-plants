@@ -68,7 +68,7 @@ export default function PlantDetailPage({
 }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [chartWindow, setChartWindow] = useState('3M')
+  const [chartWindow, setChartWindow] = useState('1W')
 
   const plant = plants.find(p => p.id === id)
 
