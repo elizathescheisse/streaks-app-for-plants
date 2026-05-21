@@ -51,9 +51,17 @@ export function isSignificantWatering(watering, careProfile) {
   return amount >= threshold
 }
 
-// Returns the smoothed "current" moisture for a plant — median of the last
-// 2–3 readings within the current drying cycle (since the most recent watering).
-// This dampens noise from probe placement variance.  Returns null if no readings.
+// Returns the smoothed "current" moisture for a plant — median of readings
+// taken within 24 hours of the most recent reading in the current drying
+// cycle (since the most recent watering).
+//
+// The 24-hour window is intentional: it captures same-session probe placement
+// variance (measuring 2 in one spot, 6 in another) without pulling in
+// genuine sequential readings from previous days (which are real dry-out
+// measurements, not noise).  A reading from 3 days ago should NOT be averaged
+// with today's reading.
+//
+// Returns null if no readings exist.
 export function smoothedCurrentMoisture(plant) {
   const allReadings = getEvents(plant, 'reading')
   if (!allReadings.length) return null
@@ -63,10 +71,16 @@ export function smoothedCurrentMoisture(plant) {
     ? allReadings.filter(r => new Date(r.timestamp) > new Date(lastWat.timestamp))
     : allReadings
 
-  const SMOOTH_N = 3
-  const recent = cycleReadings.slice(-SMOOTH_N)
-  // Fallback: if no readings in current cycle use the single last reading
-  const vals = (recent.length ? recent : allReadings.slice(-1))
+  // Use the single most recent reading's timestamp as the anchor.
+  const source    = cycleReadings.length ? cycleReadings : allReadings
+  const lastTs    = new Date(source[source.length - 1].timestamp).getTime()
+  const WINDOW_MS = 24 * 3_600_000   // 24 hours
+
+  // Only include readings within 24 h of the most recent one.
+  // This is always at least 1 reading (the anchor itself).
+  const nearRecent = source.filter(r => lastTs - new Date(r.timestamp).getTime() <= WINDOW_MS)
+
+  const vals = nearRecent
     .map(r => Number(r.moisture))
     .sort((a, b) => a - b)
 
