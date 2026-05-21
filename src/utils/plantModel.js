@@ -80,32 +80,55 @@ export function computeModel(plant, careProfile) {
       // of water doesn't count as a real soak and would corrupt the α estimate.
       if (!isSignificantWatering(watering, careProfile)) continue
 
-      // Find next reading after the watering; abort if another watering appears first
-      let afterIdx = -1
-      for (let j = i + 2; j < timeline.length; j++) {
-        if (timeline[j].type === 'watering') break
-        if (timeline[j].type === 'reading') { afterIdx = j; break }
-      }
-      if (afterIdx === -1) continue
-
-      const afterReading    = timeline[afterIdx]
-      const daysAfterWater  =
-        (new Date(afterReading.timestamp) - new Date(watering.timestamp)) / 86_400_000
-
-      // Layer 1 — reject physically impossible triples.
-      // If the post-watering reading is ≤ the pre-watering reading, the
-      // watering clearly didn't register (bad probe placement, entered in
-      // wrong order, etc.).  A "rise" computed from back-calc would be tiny
-      // or negative, producing a badly inflated α estimate.  Skip entirely.
-      if (afterReading.moisture <= e.moisture) continue
-
-      // Running estimates so far (or defaults if nothing yet)
+      // Running estimates so far (or defaults if nothing yet) — used both
+      // for picking the best post-watering reading and for the actual
+      // α/β computation below.
       const runningBeta  = betaObs.length
         ? betaObs.reduce((s, v) => s + v, 0)  / betaObs.length
         : DEFAULT_BETA
       const runningAlpha = alphaObs.length
         ? alphaObs.reduce((s, v) => s + v, 0) / alphaObs.length
         : DEFAULT_ALPHA
+
+      // Scan ALL readings in the current drying cycle (until the next
+      // watering) and pick the one that back-calculates to the highest
+      // moisture peak right after watering: M_peak = reading + β × days.
+      //
+      // Why max-peak: probe placement variance can make the FIRST reading
+      // after watering low (probe in a dry pocket) while a reading 2 days
+      // later in a wetter spot reveals the watering was actually effective.
+      // The back-calc accounts for drying, so the higher peak is the more
+      // accurate estimate of how much water actually went in.
+      //
+      // Asymmetric by design:
+      //  • If readings genuinely decrease over time (normal drying), the
+      //    first reading already produces the highest back-calc — picked
+      //    automatically. No change vs. the previous "first reading" logic.
+      //  • If readings increase (probe variance / water redistribution),
+      //    max-peak picks the later, higher reading.
+      let bestAfterIdx = -1
+      let bestPeak     = -Infinity
+      for (let j = i + 2; j < timeline.length; j++) {
+        if (timeline[j].type === 'watering') break
+        if (timeline[j].type === 'reading') {
+          const days = (new Date(timeline[j].timestamp) - new Date(watering.timestamp)) / 86_400_000
+          const peak = Number(timeline[j].moisture) + runningBeta * days
+          if (peak > bestPeak) { bestPeak = peak; bestAfterIdx = j }
+        }
+      }
+      if (bestAfterIdx === -1) continue
+
+      const afterReading   = timeline[bestAfterIdx]
+      const daysAfterWater =
+        (new Date(afterReading.timestamp) - new Date(watering.timestamp)) / 86_400_000
+
+      // Layer 1 — reject physically impossible triples.
+      // If the BEST post-watering reading is ≤ the pre-watering reading,
+      // even the most generous back-calc shows the watering didn't register
+      // (bad probe placement throughout, entered in wrong order, etc.).
+      // A rise from back-calc would be tiny or negative, producing a badly
+      // inflated α estimate. Skip entirely.
+      if (afterReading.moisture <= e.moisture) continue
 
       // ── α: back-calc M_peak from β, then compute moisture rise per unit water ──
       const MpeakForAlpha = afterReading.moisture + runningBeta * daysAfterWater
