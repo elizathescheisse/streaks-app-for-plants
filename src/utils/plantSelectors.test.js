@@ -8,6 +8,7 @@ import {
   chartEvents,
   buildEventsFromForm,
   isSuspiciousReading,
+  smoothedCurrentMoisture,
 } from './plantSelectors.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -248,6 +249,94 @@ describe('isSuspiciousReading', () => {
     }
     // New reading is 3, which is < 6 (pre-watering) and within the 6-h window
     expect(isSuspiciousReading(plant, 3, readingTs)).toBe(true)
+  })
+})
+
+// ── smoothedCurrentMoisture ────────────────────────────────────────────────
+
+describe('smoothedCurrentMoisture', () => {
+  it('returns null for a plant with no readings', () => {
+    expect(smoothedCurrentMoisture(emptyPlant)).toBeNull()
+  })
+
+  it('returns the single reading when only one exists', () => {
+    const plant = { events: [makeReading(6, 0)] }
+    expect(smoothedCurrentMoisture(plant)).toBe(6)
+  })
+
+  it('returns median of same-day readings (probe placement noise)', () => {
+    // Two readings taken 2 hours apart — within the 24-hour smoothing window
+    const plant = {
+      events: [
+        { id: 'r1', type: 'reading', timestamp: tsHours(2), moisture: 2, bundleId: 'b1' },
+        { id: 'r2', type: 'reading', timestamp: tsHours(0), moisture: 6, bundleId: 'b2' },
+      ]
+    }
+    // median of [2, 6] = 4
+    expect(smoothedCurrentMoisture(plant)).toBe(4)
+  })
+
+  it('returns median of three same-day readings', () => {
+    const plant = {
+      events: [
+        { id: 'r1', type: 'reading', timestamp: tsHours(5), moisture: 3, bundleId: 'b1' },
+        { id: 'r2', type: 'reading', timestamp: tsHours(3), moisture: 7, bundleId: 'b2' },
+        { id: 'r3', type: 'reading', timestamp: tsHours(1), moisture: 5, bundleId: 'b3' },
+      ]
+    }
+    // sorted [3, 5, 7], median = 5
+    expect(smoothedCurrentMoisture(plant)).toBe(5)
+  })
+
+  it('ignores readings older than 24 hours — they are real dry-out measurements', () => {
+    // Reading 3 days ago at 8, reading today at 3 — genuine drying, not noise
+    const plant = {
+      events: [
+        makeReading(8, 3),
+        makeReading(3, 0),
+      ]
+    }
+    // 3 days apart → outside window; only today's reading is used
+    expect(smoothedCurrentMoisture(plant)).toBe(3)
+  })
+
+  it('only uses readings since the last watering', () => {
+    // Pre-watering reading at 2 (stale); watered yesterday; reading today at 7
+    const plant = {
+      events: [
+        makeReading(2, 5),
+        makeWatering(2, 1),
+        makeReading(7, 0),
+      ]
+    }
+    // Only the post-watering reading (7) is in the current cycle
+    expect(smoothedCurrentMoisture(plant)).toBe(7)
+  })
+
+  it('smooths same-day readings within the current cycle, ignoring pre-watering ones', () => {
+    // Watered 1 day ago; two readings today in different spots (probe variance)
+    const plant = {
+      events: [
+        makeReading(2, 5),               // pre-watering (old cycle)
+        makeWatering(2, 1),              // watered yesterday
+        { id: 'r2', type: 'reading', timestamp: tsHours(3), moisture: 5, bundleId: 'b2' },
+        { id: 'r3', type: 'reading', timestamp: tsHours(1), moisture: 8, bundleId: 'b3' },
+      ]
+    }
+    // Current cycle: [5, 8]; both within 24h of most recent → median = 6.5
+    expect(smoothedCurrentMoisture(plant)).toBe(6.5)
+  })
+
+  it('falls back to last reading when no readings exist after the last watering', () => {
+    // Watered today; reading was logged before the watering (edge case)
+    const plant = {
+      events: [
+        makeReading(3, 1),
+        makeWatering(2, 0),
+      ]
+    }
+    // No post-watering readings → falls back to the last available reading (3)
+    expect(smoothedCurrentMoisture(plant)).toBe(3)
   })
 })
 

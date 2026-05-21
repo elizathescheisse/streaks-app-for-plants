@@ -11,7 +11,7 @@
  * Cold-start defaults are used when not enough data exists yet.
  */
 
-import { lastReading, getEvents, isSignificantWatering } from './plantSelectors.js'
+import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture } from './plantSelectors.js'
 
 const DEFAULT_ALPHA = 1.5   // moisture points per cup (generic prior)
 const DEFAULT_BETA  = 0.5   // moisture points per day (generic prior)
@@ -92,6 +92,13 @@ export function computeModel(plant, careProfile) {
       const daysAfterWater  =
         (new Date(afterReading.timestamp) - new Date(watering.timestamp)) / 86_400_000
 
+      // Layer 1 — reject physically impossible triples.
+      // If the post-watering reading is ≤ the pre-watering reading, the
+      // watering clearly didn't register (bad probe placement, entered in
+      // wrong order, etc.).  A "rise" computed from back-calc would be tiny
+      // or negative, producing a badly inflated α estimate.  Skip entirely.
+      if (afterReading.moisture <= e.moisture) continue
+
       // Running estimates so far (or defaults if nothing yet)
       const runningBeta  = betaObs.length
         ? betaObs.reduce((s, v) => s + v, 0)  / betaObs.length
@@ -155,7 +162,10 @@ export function predictMoisture(plant, model) {
 
   const beta      = model.beta ?? DEFAULT_BETA
   const daysSince = (Date.now() - new Date(reading.timestamp)) / 86_400_000
-  return Math.max(0, Math.min(10, reading.moisture - beta * daysSince))
+  // Layer 2 — use smoothed (median of last 2–3 readings in cycle) as starting
+  // moisture, so a single outlier probe reading doesn't spike the prediction.
+  const startMoisture = smoothedCurrentMoisture(plant) ?? reading.moisture
+  return Math.max(0, Math.min(10, startMoisture - beta * daysSince))
 }
 
 // ─────────────────────────────────────────────────────────
@@ -211,7 +221,11 @@ export function getRecommendation(plant, model, careProfile) {
     : rangeLo
 
   const daysUntilDry = Math.max(0, (predicted - waterTarget) / beta)
-  const waterNeeded  = Math.max(0, (rangeHi - predicted) / alpha)
+  // Layer 3 — physical cap: you can never need more water than it would take
+  // to bring the plant from bone-dry (0) all the way to the target moisture.
+  // This is the true upper bound regardless of what the model computed.
+  const physicalCap  = rangeHi / alpha
+  const waterNeeded  = Math.min(physicalCap, Math.max(0, (rangeHi - predicted) / alpha))
 
   const totalSamples = model.betaSamples + model.alphaSamples
   const confidence = totalSamples === 0 ? 'none'
