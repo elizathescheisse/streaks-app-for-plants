@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header.jsx'
 import PlantCard from './components/PlantCard.jsx'
 import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
@@ -6,6 +7,7 @@ import LogEntryForm, { createEmptyLogForm } from './components/LogEntryForm.jsx'
 import QuickLogModal from './components/QuickLogModal.jsx'
 import EdgeGlow from './components/EdgeGlow.jsx'
 import SettingsModal from './components/SettingsModal.jsx'
+import PlantDetailPage from './components/PlantDetailPage.jsx'
 import Modal from './components/Modal.jsx'
 import styles from './App.module.css'
 import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
@@ -226,6 +228,16 @@ export default function App() {
     e.target.value = ''
   }
 
+  // Shared callbacks used by both the list and detail page
+  const detailCallbacks = {
+    onEdit:         editPlant,
+    onLog:          openLog,
+    onQuickWater:   (p) => openQuickLog(p, 'water'),
+    onQuickReading: (p) => openQuickLog(p, 'reading'),
+    onEditLog:      openEditLog,
+    onDelete:       deletePlant,
+  }
+
   return (
     <div className={styles.app}>
       <EdgeGlow />
@@ -244,113 +256,123 @@ export default function App() {
       )}
       <input ref={importRef} type="file" accept=".json" onChange={handleImport} style={{ display:'none' }} />
 
-      <main className={styles.main}>
-        <section className={styles.listCol}>
-          <div className={styles.dateBlock}>
-            <div className={styles.dateRow}>
-              <h1 className={styles.bigDate}>{formatDate(today)}</h1>
-              {plants.length > 0 && (
-                <button className={styles.addBtn} onClick={openAdd}>
-                  + Add Plant
-                </button>
-              )}
-            </div>
-            <p className={styles.hint}>Log your plants' health and watering for today.</p>
-            {plants.length > 0 && (
-              <div className={styles.controlRow}>
-                <input
-                  className={styles.searchInput}
-                  type="search"
-                  placeholder="Search plants…"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                />
+      <Routes>
+        {/* ── Plant detail page ── */}
+        <Route path="/plant/:id" element={
+          <PlantDetailPage plants={plants} {...detailCallbacks} />
+        } />
 
-                {/* Chart window toggle — only shown in chart view */}
-                {cardView === 'chart' && (
-                  <div className={styles.chartToggle}>
-                    {['1W','1M','3M','all'].map(key => (
-                      <button
-                        key={key}
-                        className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
-                        onClick={() => setChartWindow(key)}
-                      >{key === 'all' ? 'All' : key}</button>
-                    ))}
-                  </div>
-                )}
-
-                {/* View-switcher: grid icon + dropdown — always rightmost so it doesn't shift */}
-                <div className={styles.viewSwitcher}>
-                  <button
-                    className={`${styles.viewSwitcherBtn} ${viewMenuOpen ? styles.viewSwitcherBtnOpen : ''}`}
-                    onClick={() => setViewMenuOpen(o => !o)}
-                    title="Switch card view"
-                    type="button"
-                  >
-                    <GridIcon />
-                  </button>
-                  {viewMenuOpen && (
-                    <>
-                      <div className={styles.viewMenuBackdrop} onClick={() => setViewMenuOpen(false)} />
-                      <div className={styles.viewMenu}>
-                        {[
-                          { key: 'chart',   label: 'Timeline' },
-                          { key: 'compact', label: 'Focus'    },
-                        ].map(({ key, label }) => (
-                          <button
-                            key={key}
-                            className={`${styles.viewMenuItem} ${cardView === key ? styles.viewMenuItemActive : ''}`}
-                            onClick={() => { setCardView(key); setViewMenuOpen(false) }}
-                            type="button"
-                          >{label}</button>
-                        ))}
-                      </div>
-                    </>
+        {/* ── Home: plant list ── */}
+        <Route path="/" element={
+          <main className={styles.main}>
+            <section className={styles.listCol}>
+              <div className={styles.dateBlock}>
+                <div className={styles.dateRow}>
+                  <h1 className={styles.bigDate}>{formatDate(today)}</h1>
+                  {plants.length > 0 && (
+                    <button className={styles.addBtn} onClick={openAdd}>
+                      + Add Plant
+                    </button>
                   )}
                 </div>
-              </div>
-            )}
-          </div>
+                <p className={styles.hint}>Log your plants' health and watering for today.</p>
+                {plants.length > 0 && (
+                  <div className={styles.controlRow}>
+                    <input
+                      className={styles.searchInput}
+                      type="search"
+                      placeholder="Search plants…"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                    />
 
-          <div className={`${styles.plantList} ${cardView === 'compact' ? styles.plantListCompact : ''}`}>
-            {plants.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>🌱</div>
-                <p className={styles.emptyTitle}>No plants yet</p>
-                <button className={styles.emptyAddBtn} onClick={openAdd}>
-                  + Add your first plant
-                </button>
+                    {/* Chart window toggle — only shown in chart view */}
+                    {cardView === 'chart' && (
+                      <div className={styles.chartToggle}>
+                        {['1W','1M','3M','all'].map(key => (
+                          <button
+                            key={key}
+                            className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
+                            onClick={() => setChartWindow(key)}
+                          >{key === 'all' ? 'All' : key}</button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* View-switcher: grid icon + dropdown — always rightmost so it doesn't shift */}
+                    <div className={styles.viewSwitcher}>
+                      <button
+                        className={`${styles.viewSwitcherBtn} ${viewMenuOpen ? styles.viewSwitcherBtnOpen : ''}`}
+                        onClick={() => setViewMenuOpen(o => !o)}
+                        title="Switch card view"
+                        type="button"
+                      >
+                        <GridIcon />
+                      </button>
+                      {viewMenuOpen && (
+                        <>
+                          <div className={styles.viewMenuBackdrop} onClick={() => setViewMenuOpen(false)} />
+                          <div className={styles.viewMenu}>
+                            {[
+                              { key: 'chart',   label: 'Timeline' },
+                              { key: 'compact', label: 'Focus'    },
+                            ].map(({ key, label }) => (
+                              <button
+                                key={key}
+                                className={`${styles.viewMenuItem} ${cardView === key ? styles.viewMenuItemActive : ''}`}
+                                onClick={() => { setCardView(key); setViewMenuOpen(false) }}
+                                type="button"
+                              >{label}</button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (() => {
-              const q = searchQuery.trim().toLowerCase()
-              const filtered = (q
-                ? plants.filter(p =>
-                    (p.name    && p.name.toLowerCase().includes(q)) ||
-                    (p.species && p.species.toLowerCase().includes(q)) ||
-                    (p.emoji   && p.emoji.includes(searchQuery.trim()))
+
+              <div className={`${styles.plantList} ${cardView === 'compact' ? styles.plantListCompact : ''}`}>
+                {plants.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <div className={styles.emptyIcon}>🌱</div>
+                    <p className={styles.emptyTitle}>No plants yet</p>
+                    <button className={styles.emptyAddBtn} onClick={openAdd}>
+                      + Add your first plant
+                    </button>
+                  </div>
+                ) : (() => {
+                  const q = searchQuery.trim().toLowerCase()
+                  const filtered = (q
+                    ? plants.filter(p =>
+                        (p.name    && p.name.toLowerCase().includes(q)) ||
+                        (p.species && p.species.toLowerCase().includes(q)) ||
+                        (p.emoji   && p.emoji.includes(searchQuery.trim()))
+                      )
+                    : plants
+                  ).slice().sort((a, b) => getPlantSortPriority(a) - getPlantSortPriority(b))
+                  if (filtered.length === 0) return (
+                    <p className={styles.noResults}>No plants match "{searchQuery.trim()}"</p>
                   )
-                : plants
-              ).slice().sort((a, b) => getPlantSortPriority(a) - getPlantSortPriority(b))
-              if (filtered.length === 0) return (
-                <p className={styles.noResults}>No plants match "{searchQuery.trim()}"</p>
-              )
-              return filtered.map(p => (
-                <PlantCard
-                  key={p.id}
-                  plant={p}
-                  onEdit={() => editPlant(p)}
-                  onLog={() => openLog(p)}
-                  onQuickWater={() => openQuickLog(p, 'water')}
-                  onQuickReading={() => openQuickLog(p, 'reading')}
-                  onEditLog={(bundle) => openEditLog(p, bundle)}
-                  chartWindow={chartWindow}
-                  cardView={cardView}
-                />
-              ))
-            })()}
-          </div>
-        </section>
-      </main>
+                  return filtered.map(p => (
+                    <PlantCard
+                      key={p.id}
+                      plant={p}
+                      onEdit={() => editPlant(p)}
+                      onLog={() => openLog(p)}
+                      onQuickWater={() => openQuickLog(p, 'water')}
+                      onQuickReading={() => openQuickLog(p, 'reading')}
+                      onEditLog={(bundle) => openEditLog(p, bundle)}
+                      chartWindow={chartWindow}
+                      cardView={cardView}
+                    />
+                  ))
+                })()}
+              </div>
+            </section>
+          </main>
+        } />
+      </Routes>
 
       {/* ── Modals ── */}
       {panel?.mode === 'identity' && (

@@ -1,0 +1,472 @@
+/* ── Page shell ── */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+}
+
+/* ── Not found state ── */
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 60vh;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* ── Top nav bar ── */
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-base);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backBtn {
+  background: transparent;
+  border: none;
+  color: var(--brand-primary);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.backBtn:hover { color: var(--brand-bright); }
+
+.editBtn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.editBtn:hover { background: var(--bg-surface-raised); color: var(--text-primary); }
+
+/* ── Hero section ── */
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.heroEmoji {
+  font-size: 52px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.heroName {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.heroSpecies {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Health tints on hero (match card health classes) ── */
+.hero.thriving  { background: rgba(69,209,87,0.04); }
+.hero.good      { background: rgba(120,200,100,0.04); }
+.hero.okay      { background: rgba(245,166,35,0.04); }
+.hero.struggling{ background: rgba(229,97,71,0.04); }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+}
+.badgeIcon { font-size: 10px; }
+
+.badge_water     { background: rgba(56,189,248,0.15);  color: #7dd3fc; }
+.badge_soon      { background: rgba(245,166,35,0.15);  color: #fbbf24; }
+.badge_good      { background: rgba(69,209,87,0.15);   color: var(--status-good); }
+.badge_thriving  { background: rgba(69,209,87,0.2);    color: var(--status-thriving); }
+.badge_okay      { background: rgba(245,166,35,0.15);  color: var(--status-okay); }
+.badge_struggling{ background: rgba(229,97,71,0.15);   color: var(--status-struggling); }
+.badge_check     { background: rgba(148,163,184,0.12); color: #94a3b8; }
+
+/* ── Scrollable content area ── */
+.content {
+  flex: 1;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 0 48px;
+}
+
+/* ── Quick actions ── */
+.actions {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.actionBtn {
+  flex: 1;
+  height: 44px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.actionBtn:hover { background: var(--bg-surface-raised); border-color: rgba(71,133,61,0.4); }
+
+.actionBtnPrimary {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #071407;
+  font-weight: 600;
+}
+.actionBtnPrimary:hover { background: var(--brand-bright); border-color: var(--brand-bright); }
+
+/* ── Generic section ── */
+.section {
+  padding: 20px 20px 0;
+}
+.section + .section {
+  padding-top: 24px;
+  border-top: 1px solid var(--border-default);
+  margin-top: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+/* ── Status section ── */
+.statusGrid {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statPredTag {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.statMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.statusBar {
+  margin-bottom: 12px;
+}
+
+.predictionBlock {
+  margin-top: 8px;
+}
+
+/* ── Chart ── */
+.chartWrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px 16px 8px;
+}
+
+.windowToggle {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.windowBtn {
+  height: 26px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.windowBtn:hover { background: var(--bg-surface); color: var(--text-secondary); }
+.windowBtnActive {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* ── Care guide ── */
+.careGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.careItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.careLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.careValue {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.careNotes {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Log history ── */
+.emptyHistory {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.logEntry {
+  padding: 12px 0;
+}
+
+.logEntryDivider {
+  border-bottom: 1px solid var(--border-default);
+}
+
+.logTop {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.logDate {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.logTime {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.logEditBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+.logEditBtn:hover { color: var(--text-secondary); }
+
+.logMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.moisturePill, .waterPill {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+
+.waterPill { color: var(--data-water); }
+
+.logBar {
+  margin-top: 4px;
+}
+
+.logNotes {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 6px 0 0;
+}
+
+/* ── Danger zone ── */
+.dangerZone {
+  padding: 32px 20px 20px;
+  border-top: 1px solid var(--border-default);
+  margin-top: 24px;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+.deleteBtn:hover { color: var(--status-struggling); }
+
+.deleteConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deleteConfirmText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.deleteConfirmActions {
+  display: flex;
+  gap: 8px;
+}
+
+.deleteCancelBtn {
+  flex: 1;
+  height: 40px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.3);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.deleteCancelBtn:hover {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+}
+
+.deleteConfirmBtn {
+  flex: 1;
+  height: 40px;
+  background: rgba(229,97,71,0.12);
+  border: 1px solid rgba(229,97,71,0.45);
+  border-radius: var(--radius-md);
+  color: var(--status-struggling);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.deleteConfirmBtn:hover {
+  background: rgba(229,97,71,0.24);
+  border-color: rgba(229,97,71,0.7);
+}
+
+/* ── Mobile tweaks ── */
+@media (max-width: 639px) {
+  .heroName { font-size: 22px; }
+  .heroEmoji { font-size: 44px; }
+  .careGrid { grid-template-columns: 1fr; }
+}
