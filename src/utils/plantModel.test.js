@@ -89,6 +89,58 @@ describe('computeModel', () => {
     // Should not throw and should produce some alpha obs (rise > 0)
     expect(m.alphaSamples).toBeGreaterThanOrEqual(0)
   })
+
+  // ── Max-peak α estimation (#98) ─────────────────────────────────────────
+  // When probe placement makes the first post-watering reading low but a
+  // later in-cycle reading is higher (after accounting for drying), the
+  // model should use the reading that back-calculates to the highest peak.
+
+  it('uses a later higher reading when the first post-watering reading lands in a dry spot', () => {
+    // Day 5: reading 3, Day 4: water 2 cups,
+    // Day 4 (same day, dry spot): reading 4    → back-calc peak = 4 + 0.5*0 = 4
+    // Day 2 (wetter spot, 2d later): reading 6 → back-calc peak = 6 + 0.5*2 = 7  ← picked
+    // rise = 7 - 3 = 4 → α = 2.0
+    const events = [
+      reading(3, 5, 'bA'),
+      watering(2, 4, 'cups', 'bB'),
+      reading(4, 4 - 0.01, 'bC'),  // slightly after watering, same day
+      reading(6, 2, 'bD'),
+    ]
+    const m = computeModel(plant(events))
+    expect(m.alphaSamples).toBe(1)
+    // α should be ≈ 2.0 (using day-2 reading), NOT ≈ 0.5 (using day-4 reading)
+    expect(m.alpha).toBeGreaterThan(1.5)
+  })
+
+  it('still picks the first reading when readings are decreasing normally', () => {
+    // Day 5: reading 3, Day 4: water 2 cups,
+    // Day 4: reading 7    → back-calc peak = 7 + 0.5*0 = 7  ← picked
+    // Day 2: reading 5    → back-calc peak = 5 + 0.5*2 = 6
+    // rise = 7 - 3 = 4 → α = 2.0 (same as if we'd only had the first reading)
+    const events = [
+      reading(3, 5, 'bA'),
+      watering(2, 4, 'cups', 'bB'),
+      reading(7, 4 - 0.01, 'bC'),
+      reading(5, 2, 'bD'),
+    ]
+    const m = computeModel(plant(events))
+    expect(m.alphaSamples).toBe(1)
+    expect(m.alpha).toBeCloseTo(2.0, 1)
+  })
+
+  it('rejects the cycle when even the best back-calc peak does not exceed the pre-watering reading', () => {
+    // Pre = 5. Both post-watering readings back-calc below 5 even with drying credit.
+    // Day 5: reading 5, Day 4: water 2 cups, Day 4: 4, Day 3: 3 → peaks 4 and 3.5
+    // Both ≤ pre-reading (5) → skip the triple, no α observation
+    const events = [
+      reading(5, 5, 'bA'),
+      watering(2, 4, 'cups', 'bB'),
+      reading(4, 4 - 0.01, 'bC'),
+      reading(3, 3, 'bD'),
+    ]
+    const m = computeModel(plant(events))
+    expect(m.alphaSamples).toBe(0)
+  })
 })
 
 // ── predictMoisture ────────────────────────────────────────────────────────
