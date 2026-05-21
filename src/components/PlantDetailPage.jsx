@@ -133,7 +133,7 @@ export default function PlantDetailPage({
                 aria-label="Edit plant"
                 title="Edit plant"
               >
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
                   <path d="M9.5 3.5l3 3" />
                 </svg>

@@ -98,8 +98,8 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 4px;
-  margin-left: 2px;
+  padding: 6px;
+  margin-left: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -120,15 +120,15 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
+  padding: 5px 14px;
   border-radius: var(--radius-pill);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   border: 1px solid;
   flex-shrink: 0;
   white-space: nowrap;
 }
-.badgeIcon { margin-right: 5px; font-size: 0.9em; }
+.badgeIcon { margin-right: 6px; font-size: 0.9em; }
 
 .badge_thriving  { color: var(--status-thriving);   background: rgba(64,217,97,0.14);   border-color: rgba(64,217,97,0.55);  }
 .badge_good      { color: var(--status-good);       background: rgba(140,217,102,0.14); border-color: rgba(140,217,102,0.55);}
