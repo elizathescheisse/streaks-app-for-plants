@@ -118,27 +118,38 @@ export default function PlantDetailPage({
     <div className={styles.page}>
       {/* ── Top nav with inline plant identity ── */}
       <div className={`${styles.topNav} ${styles[health]}`}>
-        <button className={styles.backBtn} onClick={() => navigate('/')} type="button">
-          ← Plants
+        <button className={styles.backBtn} onClick={() => navigate('/')} type="button" aria-label="Back to plants">
+          ‹
         </button>
         <div className={styles.heroInline}>
           <span className={styles.heroEmoji}>{emoji}</span>
           <div className={styles.heroText}>
-            <h1 className={styles.heroName}>{name || titleCase(species)}</h1>
+            <div className={styles.heroNameRow}>
+              <h1 className={styles.heroName}>{name || titleCase(species)}</h1>
+              <button
+                className={styles.editIconBtn}
+                onClick={() => onEdit(plant)}
+                type="button"
+                aria-label="Edit plant"
+                title="Edit plant"
+              >
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" />
+                  <path d="M9.5 3.5l3 3" />
+                </svg>
+              </button>
+            </div>
             {name && species && (
               <p className={styles.heroSpecies}>{titleCase(species)}</p>
             )}
           </div>
-          {status && (
-            <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
-              {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-              {status.label}
-            </span>
-          )}
         </div>
-        <button className={styles.editBtn} onClick={() => onEdit(plant)} type="button">
-          Edit
-        </button>
+        {status && (
+          <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+            {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+            {status.label}
+          </span>
+        )}
       </div>
 
       <div className={styles.content}>
