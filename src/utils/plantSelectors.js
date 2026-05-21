@@ -106,9 +106,29 @@ export function smoothedCurrentMoisture(plant) {
   if (!allReadings.length) return null
 
   const lastWat = lastWatering(plant)
-  const cycleReadings = lastWat
+
+  // Pre-watering reading establishes a physical lower bound: post-watering
+  // moisture cannot drop below it. Any post-watering reading that does is
+  // almost certainly a probe-placement artifact (probe landed in a dry pocket
+  // of soil) and should be excluded from smoothing — otherwise medianing it
+  // in pulls the displayed "current moisture" artificially low.
+  const preWaterReading = lastWat
+    ? [...allReadings].reverse().find(r => new Date(r.timestamp) < new Date(lastWat.timestamp))
+    : null
+  const preWaterMoisture = preWaterReading ? Number(preWaterReading.moisture) : null
+
+  let cycleReadings = lastWat
     ? allReadings.filter(r => new Date(r.timestamp) > new Date(lastWat.timestamp))
     : allReadings
+
+  // Filter out impossible-low post-watering readings. Only apply if it leaves
+  // at least one reading — if EVERY post-watering reading is below pre-watering
+  // (e.g. an entirely bad measurement session), fall back to the raw set so
+  // the user still gets some estimate rather than no prediction at all.
+  if (preWaterMoisture != null) {
+    const filtered = cycleReadings.filter(r => Number(r.moisture) >= preWaterMoisture)
+    if (filtered.length > 0) cycleReadings = filtered
+  }
 
   // Use the single most recent reading's timestamp as the anchor.
   const source    = cycleReadings.length ? cycleReadings : allReadings
