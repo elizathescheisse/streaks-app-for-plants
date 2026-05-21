@@ -64,12 +64,11 @@ function relTime(ts) {
 const CHART_WINDOWS = ['1W', '1M', '3M', 'all']
 
 export default function PlantDetailPage({
-  plants, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, onDelete
+  plants, onEdit, onLog, onQuickWater, onQuickReading, onEditLog
 }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const [chartWindow, setChartWindow] = useState('3M')
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
 
   const plant = plants.find(p => p.id === id)
 
@@ -114,11 +113,6 @@ export default function PlantDetailPage({
     : (hasStats && badgeMoisture != null)
     ? moistureStatus(badgeMoisture, careProfile, rec?.waterNeeded, rec?.dominantUnit)
     : null
-
-  function handleDelete() {
-    onDelete(plant.id)
-    navigate('/')
-  }
 
   return (
     <div className={styles.page}>
@@ -275,33 +269,6 @@ export default function PlantDetailPage({
               </div>
             )
           })}
-        </section>
-
-        {/* ── Danger zone ── */}
-        <section className={styles.dangerZone}>
-          {!deleteConfirm ? (
-            <button
-              className={styles.deleteBtn}
-              onClick={() => setDeleteConfirm(true)}
-              type="button"
-            >
-              Delete plant
-            </button>
-          ) : (
-            <div className={styles.deleteConfirm}>
-              <p className={styles.deleteConfirmText}>
-                Delete {name || titleCase(species)}? This can't be undone.
-              </p>
-              <div className={styles.deleteConfirmActions}>
-                <button className={styles.deleteCancelBtn} onClick={() => setDeleteConfirm(false)} type="button">
-                  Cancel
-                </button>
-                <button className={styles.deleteConfirmBtn} onClick={handleDelete} type="button">
-                  Delete
-                </button>
-              </div>
-            </div>
-          )}
         </section>
 
         </div>{/* /mainCol */}

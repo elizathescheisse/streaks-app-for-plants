@@ -235,7 +235,6 @@ export default function App() {
     onQuickWater:   (p) => openQuickLog(p, 'water'),
     onQuickReading: (p) => openQuickLog(p, 'reading'),
     onEditLog:      openEditLog,
-    onDelete:       deletePlant,
   }
 
   return (
