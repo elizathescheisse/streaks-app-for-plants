@@ -196,11 +196,6 @@ export default function PlantDetailPage({
                 />
               </div>
             )}
-            {reading && (
-              <div className={styles.predictionBlock}>
-                <PlantPrediction plant={plant} careProfile={careProfile} />
-              </div>
-            )}
           </section>
         )}
 
@@ -312,9 +307,15 @@ export default function PlantDetailPage({
         </div>{/* /mainCol */}
 
         {/* ── Sidebar: care guide ── */}
-        {careProfile && (
+        {(careProfile || reading) && (
           <aside className={styles.sidebar}>
             <section className={styles.sidebarSection}>
+              {reading && (
+                <div className={styles.predictionBlock}>
+                  <PlantPrediction plant={plant} careProfile={careProfile} />
+                </div>
+              )}
+              {careProfile && <>
               <h2 className={styles.sectionTitle}>Care guide</h2>
               <div className={styles.careList}>
                 {careProfile.moistureRange && (
@@ -351,6 +352,7 @@ export default function PlantDetailPage({
               {careProfile.notes && (
                 <p className={styles.careNotes}>{careProfile.notes}</p>
               )}
+              </>}
             </section>
           </aside>
         )}
