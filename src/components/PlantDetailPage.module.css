@@ -274,6 +274,12 @@
   margin-bottom: 20px;
 }
 
+/* Scale the embedded PlantPrediction up — its child sizes are in em so a
+   larger font-size on the wrapping element cascades to everything inside. */
+.predictionBlock > * {
+  font-size: 13px;
+}
+
 /* ── Chart ── */
 .chartWrap {
   background: var(--bg-surface);
