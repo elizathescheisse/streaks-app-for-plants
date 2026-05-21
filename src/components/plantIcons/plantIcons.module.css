@@ -1,0 +1,117 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Shared styles for animated plant icons.
+   Per-species components supply the geometry (stems, leaves, pot); this
+   file owns colors, health-state modifiers, and the hover animations.
+   ───────────────────────────────────────────────────────────────────── */
+
+.icon {
+  width:  100%;
+  height: 100%;
+  display: block;
+  overflow: visible;             /* sway can swing leaves slightly past viewBox */
+  transition: filter 0.4s ease;
+}
+
+/* ── Leaf base colors (Eliza's palette, lightest → darkest) ── */
+.leafTop   { color: #759732; }   /* light    — front-most leaf */
+.leafSmall { color: #4F6A1F; }   /* mid      — small lower-right */
+.leafLeft  { color: #3E6F27; }   /* dark     — back-left */
+.leafRight { color: #2A5820; }   /* darkest  — back-right */
+
+.leaf {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transition: transform 0.5s ease, opacity 0.4s ease, filter 0.4s ease;
+}
+
+/* ── Stems & pot ── */
+.stem {
+  fill: none;
+  stroke: #6E5533;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.stemSmall { stroke-width: 5; }
+
+.soil       { fill: #3B2418; }
+.pot        { fill: #D77A32; }
+.potRim     { fill: none; stroke: #A95225; stroke-width: 6; stroke-linecap: round; }
+.potHighlight { fill: none; stroke: #F0A36A; stroke-width: 4; stroke-linecap: round; opacity: 0.65; }
+.potLine    { fill: none; stroke: #A95225; stroke-width: 3; stroke-linecap: round; opacity: 0.45; }
+.potShadow  { fill: #d9a06f; opacity: 0.32; }
+
+/* ── Sparkle (only visible when thriving) ── */
+.sparkle {
+  opacity: 0;
+  transform-origin: 194px 56px;
+  transition: opacity 0.4s ease;
+}
+.sparkle path { fill: #FFF2C2; }
+
+/* ── Health state modifiers ── */
+.thriving { filter: saturate(1.1); }
+.thriving .leafTop { color: #90BF4F; }              /* bump front leaf brighter */
+.thriving .sparkle {
+  opacity: 1;
+  animation: sparkleAnim 1.8s ease-in-out infinite;
+}
+
+.good {}
+
+.okay {
+  filter: saturate(0.85);
+}
+.okay .leaf {
+  transform: rotate(3deg) translateY(2px);
+}
+
+.struggling {
+  filter: saturate(0.55) brightness(0.92);
+}
+.struggling .leaf {
+  transform: rotate(6deg) translateY(4px);
+  opacity: 0.9;
+}
+.struggling .leafTop   { color: #88904A; }
+.struggling .leafSmall { color: #6F7A38; }
+.struggling .leafLeft  { color: #5F6A30; }
+.struggling .leafRight { color: #4D5B27; }
+
+/* ── Hover animations ── */
+.icon:hover .sway {
+  animation: plantSway 2.4s ease-in-out infinite;
+}
+.icon:hover .leafLeft  { animation: leafWiggle 1.8s ease-in-out infinite; }
+.icon:hover .leafTop   { animation: leafWiggle 2.1s ease-in-out infinite reverse; }
+.icon:hover .leafRight { animation: leafWiggle 1.6s ease-in-out infinite; }
+.icon:hover .leafSmall { animation: leafWiggle 2.3s ease-in-out infinite reverse; }
+
+.sway {
+  transform-origin: 120px 200px;
+  transition: transform 0.24s ease;
+}
+
+@keyframes plantSway {
+  0%, 100% { transform: rotate(0deg); }
+  35%      { transform: rotate(1.6deg); }
+  70%      { transform: rotate(-1.2deg); }
+}
+
+@keyframes leafWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(2.5deg); }
+}
+
+@keyframes sparkleAnim {
+  0%, 100% { transform: scale(0.9); opacity: 0.55; }
+  50%      { transform: scale(1.12); opacity: 1; }
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .icon:hover .sway,
+  .icon:hover .leaf,
+  .sparkle {
+    animation: none !important;
+  }
+}
