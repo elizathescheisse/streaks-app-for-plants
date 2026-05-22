@@ -51,7 +51,8 @@
   left: -34px;            /* center 140px wide over 72px circle: (72-140)/2 */
   transform: scale(0.514);/* 72/140 — shrink to fit the circle exactly */
   transform-origin: bottom center;
-  transition: transform 0.4s ease, bottom 0.4s ease;
+  opacity: 0.55;          /* dimmer at rest so it recedes from the action UI */
+  transition: transform 0.4s ease, bottom 0.4s ease, opacity 0.4s ease;
   pointer-events: none;
   z-index: 2;             /* render above adjacent cards if leaves overlap */
 }
@@ -62,9 +63,11 @@
 .cardWrap:hover .iconCircle > svg {
   transform: scale(1);
   bottom: -12px;
+  opacity: 1;
 }
 .cardWrap:hover .iconCircle {
   --plant-anim: running;
+  --leaftop-color: #90BF4F;   /* thriving plants: brighten the highlight leaf on hover */
 }
 
 /* Two-column inner layout */

@@ -21,7 +21,7 @@
 .leaf {
   transform-box: fill-box;
   transform-origin: center bottom;
-  transition: transform 0.5s ease, opacity 0.4s ease, filter 0.4s ease;
+  transition: transform 0.5s ease, opacity 0.4s ease, filter 0.4s ease, color 0.4s ease;
 }
 
 /* ── Stems & pot ── */
@@ -50,7 +50,7 @@
 
 /* ── Health state modifiers ── */
 .thriving { filter: saturate(1.1); }
-.thriving .leafTop { color: #90BF4F; }              /* bump front leaf brighter */
+.thriving .leafTop { color: var(--leaftop-color, #759732); }   /* thriving brightens to #90BF4F on hover; muted to the default #759732 at rest */
 .thriving .sparkle {
   opacity: 1;
   animation: sparkleAnim 1.8s ease-in-out infinite;
