@@ -26,12 +26,45 @@
 .cardStatus_struggling:hover { border-color: rgba(229, 97, 71, 0.65); }
 
 .iconCircle {
-  width: 48px; height: 48px;
+  width: 72px; height: 72px;
   border-radius: 50%;
   background: var(--bg-surface-raised);
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
+  font-size: 32px;
   flex-shrink: 0;
+  position: relative;     /* anchor for the absolutely-positioned plant SVG */
+  overflow: visible;      /* let leaves spill above the card border */
+}
+
+/* When the iconCircle wraps an animated plant SVG (vs. a plain emoji), the
+   plant lives in a 140px absolute box but is scaled DOWN to fit the 72px
+   circle by default — so it sits quietly inside the circle and doesn't
+   compete with the action badges. On card hover, the scale releases to 1
+   so the plant grows up and out of the card, and animations kick in.
+   Pointer-events disabled so leaves don't intercept clicks on the card
+   above when they overflow into the grid gap. */
+.iconCircle > svg {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  bottom: -4px;           /* small downward nudge so pot meets circle bottom */
+  left: -34px;            /* center 140px wide over 72px circle: (72-140)/2 */
+  transform: scale(0.514);/* 72/140 — shrink to fit the circle exactly */
+  transform-origin: bottom center;
+  transition: transform 0.4s ease, bottom 0.4s ease;
+  pointer-events: none;
+  z-index: 2;             /* render above adjacent cards if leaves overlap */
+}
+
+/* On hover anywhere on the card, the plant grows to full size (overflowing
+   above the card border) and its animations resume. The CSS variable
+   inherits down into the SVG and flips animation-play-state. */
+.cardWrap:hover .iconCircle > svg {
+  transform: scale(1);
+  bottom: -12px;
+}
+.cardWrap:hover .iconCircle {
+  --plant-anim: running;
 }
 
 /* Two-column inner layout */

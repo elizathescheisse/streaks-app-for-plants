@@ -217,14 +217,14 @@
 .plantList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;             /* room above each card for plants to grow on hover */
 }
 
 /* Focus mode: multi-column grid on wider screens */
 .plantListCompact {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 10px;
+  gap: 18px;             /* room above each card for plants to grow on hover */
   align-items: stretch;
 }
 

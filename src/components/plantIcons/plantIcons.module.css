@@ -73,36 +73,25 @@
 .struggling .leafLeft  { color: #5F6A30; }
 .struggling .leafRight { color: #4D5B27; }
 
-/* ── Idle animations (always running) ──
-   The plant sways slowly and each leaf wiggles at its own tempo, so the
-   icon feels alive at rest. On hover everything speeds up and amplifies
-   for a friendly "wake up" reaction. */
+/* ── Animations — paused by default, run when the parent card sets
+   --plant-anim: running. The card-hover trigger lives in PlantCard.module.css
+   so the whole card surface (not just the small icon) wakes the plant up. */
 
 .sway {
   transform-origin: 120px 200px;
-  animation: plantSwayIdle 5.5s ease-in-out infinite;
+  animation: plantSwayActive 2.2s ease-in-out infinite;
+  animation-play-state: var(--plant-anim, paused);
 }
 
-.leafLeft  { animation: leafWiggleIdle 3.6s ease-in-out infinite; }
-.leafTop   { animation: leafWiggleIdle 4.2s ease-in-out infinite reverse; }
-.leafRight { animation: leafWiggleIdle 3.2s ease-in-out infinite; }
-.leafSmall { animation: leafWiggleIdle 4.6s ease-in-out infinite reverse; }
+.leafLeft  { animation: leafWiggleActive 1.7s ease-in-out infinite;
+             animation-play-state: var(--plant-anim, paused); }
+.leafTop   { animation: leafWiggleActive 1.9s ease-in-out infinite reverse;
+             animation-play-state: var(--plant-anim, paused); }
+.leafRight { animation: leafWiggleActive 1.5s ease-in-out infinite;
+             animation-play-state: var(--plant-anim, paused); }
+.leafSmall { animation: leafWiggleActive 2.1s ease-in-out infinite reverse;
+             animation-play-state: var(--plant-anim, paused); }
 
-/* Hover: faster pace + bigger amplitude */
-.icon:hover .sway { animation: plantSwayActive 2.2s ease-in-out infinite; }
-.icon:hover .leafLeft  { animation: leafWiggleActive 1.7s ease-in-out infinite; }
-.icon:hover .leafTop   { animation: leafWiggleActive 1.9s ease-in-out infinite reverse; }
-.icon:hover .leafRight { animation: leafWiggleActive 1.5s ease-in-out infinite; }
-.icon:hover .leafSmall { animation: leafWiggleActive 2.1s ease-in-out infinite reverse; }
-
-/* ── Pot stays put, but a subtle breathing scale on the whole plant
-   reinforces the "alive" feel without competing with the sway */
-.icon:hover { animation: breathe 3.6s ease-in-out infinite; }
-
-@keyframes plantSwayIdle {
-  0%, 100% { transform: rotate(-0.6deg); }
-  50%      { transform: rotate(0.8deg); }
-}
 @keyframes plantSwayActive {
   0%, 100% { transform: rotate(-1.5deg); }
   35%      { transform: rotate(2.2deg); }
@@ -111,18 +100,9 @@
 
 /* Leaf wiggles include a droop offset so okay/struggling leaves sag while
    still gently moving. --droop defaults to 0 for healthy plants. */
-@keyframes leafWiggleIdle {
-  0%, 100% { transform: rotate(calc(-1deg  + var(--droop, 0deg))); }
-  50%      { transform: rotate(calc( 1.4deg + var(--droop, 0deg))); }
-}
 @keyframes leafWiggleActive {
   0%, 100% { transform: rotate(calc(-1.5deg + var(--droop, 0deg))); }
   50%      { transform: rotate(calc( 3.5deg + var(--droop, 0deg))); }
-}
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.03); }
 }
 
 @keyframes sparkleAnim {
@@ -130,11 +110,9 @@
   50%      { transform: scale(1.12); opacity: 1; }
 }
 
-/* Respect prefers-reduced-motion */
+/* Respect prefers-reduced-motion — also kill the sparkle which is always-on */
 @media (prefers-reduced-motion: reduce) {
-  .icon:hover .sway,
-  .icon:hover .leaf,
-  .sparkle {
+  .sway, .leaf, .sparkle {
     animation: none !important;
   }
 }
