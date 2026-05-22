@@ -1,14 +1,22 @@
 import styles from './plantIcons.module.css'
+import PlantShell from './PlantShell.jsx'
 
 // Monstera deliciosa — assembled from a single hand-drawn leaf SVG
 // (assets/monsteraLeaf1.svg, Figma export) referenced multiple times at
 // different sizes, rotations, and colors to make one cute plant in a pot.
 //
-// Health state is passed in by the dispatcher and drives:
-//   .thriving   → bright top leaf, faint sparkle
+// All shell scaffolding (pot, shadow, sway group, sparkles, fallen-leaf
+// fade-in) lives in PlantShell. Monstera only owns its species geometry:
+// the leaf symbol, the four stems, and the four <use> instances that
+// place leaves at species-appropriate positions.
+//
+// Health state is passed through to PlantShell which applies it as a
+// CSS class on the <svg>:
+//   .thriving   → bright top leaf, two faint sparkles
 //   .good       → all four leaf greens as designed
-//   .okay       → slight desaturation + droop
-//   .struggling → more desaturation, droop, brown tip overlay
+//   .okay       → muted-green palette, slight droop, slower animation
+//   .struggling → yellow-brown dying palette, heavy droop, slowest
+//                 animation, hidden leafSmall + visible fallen leaf
 //
 // The four leaf greens come from Eliza:
 //   #759732  light    (top, frontmost)
@@ -21,68 +29,36 @@ const LEAF_PATH =
 
 export default function Monstera({ health = 'good', ariaLabel }) {
   return (
-    <svg
-      viewBox="0 0 240 240"
-      className={`${styles.icon} ${styles[health]}`}
-      role={ariaLabel ? 'img' : 'presentation'}
-      aria-label={ariaLabel}
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <defs>
+    <PlantShell
+      health={health}
+      ariaLabel={ariaLabel}
+      defs={
         <symbol id="monstera-leaf" viewBox="0 0 136 138">
           <path d={LEAF_PATH} fill="currentColor" />
         </symbol>
-      </defs>
+      }
+      fallenLeaf={
+        <use
+          className={styles.fallenLeaf}
+          href="#monstera-leaf"
+          x="148" y="200"
+          width="52" height="52"
+          transform="rotate(95 174 226)"
+        />
+      }
+    >
+      {/* Stems — emerge from the pot rim and arc up to each leaf */}
+      <path className={styles.stem} d="M112 190 C103 154, 88 128, 62 96" />
+      <path className={styles.stem} d="M120 190 C119 150, 119 111, 120 72" />
+      <path className={styles.stem} d="M128 190 C138 153, 154 128, 181 98" />
+      <path className={`${styles.stem} ${styles.stemSmall}`} d="M118 190 C112 165, 132 146, 151 132" />
 
-      {/* Soft shadow under the pot */}
-      <ellipse cx="120" cy="218" rx="58" ry="10" className={styles.potShadow} />
-
-      {/* Whole plant sways gently on hover */}
-      <g className={styles.sway}>
-        {/* Stems — emerge from the pot rim and arc up to each leaf */}
-        <path className={styles.stem} d="M112 190 C103 154, 88 128, 62 96" />
-        <path className={styles.stem} d="M120 190 C119 150, 119 111, 120 72" />
-        <path className={styles.stem} d="M128 190 C138 153, 154 128, 181 98" />
-        <path className={`${styles.stem} ${styles.stemSmall}`} d="M118 190 C112 165, 132 146, 151 132" />
-
-        {/* Leaves — same symbol reused at different sizes/colors/angles.
-            Darker colors recede to the back, brightest leaf in front-center. */}
-        <use className={`${styles.leaf} ${styles.leafLeft}`}  href="#monstera-leaf" x="29"  y="58"  width="78" height="79" />
-        <use className={`${styles.leaf} ${styles.leafRight}`} href="#monstera-leaf" x="140" y="62"  width="78" height="79" />
-        <use className={`${styles.leaf} ${styles.leafTop}`}   href="#monstera-leaf" x="80"  y="31"  width="86" height="87" />
-        <use className={`${styles.leaf} ${styles.leafSmall}`} href="#monstera-leaf" x="127" y="121" width="54" height="55" />
-      </g>
-
-      {/* Pot — drawn after the sway so leaves animate in front when tilted */}
-      <ellipse className={styles.soil} cx="120" cy="190" rx="42" ry="11" />
-      <path    className={styles.pot}  d="M78 187 H162 L153 226 H87 Z" />
-      <path    className={styles.potRim} d="M82 187 H158" />
-      <path    className={styles.potHighlight} d="M96 203 C107 209, 133 209, 145 202" />
-      <path    className={styles.potLine} d="M98 220 H142" />
-
-      {/* Struggling: one leaf has fallen and is lying on the ground
-          next to the pot. Hidden for all other health states. Rendered
-          after the pot so it sits on top of the pot's base shadow. */}
-      <use
-        className={styles.fallenLeaf}
-        href="#monstera-leaf"
-        x="148" y="200"
-        width="52" height="52"
-        transform="rotate(95 174 226)"
-      />
-
-      {/* Thriving: tiny sparkle in the upper-right */}
-      <g className={styles.sparkle}>
-        <path d="M194 42 L198 52 L208 56 L198 60 L194 70 L190 60 L180 56 L190 52 Z" />
-      </g>
-
-      {/* Thriving: second, smaller sparkle in the upper-left,
-          pulsing out-of-sync with the first. Matches the original
-          sparkle's sharp 4-point star ratio (outer tips ~2.5x further
-          from center than the inner notches). */}
-      <g className={styles.sparkle2}>
-        <path d="M75 17 L77 23 L83 25 L77 27 L75 33 L73 27 L67 25 L73 23 Z" />
-      </g>
-    </svg>
+      {/* Leaves — same symbol reused at different sizes/colors/angles.
+          Darker colors recede to the back, brightest leaf in front-center. */}
+      <use className={`${styles.leaf} ${styles.leafLeft}`}  href="#monstera-leaf" x="29"  y="58"  width="78" height="79" />
+      <use className={`${styles.leaf} ${styles.leafRight}`} href="#monstera-leaf" x="140" y="62"  width="78" height="79" />
+      <use className={`${styles.leaf} ${styles.leafTop}`}   href="#monstera-leaf" x="80"  y="31"  width="86" height="87" />
+      <use className={`${styles.leaf} ${styles.leafSmall}`} href="#monstera-leaf" x="127" y="121" width="54" height="55" />
+    </PlantShell>
   )
 }
