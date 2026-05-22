@@ -40,13 +40,22 @@
 .potLine    { fill: none; stroke: #A95225; stroke-width: 3; stroke-linecap: round; opacity: 0.45; }
 .potShadow  { fill: #d9a06f; opacity: 0.32; }
 
-/* ── Sparkle (only visible when thriving) ── */
+/* ── Sparkles (only visible when thriving) ── */
 .sparkle {
   opacity: 0;
   transform-origin: 194px 56px;
   transition: opacity 0.4s ease;
 }
 .sparkle path { fill: #FFF2C2; }
+
+/* Second, smaller sparkle in the upper-left — same look, different
+   transform-origin so it scales around its own center. */
+.sparkle2 {
+  opacity: 0;
+  transform-origin: 75px 25px;
+  transition: opacity 0.4s ease;
+}
+.sparkle2 path { fill: #FFF2C2; }
 
 /* ── Health state modifiers ── */
 .thriving { filter: saturate(1.1); }
@@ -55,23 +64,71 @@
   opacity: 1;
   animation: sparkleAnim 1.8s ease-in-out infinite;
 }
+/* Slightly longer duration + reverse so the two sparkles twinkle
+   independently rather than pulsing in unison. */
+.thriving .sparkle2 {
+  opacity: 1;
+  animation: sparkleAnim 2.3s ease-in-out infinite reverse;
+}
 
 .good {}
 
 .okay {
   filter: saturate(0.85);
-  --droop: 3deg;
+  --droop: 8deg;
+  --droopY: 2px;
 }
+.okay .leafTop   { color: #88904A; }   /* light    — muted green */
+.okay .leafSmall { color: #6F7A38; }   /* mid      — duller green */
+.okay .leafLeft  { color: #5F6A30; }   /* dark     — darker muted green */
+.okay .leafRight { color: #4D5B27; }   /* darkest  — darkest muted green */
 
 .struggling {
   filter: saturate(0.55) brightness(0.92);
-  --droop: 6deg;
+  --droop: 22deg;     /* much heavier sag — leaves rotate down around their stem */
+  --droopY: 6px;      /* and also shift the whole leaf body down a touch */
 }
 .struggling .leaf { opacity: 0.9; }
-.struggling .leafTop   { color: #88904A; }
-.struggling .leafSmall { color: #6F7A38; }
-.struggling .leafLeft  { color: #5F6A30; }
-.struggling .leafRight { color: #4D5B27; }
+.struggling .leafTop   { color: #756f28; }   /* light    — darker dying olive */
+.struggling .leafSmall { color: #7c7330; }   /* mid      — mustardy olive */
+.struggling .leafLeft  { color: #5e5524; }   /* dark     — dark khaki */
+.struggling .leafRight { color: #74501f; }   /* darkest  — true brown, visible against the dark card */
+
+/* Fallen leaf — hidden by default, only appears for struggling plants.
+   Lies flat next to the pot. Colored a brighter dying yellow-brown so it
+   pops against the dark card background rather than blending into it. */
+.fallenLeaf {
+  color: #c89a3a;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.struggling .fallenLeaf {
+  opacity: 1;
+}
+
+/* When the dropped leaf appears, also hide the small lower-right leaf
+   from the plant — it's "the one that fell." Visually tells the story
+   without leaving 5 leaves total. */
+.struggling .leafSmall {
+  opacity: 0;
+}
+
+/* Unhealthy plants animate slower — okay is a touch sluggish, struggling
+   is genuinely weak/sluggish. Override just the duration so the existing
+   keyframes/play-state still apply. */
+.okay.sway,
+.okay .sway            { animation-duration: 2.9s; }
+.okay .leafLeft        { animation-duration: 2.2s; }
+.okay .leafTop         { animation-duration: 2.5s; }
+.okay .leafRight       { animation-duration: 2s; }
+.okay .leafSmall       { animation-duration: 2.7s; }
+
+.struggling.sway,
+.struggling .sway      { animation-duration: 4s; }
+.struggling .leafLeft  { animation-duration: 3s; }
+.struggling .leafTop   { animation-duration: 3.4s; }
+.struggling .leafRight { animation-duration: 2.7s; }
+.struggling .leafSmall { animation-duration: 3.8s; }
 
 /* ── Animations — paused by default, run when the parent card sets
    --plant-anim: running. The card-hover trigger lives in PlantCard.module.css
@@ -99,10 +156,11 @@
 }
 
 /* Leaf wiggles include a droop offset so okay/struggling leaves sag while
-   still gently moving. --droop defaults to 0 for healthy plants. */
+   still gently moving. --droop and --droopY default to 0 for healthy
+   plants; struggling overrides both to pull leaves down + tilt them. */
 @keyframes leafWiggleActive {
-  0%, 100% { transform: rotate(calc(-1.5deg + var(--droop, 0deg))); }
-  50%      { transform: rotate(calc( 3.5deg + var(--droop, 0deg))); }
+  0%, 100% { transform: translateY(var(--droopY, 0px)) rotate(calc(-1.5deg + var(--droop, 0deg))); }
+  50%      { transform: translateY(var(--droopY, 0px)) rotate(calc( 3.5deg + var(--droop, 0deg))); }
 }
 
 @keyframes sparkleAnim {
@@ -110,9 +168,9 @@
   50%      { transform: scale(1.12); opacity: 1; }
 }
 
-/* Respect prefers-reduced-motion — also kill the sparkle which is always-on */
+/* Respect prefers-reduced-motion — also kill the sparkles which are always-on */
 @media (prefers-reduced-motion: reduce) {
-  .sway, .leaf, .sparkle {
+  .sway, .leaf, .sparkle, .sparkle2 {
     animation: none !important;
   }
 }

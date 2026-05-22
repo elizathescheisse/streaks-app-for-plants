@@ -60,9 +60,28 @@ export default function Monstera({ health = 'good', ariaLabel }) {
       <path    className={styles.potHighlight} d="M96 203 C107 209, 133 209, 145 202" />
       <path    className={styles.potLine} d="M98 220 H142" />
 
+      {/* Struggling: one leaf has fallen and is lying on the ground
+          next to the pot. Hidden for all other health states. Rendered
+          after the pot so it sits on top of the pot's base shadow. */}
+      <use
+        className={styles.fallenLeaf}
+        href="#monstera-leaf"
+        x="148" y="200"
+        width="52" height="52"
+        transform="rotate(95 174 226)"
+      />
+
       {/* Thriving: tiny sparkle in the upper-right */}
       <g className={styles.sparkle}>
         <path d="M194 42 L198 52 L208 56 L198 60 L194 70 L190 60 L180 56 L190 52 Z" />
+      </g>
+
+      {/* Thriving: second, smaller sparkle in the upper-left,
+          pulsing out-of-sync with the first. Matches the original
+          sparkle's sharp 4-point star ratio (outer tips ~2.5x further
+          from center than the inner notches). */}
+      <g className={styles.sparkle2}>
+        <path d="M75 17 L77 23 L83 25 L77 27 L75 33 L73 27 L67 25 L73 23 Z" />
       </g>
     </svg>
   )
