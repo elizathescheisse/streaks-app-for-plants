@@ -1,0 +1,111 @@
+.main {
+  flex: 1;
+  width: 100%;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--dash-page-x) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dash-section-gap);
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--dash-card-gap);
+}
+
+.overviewGrid,
+.bottomGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--dash-card-gap);
+  align-items: stretch;
+}
+
+.overviewGrid > *,
+.bottomGrid > * {
+  height: 100%;
+}
+
+.emptyGarden {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 56px var(--dash-card-padding);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--dash-card-radius);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extra-bold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.035em;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  max-width: 360px;
+  line-height: var(--line-height-normal);
+}
+
+.emptyBtn {
+  margin-top: var(--space-1);
+  height: var(--dash-btn-height);
+  padding: 0 20px;
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: background 0.15s;
+}
+
+.emptyBtn:hover {
+  background: var(--color-primary-hover);
+}
+
+.emptyBtn:focus-visible {
+  outline: 2px solid var(--color-primary-border);
+  outline-offset: 2px;
+}
+
+@media (max-width: 960px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .overviewGrid,
+  .bottomGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: var(--space-5) 20px 40px;
+    gap: var(--space-5);
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+}

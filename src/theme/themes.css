@@ -1,0 +1,228 @@
+/* Semantic color themes — dark (default) + light */
+
+/* ── Dark theme (matches existing app) ── */
+:root,
+[data-theme="dark"] {
+  --color-bg: #060b05;
+  --color-bg-elevated: #0e1a0c;
+  --color-bg-soft: #0d170a;
+  --color-surface: #1a2e17;
+  --color-surface-2: #1f331c;
+  --color-surface-muted: #294724;
+
+  --color-border: rgba(71, 133, 61, 0.35);
+  --color-border-strong: rgba(71, 133, 61, 0.55);
+  --color-border-hover: rgba(71, 133, 61, 0.75);
+
+  --color-text: #ffffff;
+  --color-text-muted: #73ad73;
+  --color-text-soft: #618a61;
+  --color-text-secondary: #d9f2d9;
+
+  --color-primary: #38b247;
+  --color-primary-hover: #45d157;
+  --color-primary-soft: rgba(54, 178, 71, 0.18);
+  --color-primary-border: rgba(69, 209, 87, 0.8);
+  --color-on-primary: #071407;
+
+  --color-warning: #e0c740;
+  --color-danger: #e56147;
+  --color-info: #8ccceb;
+  --color-data-water: #8ccceb;
+  --color-water: #f5d400;
+
+  --color-danger-soft: rgba(229, 97, 71, 0.12);
+  --color-danger-border: rgba(229, 97, 71, 0.45);
+  --color-danger-text: rgba(229, 97, 71, 0.85);
+
+  --color-overlay-scrim: rgba(0, 0, 0, 0.55);
+  --color-overlay-scrim-soft: rgba(0, 0, 0, 0.5);
+  --color-header-bg: rgba(13, 23, 10, 0.7);
+  --color-header-border: rgba(71, 133, 61, 0.18);
+  --color-focus-ring: rgba(69, 209, 87, 0.15);
+  --color-surface-hover: rgba(41, 71, 36, 0.8);
+  --color-surface-inset: rgba(13, 23, 10, 0.6);
+  --color-empty-bg: rgba(26, 46, 23, 0.4);
+  --color-toggle-muted: rgba(102, 153, 102, 0.8);
+
+  --status-thriving: #40d961;
+  --status-good: #8cd966;
+  --status-okay: #e0c740;
+  --status-struggling: #e56147;
+  --status-water: #f5d400;
+
+  --status-thriving-soft: rgba(64, 217, 97, 0.1);
+  --status-thriving-border: rgba(64, 217, 97, 0.4);
+  --status-good-soft: rgba(140, 217, 102, 0.1);
+  --status-good-border: rgba(140, 217, 102, 0.4);
+  --status-okay-soft: rgba(224, 199, 64, 0.1);
+  --status-okay-border: rgba(224, 199, 64, 0.4);
+  --status-struggling-soft: rgba(229, 97, 71, 0.1);
+  --status-struggling-border: rgba(229, 97, 71, 0.4);
+  --status-water-soft: rgba(245, 212, 0, 0.1);
+  --status-water-border: rgba(245, 212, 0, 0.45);
+
+  --card-struggling-bg: rgba(229, 97, 71, 0.07);
+  --card-struggling-border: rgba(229, 97, 71, 0.45);
+
+  --shadow-card: 0 18px 48px rgba(0, 0, 0, 0.28);
+  --shadow-card-subtle: 0 1px 2px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.18);
+  --color-editorial-bg: rgba(48, 120, 56, 0.1);
+  --color-editorial-border: rgba(71, 133, 61, 0.28);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-settings: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  --glow-top-a: rgba(48, 180, 56, 0.3);
+  --glow-top-b: rgba(26, 100, 32, 0.12);
+  --glow-bottom-a: rgba(48, 180, 56, 0.28);
+  --glow-bottom-b: rgba(26, 100, 32, 0.1);
+  --glow-side-a: rgba(44, 168, 52, 0.26);
+  --glow-side-b: rgba(22, 90, 28, 0.1);
+
+  --moisture-track: rgba(255, 255, 255, 0.12);
+  --moisture-ideal: rgba(56, 178, 71, 0.35);
+  --moisture-ideal-border: rgba(56, 178, 71, 0.5);
+
+  --color-link-underline: rgba(255, 255, 255, 0.2);
+  --color-link-underline-hover: rgba(69, 209, 87, 0.4);
+  --color-tooltip-bg: rgba(255, 255, 255, 0.9);
+  --color-tooltip-text: #0e1a0c;
+  --color-tooltip-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --color-check-badge: #18a4e8;
+  --color-check-badge-soft: rgba(24, 164, 232, 0.12);
+  --color-check-badge-border: rgba(24, 164, 232, 0.45);
+  --color-accent-muted: rgba(140, 204, 133, 0.9);
+  --color-tooltip-bg-hover: #ffffff;
+  --color-care-tip-glow: rgba(75, 180, 88, 0.12);
+
+  --chart-moisture-line: rgba(140, 204, 235, 0.65);
+  --chart-moisture-line-faint: rgba(140, 204, 235, 0.35);
+  --chart-moisture-line-muted: rgba(140, 204, 235, 0.25);
+  --chart-moisture-dot-default: rgba(140, 204, 235, 0.9);
+  --chart-ideal-fill: rgba(56, 178, 71, 0.12);
+  --chart-ideal-line: rgba(56, 178, 71, 0.35);
+  --chart-water-line: rgba(245, 212, 0, 0.5);
+  --chart-axis-label: rgba(150, 180, 150, 0.55);
+  --chart-axis-label-faint: rgba(150, 180, 150, 0.4);
+  --chart-estimated-hollow: rgba(13, 23, 10, 0.85);
+  --shadow-dot: 0 0 4px rgba(0, 0, 0, 0.35);
+  --shadow-status-ok: 0 0 6px rgba(69, 209, 87, 0.5);
+  --shadow-status-close: 0 0 6px rgba(224, 199, 64, 0.4);
+  --shadow-status-out: 0 0 6px rgba(229, 97, 71, 0.4);
+
+  color-scheme: dark;
+}
+
+/* ── Light theme (plant-care inspired) ── */
+[data-theme="light"] {
+  --color-bg: #f8faf5;
+  --color-bg-elevated: #ffffff;
+  --color-bg-soft: #f1f6ec;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f8f0;
+  --color-surface-muted: #e8f0e4;
+
+  --color-border: rgba(41, 80, 45, 0.12);
+  --color-border-strong: rgba(69, 112, 62, 0.28);
+  --color-border-hover: rgba(69, 112, 62, 0.42);
+
+  --color-text: #142017;
+  --color-text-muted: #5f725d;
+  --color-text-soft: #84927f;
+  --color-text-secondary: #2a3d28;
+
+  --color-primary: #159947;
+  --color-primary-hover: #0f873d;
+  --color-primary-soft: rgba(21, 153, 71, 0.12);
+  --color-primary-border: rgba(21, 153, 71, 0.45);
+  --color-on-primary: #ffffff;
+
+  --color-warning: #c9931d;
+  --color-danger: #c75a3d;
+  --color-info: #3a95bf;
+  --color-data-water: #3a95bf;
+  --color-water: #c9931d;
+
+  --color-danger-soft: rgba(199, 90, 61, 0.1);
+  --color-danger-border: rgba(199, 90, 61, 0.35);
+  --color-danger-text: #b04a30;
+
+  --color-overlay-scrim: rgba(35, 70, 35, 0.28);
+  --color-overlay-scrim-soft: rgba(35, 70, 35, 0.22);
+  --color-header-bg: rgba(255, 255, 255, 0.88);
+  --color-header-border: rgba(69, 112, 62, 0.14);
+  --color-focus-ring: rgba(21, 153, 71, 0.18);
+  --color-surface-hover: #e4f0df;
+  --color-surface-inset: #eaf3e5;
+  --color-empty-bg: rgba(237, 246, 233, 0.9);
+  --color-toggle-muted: #84927f;
+
+  --status-thriving: #159947;
+  --status-good: #3d9e4a;
+  --status-okay: #c9931d;
+  --status-struggling: #c75a3d;
+  --status-water: #c9931d;
+
+  --status-thriving-soft: rgba(21, 153, 71, 0.12);
+  --status-thriving-border: rgba(21, 153, 71, 0.35);
+  --status-good-soft: rgba(61, 158, 74, 0.12);
+  --status-good-border: rgba(61, 158, 74, 0.35);
+  --status-okay-soft: rgba(201, 147, 29, 0.12);
+  --status-okay-border: rgba(201, 147, 29, 0.35);
+  --status-struggling-soft: rgba(199, 90, 61, 0.12);
+  --status-struggling-border: rgba(199, 90, 61, 0.35);
+  --status-water-soft: rgba(201, 147, 29, 0.12);
+  --status-water-border: rgba(201, 147, 29, 0.35);
+
+  --card-struggling-bg: rgba(199, 90, 61, 0.08);
+  --card-struggling-border: rgba(199, 90, 61, 0.35);
+
+  --shadow-card: 0 14px 34px rgba(45, 75, 45, 0.08);
+  --shadow-card-subtle: 0 1px 2px rgba(45, 75, 45, 0.04), 0 4px 12px rgba(45, 75, 45, 0.05);
+  --color-editorial-bg: #f4f8f0;
+  --color-editorial-border: rgba(41, 80, 45, 0.1);
+  --color-care-tip-glow: rgba(96, 160, 78, 0.16);
+  --shadow-modal: 0 24px 80px rgba(35, 70, 35, 0.18);
+  --shadow-dropdown: 0 8px 24px rgba(35, 70, 35, 0.12);
+  --shadow-settings: 0 12px 40px rgba(35, 70, 35, 0.14);
+
+  --glow-top-a: rgba(98, 170, 92, 0.06);
+  --glow-top-b: rgba(98, 170, 92, 0.02);
+  --glow-bottom-a: rgba(98, 170, 92, 0.05);
+  --glow-bottom-b: rgba(98, 170, 92, 0.02);
+  --glow-side-a: rgba(98, 170, 92, 0.04);
+  --glow-side-b: transparent;
+
+  --moisture-track: rgba(69, 112, 62, 0.12);
+  --moisture-ideal: rgba(21, 153, 71, 0.22);
+  --moisture-ideal-border: rgba(21, 153, 71, 0.35);
+
+  --color-link-underline: rgba(20, 32, 23, 0.2);
+  --color-link-underline-hover: rgba(21, 153, 71, 0.45);
+  --color-tooltip-bg: #ffffff;
+  --color-tooltip-text: #142017;
+  --color-tooltip-shadow: 0 4px 16px rgba(35, 70, 35, 0.15);
+  --color-check-badge: #2a8fc4;
+  --color-check-badge-soft: rgba(42, 143, 196, 0.12);
+  --color-check-badge-border: rgba(42, 143, 196, 0.35);
+  --color-accent-muted: #5f8a5a;
+  --color-tooltip-bg-hover: #ffffff;
+
+  --chart-moisture-line: rgba(58, 149, 191, 0.75);
+  --chart-moisture-line-faint: rgba(58, 149, 191, 0.4);
+  --chart-moisture-line-muted: rgba(58, 149, 191, 0.28);
+  --chart-moisture-dot-default: rgba(58, 149, 191, 0.95);
+  --chart-ideal-fill: rgba(21, 153, 71, 0.12);
+  --chart-ideal-line: rgba(21, 153, 71, 0.35);
+  --chart-water-line: rgba(201, 147, 29, 0.55);
+  --chart-axis-label: rgba(95, 114, 93, 0.85);
+  --chart-axis-label-faint: rgba(95, 114, 93, 0.55);
+  --chart-estimated-hollow: rgba(255, 255, 255, 0.92);
+  --shadow-dot: 0 0 4px rgba(35, 70, 35, 0.18);
+  --shadow-status-ok: 0 0 6px rgba(21, 153, 71, 0.35);
+  --shadow-status-close: 0 0 6px rgba(201, 147, 29, 0.35);
+  --shadow-status-out: 0 0 6px rgba(199, 90, 61, 0.35);
+
+  color-scheme: light;
+}

@@ -1,0 +1,109 @@
+.header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--dash-page-x);
+  height: 64px;
+  background: var(--color-bg-elevated);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card-subtle);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  transition: opacity 0.15s;
+}
+
+.logo:hover {
+  opacity: 0.9;
+}
+
+.logo:focus-visible {
+  outline: 2px solid var(--color-primary-border);
+  outline-offset: 4px;
+}
+
+.leaf { font-size: 20px; }
+
+.name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btnSecondary {
+  height: var(--dash-btn-height);
+  padding: 0 var(--dash-btn-px);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btnSecondary:hover {
+  background: var(--bg-surface-raised);
+  border-color: var(--color-border-hover);
+}
+
+.btnPrimary {
+  height: 36px;
+  padding: 0 18px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-sm);
+  color: var(--color-on-primary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.btnPrimary:hover {
+  background: var(--brand-bright);
+}
+
+.btnSecondary:focus-visible,
+.btnIcon:focus-visible {
+  outline: 2px solid var(--color-primary-border);
+  outline-offset: 2px;
+}
+
+.btnIcon {
+  width: var(--dash-btn-height);
+  height: var(--dash-btn-height);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btnIcon:hover {
+  background: var(--bg-surface-raised);
+  border-color: var(--color-border-hover);
+}
+
+@media (max-width: 600px) {
+  .header { padding: 0 20px; }
+}
