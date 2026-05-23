@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ViewTabs from '../../../shared/components/ViewTabs'
 import PlantListView from './PlantListView.jsx'
+import DashboardHome from './DashboardHome.jsx'
 import styles from './HomePage.module.css'
 
 const TABS = [
@@ -35,16 +36,12 @@ export default function HomePage({ plants, today, openAdd, detailCallbacks }) {
       </div>
 
       {viewMode === 'dashboard' ? (
-        <main className={styles.dashPlaceholder}>
-          <div className={styles.placeholderCard}>
-            <span className={styles.placeholderIcon} aria-hidden="true">📊</span>
-            <h2 className={styles.placeholderTitle}>Dashboard coming soon</h2>
-            <p className={styles.placeholderText}>
-              A garden overview with stat cards, plant spotlights, and care tips —
-              landing in the next phase of this restructure.
-            </p>
-          </div>
-        </main>
+        <DashboardHome
+          plants={plants}
+          today={today}
+          openAdd={openAdd}
+          detailCallbacks={detailCallbacks}
+        />
       ) : (
         <PlantListView
           plants={plants}

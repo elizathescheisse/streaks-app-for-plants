@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ThemeToggle from '../ThemeToggle'
 import styles from './SettingsModal.module.css'
 
 export default function SettingsModal({ onClose, onClearData, plantCount }) {
@@ -18,6 +19,11 @@ export default function SettingsModal({ onClose, onClearData, plantCount }) {
         </div>
 
         <div className={styles.body}>
+          <div className={styles.section}>
+            <p className={styles.sectionLabel}>APPEARANCE</p>
+            <ThemeToggle />
+          </div>
+
           <div className={styles.section}>
             <p className={styles.sectionLabel}>DATA</p>
 

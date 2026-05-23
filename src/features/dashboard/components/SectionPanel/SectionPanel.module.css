@@ -1,0 +1,30 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dash-card-gap);
+  padding: var(--dash-card-padding);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--dash-card-radius);
+  box-shadow: var(--shadow-card);
+  min-height: 240px;
+  height: 100%;
+}
+
+.title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-body);
+  font-size: var(--font-size-card-title);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-snug);
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dash-card-gap);
+  min-height: 0;
+}
