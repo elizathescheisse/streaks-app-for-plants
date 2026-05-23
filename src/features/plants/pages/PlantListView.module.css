@@ -1,0 +1,183 @@
+.main {
+  flex: 1;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 48px 48px;
+}
+
+.listCol {
+  padding: 24px 0 40px;
+}
+
+.dateBlock {
+  margin-bottom: 32px;
+}
+
+.dateRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.addBtn {
+  margin-top: 8px;
+  height: 40px;
+  padding: 0 18px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-md);
+  color: #071407;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.addBtn:hover {
+  background: var(--brand-bright);
+}
+
+.bigDate {
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+
+.hint {
+  font-size: 14px;
+  color: var(--text-placeholder);
+  margin-bottom: 12px;
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.searchInput {
+  flex: 1;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.searchInput::placeholder { color: var(--text-placeholder); }
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(69,209,87,0.12);
+}
+
+/* hide the browser's native ✕ clear button — we style our own feel */
+.searchInput::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.noResults {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.chartToggle {
+  display: flex;
+  gap: 3px;
+  background: rgba(13,23,10,0.6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.toggleBtn {
+  height: 26px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: rgba(102,153,102,0.8);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.12s, color 0.12s;
+}
+
+.toggleBtn:hover {
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+}
+
+.toggleBtnActive {
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+}
+
+.plantList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Focus mode: multi-column grid on wider screens */
+.plantListCompact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  background: rgba(26,46,23,0.4);
+  border: 1.5px dashed rgba(71,133,61,0.35);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 40px;
+}
+
+.emptyTitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.emptyAddBtn {
+  margin-top: 6px;
+  height: 44px;
+  padding: 0 24px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-md);
+  color: #071407;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.emptyAddBtn:hover {
+  background: var(--brand-bright);
+}
+
+@media (max-width: 900px) {
+  .main { padding: 0 20px 40px; }
+  .listCol { padding: 20px 0 24px; }
+  .bigDate { font-size: 48px; }
+}
