@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import AppLayout from '../layouts/AppLayout.jsx'
 import AppRoutes from './routes.jsx'
-import PlantForm, { EMPTY_PLANT_FORM } from '../features/plants/components/PlantForm'
+import PlantForm from '../features/plants/components/PlantForm'
+import AddPlantModal from '../features/plants/components/AddPlantModal'
+import { buildDefaultAddPlantForm } from '../features/plants/plantOptions.js'
 import LogEntryForm, { createEmptyLogForm } from '../features/logs/components/LogEntry'
 import QuickLogModal from '../features/logs/components/QuickLogModal'
 import SettingsModal from '../features/settings/components/SettingsModal'
@@ -92,7 +94,7 @@ export default function App() {
   }
 
   function openAdd() {
-    setPanel({ mode: 'identity', form: EMPTY_PLANT_FORM })
+    setPanel({ mode: 'identity', form: buildDefaultAddPlantForm() })
   }
 
   function editPlant(plant) {
@@ -243,20 +245,32 @@ export default function App() {
 
       {/* ── Modals ── */}
       {panel?.mode === 'identity' && (
-        <Modal onClose={() => setPanel(null)}>
-          <PlantForm
-            form={panel.form}
-            onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
-            onSave={savePlantIdentity}
-            onCancel={() => setPanel(null)}
-            onDelete={panel.form.id ? () => { deletePlant(panel.form.id); setPanel(null) } : undefined}
-            isEdit={!!panel.form.id}
-            plant={plants.find(p => p.id === panel.form.id)}
-            onEditLog={(bundle) => {
-              const p = plants.find(p => p.id === panel.form.id)
-              if (p) openEditLog(p, bundle)
-            }}
-          />
+        <Modal
+          onClose={() => setPanel(null)}
+          variant={panel.form.id ? 'default' : 'wide'}
+        >
+          {panel.form.id ? (
+            <PlantForm
+              form={panel.form}
+              onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
+              onSave={savePlantIdentity}
+              onCancel={() => setPanel(null)}
+              onDelete={() => { deletePlant(panel.form.id); setPanel(null) }}
+              isEdit
+              plant={plants.find(p => p.id === panel.form.id)}
+              onEditLog={(bundle) => {
+                const p = plants.find(p => p.id === panel.form.id)
+                if (p) openEditLog(p, bundle)
+              }}
+            />
+          ) : (
+            <AddPlantModal
+              form={panel.form}
+              onChange={updater => setPanel(p => ({ ...p, form: typeof updater === 'function' ? updater(p.form) : updater }))}
+              onSave={savePlantIdentity}
+              onCancel={() => setPanel(null)}
+            />
+          )}
         </Modal>
       )}
 

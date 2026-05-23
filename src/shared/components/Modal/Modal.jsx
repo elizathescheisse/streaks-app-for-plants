@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import styles from './Modal.module.css'
 
-export default function Modal({ onClose, children }) {
+export default function Modal({ onClose, children, variant = 'default' }) {
   // Close on Escape
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose() }
@@ -11,7 +11,10 @@ export default function Modal({ onClose, children }) {
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.dialog} onClick={e => e.stopPropagation()}>
+      <div
+        className={variant === 'wide' ? styles.dialogWide : styles.dialog}
+        onClick={e => e.stopPropagation()}
+      >
         {children}
       </div>
     </div>
