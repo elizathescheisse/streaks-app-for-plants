@@ -1,28 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import AppLayout from './layouts/AppLayout.jsx'
-import PlantCard from './features/plants/components/PlantCard'
-import PlantForm, { EMPTY_PLANT_FORM } from './features/plants/components/PlantForm'
-import LogEntryForm, { createEmptyLogForm } from './features/logs/components/LogEntry'
-import QuickLogModal from './features/logs/components/QuickLogModal'
-import SettingsModal from './features/settings/components/SettingsModal'
-import PlantDetailPage from './features/plants/pages/PlantDetailPage.jsx'
-import Modal from './shared/components/Modal'
-import styles from './App.module.css'
-import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
-import { getPlantSortPriority } from './utils/plantStatus.js'
-
-// 2×2 grid icon used for the view-switcher button
-function GridIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
-      <rect x="0" y="0" width="4" height="4" rx="0.5"/>
-      <rect x="6" y="0" width="4" height="4" rx="0.5"/>
-      <rect x="0" y="6" width="4" height="4" rx="0.5"/>
-      <rect x="6" y="6" width="4" height="4" rx="0.5"/>
-    </svg>
-  )
-}
+import AppLayout from '../layouts/AppLayout.jsx'
+import AppRoutes from './routes.jsx'
+import PlantForm, { EMPTY_PLANT_FORM } from '../features/plants/components/PlantForm'
+import LogEntryForm, { createEmptyLogForm } from '../features/logs/components/LogEntry'
+import QuickLogModal from '../features/logs/components/QuickLogModal'
+import SettingsModal from '../features/settings/components/SettingsModal'
+import Modal from '../shared/components/Modal'
+import { buildEventsFromForm, currentHealth } from '../utils/plantSelectors.js'
 
 const SCHEMA_VERSION = '2'
 const STORAGE_KEY    = 'plant-streaks'
@@ -30,10 +14,6 @@ const SCHEMA_KEY     = 'plant-streaks-schema'
 
 const today = new Date()
 const DATE_KEY = today.toISOString().slice(0, 10)
-
-function formatDate(d) {
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-}
 
 // One-time schema reset — clears any old-format data on first load
 function loadInitialPlants() {
@@ -47,6 +27,10 @@ function loadInitialPlants() {
   catch { return [] }
 }
 
+// Top-level app: owns plant data, the active panel/modal, and every handler
+// that mutates plant state. The visible routes (home / plant detail) live
+// in AppRoutes; per-page UI state (cardView, chartWindow, searchQuery, etc.)
+// lives in those page components, not here.
 export default function App() {
   const [plants, setPlants] = useState(loadInitialPlants)
 
@@ -54,12 +38,9 @@ export default function App() {
   //   null                                   — no panel
   //   { mode: 'identity', form }             — add/edit plant form
   //   { mode: 'log', plantId, form }         — log-entry form
+  //   { mode: 'quickLog', plantId, type }    — one-tap water/reading
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [chartWindow, setChartWindow] = useState('1M')
-  const [cardView, setCardView]       = useState('compact') // 'chart' | 'compact'
-  const [viewMenuOpen, setViewMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const importRef = useRef()
 
   useEffect(() => {
@@ -253,123 +234,12 @@ export default function App() {
       )}
       <input ref={importRef} type="file" accept=".json" onChange={handleImport} style={{ display:'none' }} />
 
-      <Routes>
-        {/* ── Plant detail page ── */}
-        <Route path="/plant/:id" element={
-          <PlantDetailPage plants={plants} {...detailCallbacks} />
-        } />
-
-        {/* ── Home: plant list ── */}
-        <Route path="/" element={
-          <main className={styles.main}>
-            <section className={styles.listCol}>
-              <div className={styles.dateBlock}>
-                <div className={styles.dateRow}>
-                  <h1 className={styles.bigDate}>{formatDate(today)}</h1>
-                  {plants.length > 0 && (
-                    <button className={styles.addBtn} onClick={openAdd}>
-                      + Add Plant
-                    </button>
-                  )}
-                </div>
-                <p className={styles.hint}>Log your plants' health and watering for today.</p>
-                {plants.length > 0 && (
-                  <div className={styles.controlRow}>
-                    <input
-                      className={styles.searchInput}
-                      type="search"
-                      placeholder="Search plants…"
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                    />
-
-                    {/* Chart window toggle — only shown in chart view */}
-                    {cardView === 'chart' && (
-                      <div className={styles.chartToggle}>
-                        {['1W','1M','3M','all'].map(key => (
-                          <button
-                            key={key}
-                            className={`${styles.toggleBtn} ${chartWindow === key ? styles.toggleBtnActive : ''}`}
-                            onClick={() => setChartWindow(key)}
-                          >{key === 'all' ? 'All' : key}</button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* View-switcher: grid icon + dropdown — always rightmost so it doesn't shift */}
-                    <div className={styles.viewSwitcher}>
-                      <button
-                        className={`${styles.viewSwitcherBtn} ${viewMenuOpen ? styles.viewSwitcherBtnOpen : ''}`}
-                        onClick={() => setViewMenuOpen(o => !o)}
-                        title="Switch card view"
-                        type="button"
-                      >
-                        <GridIcon />
-                      </button>
-                      {viewMenuOpen && (
-                        <>
-                          <div className={styles.viewMenuBackdrop} onClick={() => setViewMenuOpen(false)} />
-                          <div className={styles.viewMenu}>
-                            {[
-                              { key: 'chart',   label: 'Timeline' },
-                              { key: 'compact', label: 'Focus'    },
-                            ].map(({ key, label }) => (
-                              <button
-                                key={key}
-                                className={`${styles.viewMenuItem} ${cardView === key ? styles.viewMenuItemActive : ''}`}
-                                onClick={() => { setCardView(key); setViewMenuOpen(false) }}
-                                type="button"
-                              >{label}</button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className={`${styles.plantList} ${cardView === 'compact' ? styles.plantListCompact : ''}`}>
-                {plants.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyIcon}>🌱</div>
-                    <p className={styles.emptyTitle}>No plants yet</p>
-                    <button className={styles.emptyAddBtn} onClick={openAdd}>
-                      + Add your first plant
-                    </button>
-                  </div>
-                ) : (() => {
-                  const q = searchQuery.trim().toLowerCase()
-                  const filtered = (q
-                    ? plants.filter(p =>
-                        (p.name    && p.name.toLowerCase().includes(q)) ||
-                        (p.species && p.species.toLowerCase().includes(q)) ||
-                        (p.emoji   && p.emoji.includes(searchQuery.trim()))
-                      )
-                    : plants
-                  ).slice().sort((a, b) => getPlantSortPriority(a) - getPlantSortPriority(b))
-                  if (filtered.length === 0) return (
-                    <p className={styles.noResults}>No plants match "{searchQuery.trim()}"</p>
-                  )
-                  return filtered.map(p => (
-                    <PlantCard
-                      key={p.id}
-                      plant={p}
-                      onEdit={() => editPlant(p)}
-                      onLog={() => openLog(p)}
-                      onQuickWater={() => openQuickLog(p, 'water')}
-                      onQuickReading={() => openQuickLog(p, 'reading')}
-                      onEditLog={(bundle) => openEditLog(p, bundle)}
-                      chartWindow={chartWindow}
-                      cardView={cardView}
-                    />
-                  ))
-                })()}
-              </div>
-            </section>
-          </main>
-        } />
-      </Routes>
+      <AppRoutes
+        plants={plants}
+        today={today}
+        openAdd={openAdd}
+        detailCallbacks={detailCallbacks}
+      />
 
       {/* ── Modals ── */}
       {panel?.mode === 'identity' && (
