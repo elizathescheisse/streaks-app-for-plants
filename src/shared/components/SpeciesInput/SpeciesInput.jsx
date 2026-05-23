@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { PLANT_SEARCH_INDEX } from '../data/plantDatabase.js'
+import { PLANT_SEARCH_INDEX } from '../../../data/plantDatabase.js'
 import styles from './SpeciesInput.module.css'
 
 export default function SpeciesInput({ value, onChange, inputClassName }) {

@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import Header from './components/Header.jsx'
-import PlantCard from './components/PlantCard.jsx'
-import PlantForm, { EMPTY_PLANT_FORM } from './components/PlantForm.jsx'
-import LogEntryForm, { createEmptyLogForm } from './components/LogEntryForm.jsx'
-import QuickLogModal from './components/QuickLogModal.jsx'
-import EdgeGlow from './components/EdgeGlow.jsx'
-import SettingsModal from './components/SettingsModal.jsx'
-import PlantDetailPage from './components/PlantDetailPage.jsx'
-import Modal from './components/Modal.jsx'
+import AppLayout from './layouts/AppLayout.jsx'
+import PlantCard from './features/plants/components/PlantCard'
+import PlantForm, { EMPTY_PLANT_FORM } from './features/plants/components/PlantForm'
+import LogEntryForm, { createEmptyLogForm } from './features/logs/components/LogEntry'
+import QuickLogModal from './features/logs/components/QuickLogModal'
+import SettingsModal from './features/settings/components/SettingsModal'
+import PlantDetailPage from './features/plants/pages/PlantDetailPage.jsx'
+import Modal from './shared/components/Modal'
 import styles from './App.module.css'
 import { buildEventsFromForm, currentHealth } from './utils/plantSelectors.js'
 import { getPlantSortPriority } from './utils/plantStatus.js'
@@ -238,14 +237,13 @@ export default function App() {
   }
 
   return (
-    <div className={styles.app}>
-      <EdgeGlow />
-
-      <Header
-        onExport={exportJSON}
-        onImport={() => importRef.current.click()}
-        onSettings={() => setSettingsOpen(true)}
-      />
+    <AppLayout
+      headerProps={{
+        onExport: exportJSON,
+        onImport: () => importRef.current.click(),
+        onSettings: () => setSettingsOpen(true),
+      }}
+    >
       {settingsOpen && (
         <SettingsModal
           plantCount={plants.length}
@@ -416,6 +414,6 @@ export default function App() {
           />
         </Modal>
       )}
-    </div>
+    </AppLayout>
   )
 }

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import styles from './PlantForm.module.css'
-import SpeciesInput from './SpeciesInput.jsx'
-import MoistureBar from './MoistureBar.jsx'
-import { lookupPlant } from '../utils/plantLookup.js'
-import { logBundles } from '../utils/plantSelectors.js'
+import SpeciesInput from '../../../../shared/components/SpeciesInput'
+import MoistureBar from '../../../care/components/MoistureBar'
+import { lookupPlant } from '../../../../utils/plantLookup.js'
+import { logBundles } from '../../../../utils/plantSelectors.js'
 
 const EMOJI_OPTIONS = [
   '🌿','🪴','🌱','🌵','🌴','🌳','🌾','🍀',

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
-import { lastWatering, isSignificantWatering, isSuspiciousReading } from '../utils/plantSelectors.js'
-import { lookupPlant } from '../utils/plantLookup.js'
+import { lastWatering, isSignificantWatering, isSuspiciousReading } from '../../../../utils/plantSelectors.js'
+import { lookupPlant } from '../../../../utils/plantLookup.js'
 
 function titleCase(s) {
   if (!s) return s

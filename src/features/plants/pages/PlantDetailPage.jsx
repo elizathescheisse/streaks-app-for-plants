@@ -3,15 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantDetailPage.module.css'
-import MoistureBar from './MoistureBar.jsx'
-import PlantHistoryChart from './PlantHistoryChart.jsx'
-import PlantPrediction from './PlantPrediction.jsx'
-import { lookupPlant } from '../utils/plantLookup.js'
+import MoistureBar from '../../care/components/MoistureBar'
+import PlantHistoryChart from '../../care/components/PlantHistoryChart'
+import PlantPrediction from '../../care/components/PlantPrediction'
+import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents
-} from '../utils/plantSelectors.js'
-import { computeModel, getRecommendation } from '../utils/plantModel.js'
-import { moistureStatus } from '../utils/plantStatus.js'
+} from '../../../utils/plantSelectors.js'
+import { computeModel, getRecommendation } from '../../../utils/plantModel.js'
+import { moistureStatus } from '../../../utils/plantStatus.js'
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
 

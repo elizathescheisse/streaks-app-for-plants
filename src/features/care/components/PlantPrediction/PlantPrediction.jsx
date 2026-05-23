@@ -1,6 +1,6 @@
 import styles from './PlantPrediction.module.css'
-import { computeModel, getRecommendation } from '../utils/plantModel.js'
-import { lastReading, lastWatering } from '../utils/plantSelectors.js'
+import { computeModel, getRecommendation } from '../../../../utils/plantModel.js'
+import { lastReading, lastWatering } from '../../../../utils/plantSelectors.js'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDroplet } from '@fortawesome/free-solid-svg-icons'
 

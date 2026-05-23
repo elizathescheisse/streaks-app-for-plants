@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import styles from './LogEntryForm.module.css'
-import { lookupPlant } from '../utils/plantLookup.js'
-import { isSignificantWatering, isSuspiciousReading } from '../utils/plantSelectors.js'
+import styles from './LogEntry.module.css'
+import { lookupPlant } from '../../../../utils/plantLookup.js'
+import { isSignificantWatering, isSuspiciousReading } from '../../../../utils/plantSelectors.js'
 
 const HEALTH_OPTIONS = [
   { value: 'no_change',  label: 'No change'    },
