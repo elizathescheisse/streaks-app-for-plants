@@ -3,6 +3,42 @@
   width: 100%;
 }
 
+/* The input itself: parent .wrap has the chevron absolutely positioned on
+   the right, so the input needs right-padding so typed text doesn't slide
+   under the chevron. */
+.input {
+  padding-right: 36px;
+}
+
+/* Dropdown affordance — clicking opens/closes the suggestion list without
+   requiring the user to type. tabIndex={-1} so it stays out of tab order
+   (the input owns keyboard focus for the combobox role). */
+.chevron {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.12s, transform 0.18s;
+}
+
+.chevron:hover {
+  color: var(--text-secondary);
+}
+
+.chevronOpen {
+  color: var(--text-secondary);
+  transform: rotate(180deg);
+}
+
 .dropdown {
   position: absolute;
   top: calc(100% + 4px);

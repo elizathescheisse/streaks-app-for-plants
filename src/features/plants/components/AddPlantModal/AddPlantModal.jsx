@@ -7,6 +7,8 @@ import {
   findPlantOptionId,
   getPlantOption,
 } from '../../plantOptions.js'
+// PLANT_OPTIONS still drives the visual carousel above; only the inline
+// species <select> was replaced by the combobox below.
 import styles from './AddPlantModal.module.css'
 
 const HEALTH_OPTIONS = [
@@ -32,9 +34,6 @@ export default function AddPlantModal({ form, onChange, onSave, onCancel }) {
   const [selectedId, setSelectedId] = useState(
     () => findPlantOptionId(form.species) ?? DEFAULT_PLANT_OPTION_ID
   )
-  const [customSpecies, setCustomSpecies] = useState(
-    () => !findPlantOptionId(form.species) && !!form.species.trim()
-  )
 
   const selectedOption = getPlantOption(selectedId)
   const matchedId = findPlantOptionId(form.species)
@@ -48,7 +47,6 @@ export default function AddPlantModal({ form, onChange, onSave, onCancel }) {
   const applyOption = useCallback(
     (option) => {
       setSelectedId(option.id)
-      setCustomSpecies(false)
       onChange(f => ({
         ...f,
         species: option.speciesKey,
@@ -160,34 +158,17 @@ export default function AddPlantModal({ form, onChange, onSave, onCancel }) {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="add-plant-species-select">
+          <label className={styles.label}>
             Plant type / species
           </label>
+          {/* Combobox: click to see the full species list, type to filter,
+              or enter any free-form text for a species the database doesn't
+              know. If the value matches a curated PLANT_OPTION, the emoji
+              syncs so the carousel preview stays consistent. */}
           <div className={styles.speciesRow}>
             <span className={styles.speciesRowIcon} aria-hidden="true">
               {form.emoji || activeOption.icon}
             </span>
-            <select
-              id="add-plant-species-select"
-              className={`${styles.select} ${styles.speciesField}`}
-              value={customSpecies ? 'custom' : (matchedId ?? selectedId)}
-              onChange={(e) => {
-                if (e.target.value === 'custom') {
-                  setCustomSpecies(true)
-                  return
-                }
-                applyOption(getPlantOption(e.target.value))
-              }}
-            >
-              {PLANT_OPTIONS.map(option => (
-                <option key={option.id} value={option.id}>
-                  {option.speciesLabel}
-                </option>
-              ))}
-              <option value="custom">Custom species…</option>
-            </select>
-          </div>
-          {customSpecies && (
             <div className={styles.speciesField}>
               <SpeciesInput
                 value={form.species}
@@ -196,7 +177,6 @@ export default function AddPlantModal({ form, onChange, onSave, onCancel }) {
                   const id = findPlantOptionId(val)
                   if (id) {
                     setSelectedId(id)
-                    setCustomSpecies(false)
                     const opt = getPlantOption(id)
                     set('emoji', opt.icon)
                   }
@@ -204,16 +184,7 @@ export default function AddPlantModal({ form, onChange, onSave, onCancel }) {
                 inputClassName={styles.input}
               />
             </div>
-          )}
-          {!customSpecies && (
-            <button
-              type="button"
-              className={styles.customToggle}
-              onClick={() => setCustomSpecies(true)}
-            >
-              Enter a different species
-            </button>
-          )}
+          </div>
         </div>
 
         <div className={styles.field}>
