@@ -297,7 +297,7 @@ export default function PlantDetailPage({
                 <section className={styles.careCard}>
                   <h2 className={styles.careCardTitle}>Recommendation</h2>
                   <div className={styles.careCardBody}>
-                    <PlantPrediction plant={plant} careProfile={careProfile} />
+                    <PlantPrediction plant={plant} careProfile={careProfile} bare />
                   </div>
                   <div className={styles.cardDecor} aria-hidden="true">
                     <div className={styles.cardDecorGlow} />

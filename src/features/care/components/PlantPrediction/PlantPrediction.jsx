@@ -15,7 +15,11 @@ function relTime(ts) {
   return `${weeks}w ago`
 }
 
-export default function PlantPrediction({ plant, careProfile }) {
+// `bare` strips the component's own surface-inset box (bg/border/padding)
+// when it's already rendered inside a styled parent card — avoids the
+// "card inside a card" look. Layout and typography stay identical.
+export default function PlantPrediction({ plant, careProfile, bare = false }) {
+  const wrapClass = bare ? styles.wrap : `${styles.wrap} ${styles.wrapBoxed}`
   const reading  = lastReading(plant)
   const watering = lastWatering(plant)
   if (!reading) return null
@@ -29,7 +33,7 @@ export default function PlantPrediction({ plant, careProfile }) {
 
   if (wateredAfterReading) {
     return (
-      <div className={styles.wrap}>
+      <div className={wrapClass}>
         <div className={styles.row}>
           <span className={styles.settling}>
             💧 Watered {relTime(watering.timestamp)}
@@ -62,7 +66,7 @@ export default function PlantPrediction({ plant, careProfile }) {
   const stillLearning = usingDefaults || confidence === 'low'
   if (stillLearning) {
     return (
-      <div className={styles.wrap}>
+      <div className={wrapClass}>
         {wateringStyleLabel && (
           <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
         )}
@@ -84,7 +88,7 @@ export default function PlantPrediction({ plant, careProfile }) {
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={wrapClass}>
       {wateringStyleLabel && (
         <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
       )}
