@@ -6,7 +6,6 @@ import styles from './PlantDetailPage.module.css'
 import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
-import PlantPrediction from '../../care/components/PlantPrediction'
 import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents
@@ -313,22 +312,9 @@ export default function PlantDetailPage({
         </div>{/* /mainCol */}
 
         {/* ── Sidebar: stacked care cards, styled like the dashboard Care Tip ── */}
-        {(careProfile || reading) && (
+        {careProfile && (
           <aside className={styles.sidebar}>
             <div className={styles.sidebarStack}>
-              {reading && (
-                <section className={styles.careCard}>
-                  <h2 className={styles.careCardTitle}>Recommendation</h2>
-                  <div className={styles.careCardBody}>
-                    <PlantPrediction plant={plant} careProfile={careProfile} bare hideCareInfo />
-                  </div>
-                  <div className={styles.cardDecor} aria-hidden="true">
-                    <div className={styles.cardDecorGlow} />
-                    <span className={styles.cardDecorEmoji} role="img" aria-label="">💧</span>
-                  </div>
-                </section>
-              )}
-
               {careProfile && (
                 <section className={styles.careCard}>
                   <h2 className={styles.careCardTitle}>Care guide</h2>
