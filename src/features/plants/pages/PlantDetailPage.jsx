@@ -320,7 +320,7 @@ export default function PlantDetailPage({
                 <section className={styles.careCard}>
                   <h2 className={styles.careCardTitle}>Recommendation</h2>
                   <div className={styles.careCardBody}>
-                    <PlantPrediction plant={plant} careProfile={careProfile} bare />
+                    <PlantPrediction plant={plant} careProfile={careProfile} bare hideCareInfo />
                   </div>
                   <div className={styles.cardDecor} aria-hidden="true">
                     <div className={styles.cardDecorGlow} />
@@ -347,6 +347,9 @@ export default function PlantDetailPage({
                       <div className={styles.careItem}>
                         <span className={styles.careLabel}>Watering style</span>
                         <span className={styles.careValue}>{WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}</span>
+                        {careProfile.wateringFrequency && (
+                          <span className={styles.careSubvalue}>{careProfile.wateringFrequency}</span>
+                        )}
                       </div>
                     )}
                     {careProfile.light && (

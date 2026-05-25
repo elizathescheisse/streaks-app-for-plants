@@ -460,6 +460,15 @@
   color: var(--text-secondary);
 }
 
+/* Secondary line under a careValue — e.g. the watering-frequency description
+   ("when the top inch dries out") that sits below the watering style itself. */
+.careSubvalue {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
 .careNotes {
   margin-top: 12px;
   font-size: 13px;

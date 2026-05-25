@@ -18,7 +18,11 @@ function relTime(ts) {
 // `bare` strips the component's own surface-inset box (bg/border/padding)
 // when it's already rendered inside a styled parent card — avoids the
 // "card inside a card" look. Layout and typography stay identical.
-export default function PlantPrediction({ plant, careProfile, bare = false }) {
+//
+// `hideCareInfo` skips the watering-style and watering-frequency lines.
+// Use when a parent (e.g. PlantDetailPage's Care guide card) already shows
+// the same info elsewhere on the page so we don't duplicate it.
+export default function PlantPrediction({ plant, careProfile, bare = false, hideCareInfo = false }) {
   const wrapClass = bare ? styles.wrap : `${styles.wrap} ${styles.wrapBoxed}`
   const reading  = lastReading(plant)
   const watering = lastWatering(plant)
@@ -67,10 +71,10 @@ export default function PlantPrediction({ plant, careProfile, bare = false }) {
   if (stillLearning) {
     return (
       <div className={wrapClass}>
-        {wateringStyleLabel && (
+        {!hideCareInfo && wateringStyleLabel && (
           <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
         )}
-        {wateringFrequency && (
+        {!hideCareInfo && wateringFrequency && (
           <span className={styles.wateringFrequency}>{wateringFrequency}</span>
         )}
         <div className={styles.progressRow}>
@@ -89,10 +93,10 @@ export default function PlantPrediction({ plant, careProfile, bare = false }) {
 
   return (
     <div className={wrapClass}>
-      {wateringStyleLabel && (
+      {!hideCareInfo && wateringStyleLabel && (
         <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
       )}
-      {wateringFrequency && (
+      {!hideCareInfo && wateringFrequency && (
         <span className={styles.wateringFrequency}>{wateringFrequency}</span>
       )}
       <span className={styles.moistureRaw}>
