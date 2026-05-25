@@ -299,12 +299,20 @@ export default function PlantDetailPage({
                   <div className={styles.careCardBody}>
                     <PlantPrediction plant={plant} careProfile={careProfile} />
                   </div>
+                  <div className={styles.cardDecor} aria-hidden="true">
+                    <div className={styles.cardDecorGlow} />
+                    <span className={styles.cardDecorEmoji} role="img" aria-label="">💧</span>
+                  </div>
                 </section>
               )}
 
               {careProfile && (
                 <section className={styles.careCard}>
                   <h2 className={styles.careCardTitle}>Care guide</h2>
+                  <div className={styles.cardDecor} aria-hidden="true">
+                    <div className={styles.cardDecorGlow} />
+                    <span className={styles.cardDecorEmoji} role="img" aria-label="">🌿</span>
+                  </div>
                   <div className={styles.careList}>
                     {careProfile.moistureRange && (
                       <div className={styles.careItem}>
