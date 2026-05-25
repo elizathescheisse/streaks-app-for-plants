@@ -60,10 +60,21 @@
   z-index: 2;             /* render above adjacent cards if leaves overlap */
 }
 
-/* Hover-capable devices: dim at rest so action UI takes priority, then
-   grow + brighten + start animations on card hover. Touch devices skip
-   this entire block, leaving the static 0.9 opacity from above. */
+/* Animations run by default — on mobile / touch devices there's no hover
+   reveal, so a gentle baseline of sway/wiggle/sparkle motion keeps the
+   icons feeling alive. Hover-capable devices override this to paused so
+   the icons sit still until the user hovers (then we resume below). */
+.iconCircle {
+  --plant-anim: running;
+}
+
+/* Hover-capable devices: dim + still at rest so action UI takes priority,
+   then grow + brighten + animate on card hover. Touch devices skip this
+   entire block, leaving the always-animated 0.9-opacity state from above. */
 @media (hover: hover) {
+  .iconCircle {
+    --plant-anim: paused;
+  }
   .iconCircle > svg {
     opacity: 0.65;
   }
