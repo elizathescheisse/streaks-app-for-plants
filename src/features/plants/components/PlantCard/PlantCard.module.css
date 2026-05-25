@@ -1,0 +1,582 @@
+.cardWrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s;
+}
+
+.card:hover { border-color: rgba(71,133,61,0.55); }
+
+/* Focus-mode status tints — only used for genuinely critical states */
+.cardStatus_struggling {
+  background: rgba(229, 97, 71, 0.07);
+  border-color: rgba(229, 97, 71, 0.45);
+}
+.cardStatus_struggling:hover { border-color: rgba(229, 97, 71, 0.65); }
+
+.iconCircle {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--bg-surface-raised);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+/* Two-column inner layout */
+.cardInner {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  min-width: 0;
+}
+
+.cardLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Right-column stats block — wide screens only */
+.statsBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+
+.statWater {
+  font-size: 12px;
+  color: var(--data-water);
+  white-space: nowrap;
+}
+
+.statMoisture {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.statsBar {
+  width: 100%;
+}
+
+/* Mobile bar (inside left column, only shown on mobile) */
+.mobileBar { display: none; }
+
+/* Prediction strip — mobile shows in left column, desktop shows in right stats block */
+.predMobile  { display: block; }
+.predDesktop { display: none; }
+
+/* Log history bar */
+.logBar {
+  margin-top: 4px;
+  max-width: 300px;
+}
+
+/* Log button variants: desktop lives in statsBlock, mobile lives in actions row */
+.logBtnDesktop { display: none; }  /* shown only on desktop via media query below */
+.logBtnMobile  {}                  /* shown on mobile, hidden on desktop */
+
+/* ── Responsive: mobile collapses stats block into left column ── */
+@media (max-width: 639px) {
+  .statsBlock    { display: none; }
+  .metaMobileOnly { display: flex !important; }
+  .mobileBar     { display: block; }
+  .predMobile    { display: block; }
+  .predDesktop   { display: none; }
+}
+
+@media (min-width: 640px) {
+  .metaMobileOnly { display: none !important; }
+  .logBtnDesktop  { display: block; width: 100%; margin-top: auto; }
+  .logBtnMobile   { display: none !important; }
+  .predMobile     { display: none; }
+  .predDesktop    { display: block; width: 100%; }
+}
+
+/* Legacy .info — kept for safety */
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nameBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: rgba(255,255,255,0.2);
+  text-underline-offset: 3px;
+}
+.nameBtn:hover {
+  color: var(--brand-bright);
+  text-decoration-style: solid;
+  text-decoration-color: rgba(69,209,87,0.4);
+}
+
+.nameBtnChevron {
+  margin-left: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+}
+.nameBtn:hover .nameBtnChevron {
+  opacity: 1;
+  color: var(--brand-bright);
+}
+
+.editIconBtn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.editIconBtn:hover {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+/* Compact-mode badge sits in the name row, pushed to the right */
+.badgeInline {
+  margin-left: auto;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.badge_thriving  { color: var(--status-thriving);  background: rgba(64,217,97,0.14);  border-color: rgba(64,217,97,0.55);  }
+.badge_good      { color: var(--status-good);      background: rgba(140,217,102,0.14);border-color: rgba(140,217,102,0.55);}
+/* water = actionable underwatered — bright yellow, high contrast */
+.badge_water     { color: var(--status-water);     background: rgba(245,212,0,0.18);  border-color: rgba(245,212,0,0.7);   font-weight: 600; }
+/* okay = overwatered — muted, nothing actionable */
+.badge_okay      { color: var(--status-okay);      background: rgba(224,199,64,0.08); border-color: rgba(224,199,64,0.3);  }
+.badge_struggling{ color: var(--status-struggling);background: rgba(229,97,71,0.14);  border-color: rgba(229,97,71,0.55);  }
+.badge_check     { color: #18A4E8;                 background: rgba(24,164,232,0.12); border-color: rgba(24,164,232,0.45);}
+
+.badgeIcon {
+  margin-right: 5px;
+  font-size: 0.9em;
+}
+
+
+.species {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.notes {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.water {
+  font-size: 12px;
+  color: var(--data-water);
+  white-space: nowrap;
+}
+
+.moisture {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.actionsLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logBtn {
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.75);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #0e1a0c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.1s, transform 0.08s, box-shadow 0.1s;
+}
+
+.logBtn:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+/* Compact-mode Log button — always visible, slightly larger */
+.logBtnCompact {
+  padding: 7px 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Compact-mode quick-log buttons */
+.quickLogBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.quickLogBtn {
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.75);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #0e1a0c;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.1s, transform 0.08s, box-shadow 0.1s;
+}
+.quickLogBtn:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+.quickLogBtn:active {
+  background: rgba(255,255,255,0.9);
+  transform: scale(0.93) translateY(1px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.logBtn:active {
+  background: rgba(255,255,255,0.9);
+  transform: scale(0.93) translateY(1px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.editBtn {
+  padding: 6px 16px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.editBtn:hover {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+}
+
+.deleteBtn {
+  padding: 6px 12px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.35);
+  border-radius: var(--radius-sm);
+  color: var(--status-struggling);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.deleteBtn:hover {
+  background: rgba(229,97,71,0.12);
+  border-color: rgba(229,97,71,0.6);
+}
+
+/* Delete confirmation modal content */
+.deleteModal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.deleteModalIcon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.deleteModalTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.deleteModalBody {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 320px;
+}
+
+.deleteModalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.deleteModalCancel {
+  flex: 1;
+  height: 44px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.35);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.deleteModalCancel:hover {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+}
+
+.deleteModalConfirm {
+  flex: 1;
+  height: 44px;
+  background: rgba(229,97,71,0.15);
+  border: 1px solid rgba(229,97,71,0.55);
+  border-radius: var(--radius-md);
+  color: var(--status-struggling);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.deleteModalConfirm:hover {
+  background: rgba(229,97,71,0.28);
+  border-color: rgba(229,97,71,0.8);
+}
+
+.historyBtn {
+  padding: 6px 8px;
+  background: var(--bg-surface-raised);
+  border: 1px solid rgba(71,133,61,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.historyBtn:hover {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+}
+
+.historyBtnActive {
+  background: rgba(41,71,36,0.8);
+  color: var(--text-secondary);
+  border-color: rgba(71,133,61,0.6);
+}
+
+/* Chart inline in card */
+.chartInline {
+  margin-top: 4px;
+}
+
+/* History panel */
+.historySection {
+  background: var(--color-surface-inset);
+  border: 1px solid var(--border-default);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 12px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.emptyHistory {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.logEntry {
+  padding: 10px 0;
+}
+
+.logEntryDivider {
+  border-bottom: 1px solid var(--border-default);
+}
+
+.logTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.logDate {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.logTime {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.logEditBtn {
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid rgba(71,133,61,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.logEditBtn:hover {
+  background: rgba(41,71,36,0.6);
+  color: var(--text-secondary);
+}
+
+.logMeta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+
+.logNotes {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+/* Info panel */
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.infoIcon {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.infoNote {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tipsSection {
+  border-top: 1px solid var(--border-default);
+  padding-top: 10px;
+}
+
+.tipsLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.tipsList {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tipsList li {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}

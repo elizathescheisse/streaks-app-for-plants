@@ -1,0 +1,41 @@
+/* Pill-shaped segmented control. Container is a row of buttons that share
+   a recessed background; active button raises with a darker surface color
+   and slightly brighter text. Matches the existing .seg/.segActive look
+   used throughout the app so this is familiar visual language. */
+
+.tabs {
+  display: inline-flex;
+  gap: 3px;
+  background: var(--color-surface-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+.tab {
+  height: 32px;
+  padding: 0 16px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: rgba(102, 153, 102, 0.85);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tab:hover {
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+}
+
+.tabActive {
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tabActive:hover {
+  background: var(--bg-surface-raised);
+}

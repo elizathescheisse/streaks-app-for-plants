@@ -1,0 +1,16 @@
+/* Wrapper for the ViewTabs bar at the top of the home route. Matches
+   the .main width/padding pattern in PlantListView so tabs line up with
+   the content column beneath them. */
+.tabBarWrap {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 48px 0;
+}
+
+@media (max-width: 900px) {
+  .tabBarWrap {
+    padding: 20px 20px 0;
+  }
+}
+

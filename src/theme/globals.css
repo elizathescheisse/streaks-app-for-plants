@@ -1,0 +1,75 @@
+/* App-level resets, base typography, and shared utility classes.
+   Font loading lives in index.html so the preconnect/preload chain is
+   visible to the browser before any CSS parses. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  font-family: var(--font-body);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle ambient gradient in light mode only (dark mode uses EdgeGlow). */
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(98, 170, 92, 0.08), transparent 34%),
+    radial-gradient(circle at 85% 85%, rgba(98, 170, 92, 0.06), transparent 38%),
+    var(--color-bg);
+}
+
+/* Manrope display utilities — used by the dashboard for hero/date moments.
+   Existing Focus/Timeline views never reference these, so adopting them
+   here doesn't affect their appearance. */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-extra-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.035em;
+}
+
+.font-display-date {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-extra-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.04em;
+}
+
+.font-display-modal {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.025em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  outline: none;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface-raised);
+  border-radius: 3px;
+}

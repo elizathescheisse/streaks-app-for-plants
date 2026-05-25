@@ -1,0 +1,55 @@
+/* Soft radial glows anchored to each viewport edge. The actual colors
+   come from theme tokens (--glow-*-a, --glow-*-b) so dark mode keeps
+   the rich green corner glow while light mode uses a much softer tint
+   that fades into the cream background. */
+
+.root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow {
+  position: absolute;
+}
+
+.top {
+  top: 0; left: 0; right: 0;
+  height: 380px;
+  background: radial-gradient(ellipse 80% 100% at 50% 0%,
+    var(--glow-top-a) 0%,
+    var(--glow-top-b) 40%,
+    transparent 75%
+  );
+}
+
+.bottom {
+  bottom: 0; left: 0; right: 0;
+  height: 320px;
+  background: radial-gradient(ellipse 80% 100% at 50% 100%,
+    var(--glow-bottom-a) 0%,
+    var(--glow-bottom-b) 42%,
+    transparent 75%
+  );
+}
+
+.left {
+  top: 0; bottom: 0; left: 0;
+  width: 280px;
+  background: radial-gradient(ellipse 100% 60% at 0% 50%,
+    var(--glow-side-a) 0%,
+    var(--glow-side-b) 45%,
+    transparent 75%
+  );
+}
+
+.right {
+  top: 0; bottom: 0; right: 0;
+  width: 280px;
+  background: radial-gradient(ellipse 100% 60% at 100% 50%,
+    var(--glow-side-a) 0%,
+    var(--glow-side-b) 45%,
+    transparent 75%
+  );
+}

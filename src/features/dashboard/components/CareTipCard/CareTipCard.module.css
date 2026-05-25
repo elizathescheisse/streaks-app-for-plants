@@ -1,0 +1,172 @@
+.wrap {
+  position: relative;
+  overflow: hidden;
+  min-height: 170px;
+  background:
+    radial-gradient(circle at 82% 50%, var(--color-care-tip-glow), transparent 38%),
+    var(--color-surface-2);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-card);
+}
+
+:global([data-theme="dark"]) .wrap {
+  background:
+    radial-gradient(circle at 82% 50%, var(--color-care-tip-glow), transparent 38%),
+    var(--color-surface);
+}
+
+.inner {
+  position: relative;
+  flex: 1;
+  min-height: 140px;
+  padding-bottom: var(--space-6);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  max-width: 52%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 120px;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text);
+  line-height: 1.45;
+  animation: careTipFade 0.35s ease;
+}
+
+@keyframes careTipFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dots {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-border-strong);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.dot:hover {
+  background: var(--color-text-soft);
+}
+
+.dotActive {
+  background: var(--color-primary);
+  transform: scale(1.15);
+}
+
+.dot:focus-visible {
+  outline: 2px solid var(--color-primary-border);
+  outline-offset: 2px;
+}
+
+.illustration {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(calc(-50% - 30px));
+  z-index: 1;
+  width: min(200px, 38%);
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.plantGlow {
+  position: absolute;
+  inset: 8% 5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--color-care-tip-glow),
+    transparent 72%
+  );
+}
+
+.plantEmoji {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(72px, 8vw, 96px);
+  line-height: 1;
+  animation: careTipFade 0.35s ease;
+  filter: saturate(1.05);
+}
+
+@media (max-width: 720px) {
+  .content {
+    max-width: 100%;
+    min-height: auto;
+    padding-top: 0;
+  }
+
+  .text {
+    font-size: var(--font-size-md);
+  }
+
+  .inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-height: auto;
+    padding-bottom: var(--space-6);
+  }
+
+  .dots {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  .illustration {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    width: 100%;
+    height: 120px;
+    align-self: center;
+  }
+
+  .plantEmoji {
+    font-size: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text,
+  .plantEmoji {
+    animation: none;
+  }
+}
