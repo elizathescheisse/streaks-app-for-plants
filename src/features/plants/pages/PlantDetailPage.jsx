@@ -107,7 +107,19 @@ export default function PlantDetailPage({
   const predMoisture = isConfident ? Math.round(rec.predicted) : null
   const drift        = (rawMoisture != null && predMoisture != null)
     ? Math.abs(predMoisture - rawMoisture) : 0
-  const usePredicted = isConfident && drift >= 1
+
+  // Don't show the "est. now" line when the raw reading is recent —
+  // the estimate isn't telling the user anything new and just adds
+  // visual noise. Threshold matches the 24h freshness window discussed
+  // in #108: a reading taken within the last day is treated as fresh
+  // enough to skip the model estimate entirely.
+  const readingAgeMs    = reading ? Date.now() - new Date(reading.timestamp) : Infinity
+  const readingIsFresh  = readingAgeMs < 24 * 60 * 60 * 1000
+  const showEstimate    = predMoisture != null && !wateredAfterReading && !readingIsFresh
+  // The MoistureBar should only prefer the prediction when the raw reading
+  // is actually stale AND the model has drifted — within the freshness
+  // window we trust the logged value the user just entered.
+  const usePredicted = isConfident && drift >= 1 && !readingIsFresh
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
   const status = wateredAfterReading
@@ -192,10 +204,10 @@ export default function PlantDetailPage({
                   </span>
                   <span className={styles.statMeta}>{relTime(reading.timestamp)}</span>
                   {/* Model's estimate of current moisture, shown as a smaller
-                      secondary line when we have a confident prediction. Lets
-                      the user see how much the raw reading may have drifted
-                      since it was taken. */}
-                  {predMoisture != null && !wateredAfterReading && (
+                      secondary line only when the raw reading is stale enough
+                      that the estimate adds information. See showEstimate
+                      above for the freshness threshold. */}
+                  {showEstimate && (
                     <span className={styles.statEstimate}>
                       <span className={styles.statEstimateLabel}>est.</span>
                       {' '}
