@@ -108,18 +108,12 @@ export default function PlantDetailPage({
   const drift        = (rawMoisture != null && predMoisture != null)
     ? Math.abs(predMoisture - rawMoisture) : 0
 
-  // Don't show the "est. now" line when the raw reading is recent —
-  // the estimate isn't telling the user anything new and just adds
-  // visual noise. Threshold matches the 24h freshness window discussed
-  // in #108: a reading taken within the last day is treated as fresh
-  // enough to skip the model estimate entirely.
-  const readingAgeMs    = reading ? Date.now() - new Date(reading.timestamp) : Infinity
-  const readingIsFresh  = readingAgeMs < 24 * 60 * 60 * 1000
-  const showEstimate    = predMoisture != null && !wateredAfterReading && !readingIsFresh
-  // The MoistureBar should only prefer the prediction when the raw reading
-  // is actually stale AND the model has drifted — within the freshness
-  // window we trust the logged value the user just entered.
-  const usePredicted = isConfident && drift >= 1 && !readingIsFresh
+  // Show the "est. now" secondary line whenever the model's prediction
+  // would round to a different value than the raw reading. If they match,
+  // the line adds nothing — even at 5 days stale, "EST. 5 · now" next to
+  // "5 / 10 · 5d ago" is just repeating the same number.
+  const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1
+  const usePredicted = isConfident && drift >= 1
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
   const status = wateredAfterReading
