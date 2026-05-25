@@ -1,0 +1,245 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Shared styles for animated plant icons.
+   Per-species components supply the geometry (stems, leaves, pot); this
+   file owns colors, health-state modifiers, and the hover animations.
+   ───────────────────────────────────────────────────────────────────── */
+
+.icon {
+  width:  100%;
+  height: 100%;
+  display: block;
+  overflow: visible;             /* sway can swing leaves slightly past viewBox */
+  transition: filter 0.4s ease;
+}
+
+/* ── Leaf base colors (Eliza's palette, lightest → darkest) ── */
+.leafTop   { color: #759732; }   /* light    — front-most leaf */
+.leafSmall { color: #4F6A1F; }   /* mid      — small lower-right */
+.leafLeft  { color: #3E6F27; }   /* dark     — back-left */
+.leafRight { color: #2A5820; }   /* darkest  — back-right */
+
+.leaf {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transition: transform 0.5s ease, opacity 0.4s ease, filter 0.4s ease, color 0.4s ease;
+}
+
+/* ── Stems & pot ── */
+.stem {
+  fill: none;
+  stroke: #6E5533;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.stemSmall { stroke-width: 5; }
+
+.soil       { fill: #3B2418; }
+.pot        { fill: #D77A32; }
+.potRim     { fill: none; stroke: #A95225; stroke-width: 6; stroke-linecap: round; }
+.potHighlight { fill: none; stroke: #F0A36A; stroke-width: 4; stroke-linecap: round; opacity: 0.65; }
+.potLine    { fill: none; stroke: #A95225; stroke-width: 3; stroke-linecap: round; opacity: 0.45; }
+.potShadow  { fill: #d9a06f; opacity: 0.32; }
+
+/* ── Sparkles (only visible when thriving) ── */
+.sparkle {
+  opacity: 0;
+  transform-origin: 194px 56px;
+  transition: opacity 0.4s ease;
+}
+.sparkle path { fill: #FFF2C2; }
+
+/* Second, smaller sparkle in the upper-left — same look, different
+   transform-origin so it scales around its own center. */
+.sparkle2 {
+  opacity: 0;
+  transform-origin: 75px 25px;
+  transition: opacity 0.4s ease;
+}
+.sparkle2 path { fill: #FFF2C2; }
+
+/* ── Health state modifiers ── */
+.thriving { filter: saturate(1.1); }
+.thriving .leafTop { color: var(--leaftop-color, #759732); }   /* thriving brightens to #90BF4F on hover; muted to the default #759732 at rest */
+.thriving .sparkle {
+  opacity: 1;
+  animation: sparkleAnim 1.8s ease-in-out infinite;
+}
+/* Slightly longer duration + reverse so the two sparkles twinkle
+   independently rather than pulsing in unison. */
+.thriving .sparkle2 {
+  opacity: 1;
+  animation: sparkleAnim 2.3s ease-in-out infinite reverse;
+}
+
+.good {}
+
+.okay {
+  filter: saturate(0.85);
+  --droop: 8deg;
+  --droopY: 2px;
+}
+.okay .leafTop   { color: #88904A; }   /* light    — muted green */
+.okay .leafSmall { color: #6F7A38; }   /* mid      — duller green */
+.okay .leafLeft  { color: #5F6A30; }   /* dark     — darker muted green */
+.okay .leafRight { color: #4D5B27; }   /* darkest  — darkest muted green */
+
+.struggling {
+  filter: saturate(0.55) brightness(0.92);
+  --droop: 22deg;     /* much heavier sag — leaves rotate down around their stem */
+  --droopY: 6px;      /* and also shift the whole leaf body down a touch */
+}
+.struggling .leaf { opacity: 0.9; }
+.struggling .leafTop   { color: #756f28; }   /* light    — darker dying olive */
+.struggling .leafSmall { color: #7c7330; }   /* mid      — mustardy olive */
+.struggling .leafLeft  { color: #5e5524; }   /* dark     — dark khaki */
+.struggling .leafRight { color: #74501f; }   /* darkest  — true brown, visible against the dark card */
+
+/* Fallen leaf — hidden by default, only appears for struggling plants.
+   Lies flat next to the pot. Colored a brighter dying yellow-brown so it
+   pops against the dark card background rather than blending into it. */
+.fallenLeaf {
+  color: #c89a3a;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.struggling .fallenLeaf {
+  opacity: 1;
+}
+
+/* ── Orchid-specific elements ──────────────────────────────────────────
+   Strappy basal leaves (a darker green so they don't compete visually
+   with the pink/magenta blooms), and the two showy blooms themselves.
+   Blooms use the existing leafWiggle keyframes for a gentle bobbing
+   motion, but their --droop / --droopY are not driven by health state
+   the way leaves are — blooms simply wilt via opacity + the parent
+   saturate filter, then one of them drops off when struggling. */
+
+.strapLeaf {
+  fill: #4a6b2f;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+.bloom {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.5s ease, opacity 0.4s ease, filter 0.4s ease;
+  animation: bloomBob 2.6s ease-in-out infinite;
+  animation-play-state: var(--plant-anim, paused);
+}
+.bloomLower { animation-duration: 3.1s; animation-direction: reverse; }
+
+@keyframes bloomBob {
+  0%, 100% { transform: rotate(-2deg) translateY(0px); }
+  50%      { transform: rotate( 2deg) translateY(-1px); }
+}
+
+/* Fallen bloom — twin of .fallenLeaf, but for the multi-colored orchid
+   flower. Color is intrinsic to the symbol so we only manipulate opacity. */
+.fallenBloom {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.struggling .fallenBloom { opacity: 0.9; }
+
+/* When struggling, the lower bloom is "the one that fell" — fades out
+   so the fallen bloom on the ground tells the story without the plant
+   sprouting an extra flower. */
+.struggling .bloomLower { opacity: 0; }
+
+/* ────────────────────────────────────────────────────────────────────── */
+
+/* ── Pothos-specific elements ─────────────────────────────────────────
+   A trailing vine plant. Thin green vines spill out of the pot in
+   multiple directions, each with a heart-shaped leaf at its tip.
+   Leaves carry their own two-tone palette in the SVG so health-state
+   color shifts come from the parent saturate/brightness filters
+   rather than per-leaf color overrides. */
+
+.pothosVine {
+  fill: none;
+  stroke: #4a6b2f;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.pothosLeaf {
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+/* The small mid-trailer leaf — fades out when struggling so the icon
+   reads as "one leaf fell off." Pairs with the fallenLeaf slot on
+   PlantShell which renders the dropped leaf on the ground. */
+.struggling .pothosLeafDrops { opacity: 0; }
+
+/* ────────────────────────────────────────────────────────────────────── */
+
+/* When the dropped leaf appears, also hide the small lower-right leaf
+   from the plant — it's "the one that fell." Visually tells the story
+   without leaving 5 leaves total. */
+.struggling .leafSmall {
+  opacity: 0;
+}
+
+/* Unhealthy plants animate slower — okay is a touch sluggish, struggling
+   is genuinely weak/sluggish. Override just the duration so the existing
+   keyframes/play-state still apply. */
+.okay.sway,
+.okay .sway            { animation-duration: 2.9s; }
+.okay .leafLeft        { animation-duration: 2.2s; }
+.okay .leafTop         { animation-duration: 2.5s; }
+.okay .leafRight       { animation-duration: 2s; }
+.okay .leafSmall       { animation-duration: 2.7s; }
+
+.struggling.sway,
+.struggling .sway      { animation-duration: 4s; }
+.struggling .leafLeft  { animation-duration: 3s; }
+.struggling .leafTop   { animation-duration: 3.4s; }
+.struggling .leafRight { animation-duration: 2.7s; }
+.struggling .leafSmall { animation-duration: 3.8s; }
+
+/* ── Animations — paused by default, run when the parent card sets
+   --plant-anim: running. The card-hover trigger lives in PlantCard.module.css
+   so the whole card surface (not just the small icon) wakes the plant up. */
+
+.sway {
+  transform-origin: 120px 200px;
+  animation: plantSwayActive 2.2s ease-in-out infinite;
+  animation-play-state: var(--plant-anim, paused);
+}
+
+.leafLeft  { animation: leafWiggleActive 1.7s ease-in-out infinite;
+             animation-play-state: var(--plant-anim, paused); }
+.leafTop   { animation: leafWiggleActive 1.9s ease-in-out infinite reverse;
+             animation-play-state: var(--plant-anim, paused); }
+.leafRight { animation: leafWiggleActive 1.5s ease-in-out infinite;
+             animation-play-state: var(--plant-anim, paused); }
+.leafSmall { animation: leafWiggleActive 2.1s ease-in-out infinite reverse;
+             animation-play-state: var(--plant-anim, paused); }
+
+@keyframes plantSwayActive {
+  0%, 100% { transform: rotate(-1.5deg); }
+  35%      { transform: rotate(2.2deg); }
+  70%      { transform: rotate(-1.8deg); }
+}
+
+/* Leaf wiggles include a droop offset so okay/struggling leaves sag while
+   still gently moving. --droop and --droopY default to 0 for healthy
+   plants; struggling overrides both to pull leaves down + tilt them. */
+@keyframes leafWiggleActive {
+  0%, 100% { transform: translateY(var(--droopY, 0px)) rotate(calc(-1.5deg + var(--droop, 0deg))); }
+  50%      { transform: translateY(var(--droopY, 0px)) rotate(calc( 3.5deg + var(--droop, 0deg))); }
+}
+
+@keyframes sparkleAnim {
+  0%, 100% { transform: scale(0.9); opacity: 0.55; }
+  50%      { transform: scale(1.12); opacity: 1; }
+}
+
+/* Respect prefers-reduced-motion — also kill the sparkles which are always-on */
+@media (prefers-reduced-motion: reduce) {
+  .sway, .leaf, .sparkle, .sparkle2, .bloom {
+    animation: none !important;
+  }
+}

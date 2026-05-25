@@ -1,0 +1,90 @@
+import styles from './plantIcons.module.css'
+import PlantShell from './PlantShell.jsx'
+
+// Orchid (phalaenopsis) — a tall, thin flower spike emerging from a small
+// rosette of strappy basal leaves, with two showy blooms clustered near the
+// top. The bloom geometry comes directly from assets/orchid.svg (Figma
+// export); we embed it as a <symbol> and <use> it at two sizes/positions.
+//
+// Unlike Monstera leaves (which inherit a single currentColor), the orchid
+// bloom is multi-colored (pink + magenta + cream) by design — health state
+// effects (struggling desaturation, etc.) come from the parent .struggling /
+// .okay filters in plantIcons.module.css, which apply uniformly across all
+// the embedded fills.
+//
+// When struggling, one of the two blooms hides and a fallen bloom appears
+// at the base of the pot — mirroring the Monstera's "leaf on the ground"
+// storytelling.
+
+export default function Orchid({ health = 'good', ariaLabel }) {
+  return (
+    <PlantShell
+      health={health}
+      ariaLabel={ariaLabel}
+      defs={
+        <symbol id="orchid-bloom" viewBox="0 0 238 215">
+          <ellipse cx="118.5" cy="65" rx="39.5" ry="65" fill="#EAB0FF"/>
+          <ellipse cx="88.1021" cy="150.969" rx="32.7032" ry="54.5"
+                   transform="rotate(30 88.1021 150.969)" fill="#D263D7"/>
+          <ellipse cx="32.7032" cy="54.5" rx="32.7032" ry="54.5"
+                   transform="matrix(-0.866025 0.5 0.5 0.866025 151.644 87.4194)"
+                   fill="#D263D7"/>
+          <path d="M50.1473 56.8849C59.091 51.0325 70.6884 50.9117 78.8922 57.7627C84.3062 62.2839 89.9847 68.0142 93.3223 74.2488C98.2661 83.4837 105.684 93.8976 110.474 100.311C113.192 103.951 113.273 108.959 110.564 112.605C105.8 119.018 98.1423 129.338 91.5681 138.257C86.2233 145.508 77.1591 150.187 69.5895 153.026C61.4958 156.061 52.641 153.692 46.1434 147.99C40.2257 142.798 33.0201 136.12 28.0312 130.31C24.4308 126.117 20.5584 120.714 17.089 115.538C10.1965 105.254 11.227 91.7046 19.5955 82.5816C23.8079 77.9894 28.4528 73.2344 32.646 69.634C37.584 65.394 44.1994 60.777 50.1473 56.8849Z" fill="#EBC9F7"/>
+          <path d="M187.264 56.8849C178.32 51.0325 166.723 50.9117 158.519 57.7627C153.105 62.2839 147.426 68.0142 144.089 74.2488C139.145 83.4837 131.727 93.8976 126.937 100.311C124.219 103.951 124.138 108.959 126.847 112.605C131.612 119.018 139.269 129.338 145.843 138.257C151.188 145.508 160.252 150.187 167.822 153.026C175.915 156.061 184.77 153.692 191.268 147.99C197.185 142.798 204.391 136.12 209.38 130.31C212.98 126.117 216.853 120.714 220.322 115.538C227.215 105.254 226.184 91.7046 217.816 82.5816C213.603 77.9894 208.958 73.2344 204.765 69.634C199.827 65.394 193.212 60.777 187.264 56.8849Z" fill="#EBC9F7"/>
+          <path d="M109.128 155.476C114.316 161.533 123.684 161.533 128.872 155.476L140.454 141.958C147.679 133.524 141.687 120.5 130.582 120.5H107.418C96.3134 120.5 90.321 133.524 97.546 141.958L109.128 155.476Z" fill="#CD24AB"/>
+          <circle cx="118.5" cy="110.5" r="13.5" fill="#FFE9F4"/>
+        </symbol>
+      }
+      fallenLeaf={
+        <use
+          className={styles.fallenBloom}
+          href="#orchid-bloom"
+          x="148" y="200"
+          width="50" height="45"
+          transform="rotate(110 173 222)"
+        />
+      }
+    >
+      {/* Strappy basal leaves — drawn as explicit paths so both leaves
+          start from exactly the same point (120, 188), right where the
+          stem emerges from the pot. Each leaf is a teardrop curving out
+          and slightly upward, with a fat middle and tapered tip.
+          Drawing them as paths (vs rotated ellipses) makes the
+          attachment point unambiguous on render. */}
+      <path
+        className={`${styles.strapLeaf} ${styles.strapLeafLeft}`}
+        d="M120 188 C95 168, 70 158, 50 162 C70 175, 95 188, 120 188 Z"
+      />
+      <path
+        className={`${styles.strapLeaf} ${styles.strapLeafRight}`}
+        d="M120 188 C145 168, 170 158, 190 162 C170 175, 145 188, 120 188 Z"
+      />
+
+      {/* Thin arching flower spike from pot soil up to the bloom cluster.
+          Curves left through the middle then back right at the top so the
+          lower bloom (sitting on the left side of the spike) actually has
+          a stem next to it instead of looking detached. */}
+      <path
+        className={`${styles.stem} ${styles.stemSmall} ${styles.orchidStem}`}
+        d="M120 188 C108 150, 108 100, 138 55"
+      />
+
+      {/* Two blooms — lower/smaller in back, upper/larger in front. The
+          lower bloom sits clearly below and to the left of the upper one
+          with a visible gap between them, so they read as two distinct
+          flowers on the same spike rather than a single double-flower blob.
+          Class names mirror Monstera's leaf naming so the struggling-state
+          "drop the small one" pattern carries over. */}
+      <use
+        className={`${styles.bloom} ${styles.bloomLower}`}
+        href="#orchid-bloom"
+        x="75" y="81" width="54" height="49"
+      />
+      <use
+        className={`${styles.bloom} ${styles.bloomUpper}`}
+        href="#orchid-bloom"
+        x="105" y="25" width="66" height="60"
+      />
+    </PlantShell>
+  )
+}

@@ -5,6 +5,7 @@ import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantDetailPage.module.css'
 import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
+import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import PlantPrediction from '../../care/components/PlantPrediction'
 import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
@@ -122,7 +123,11 @@ export default function PlantDetailPage({
           ‹
         </button>
         <div className={styles.heroInline}>
-          <span className={styles.heroEmoji}>{emoji}</span>
+          <span className={`${styles.heroEmoji} ${hasIcon(species) ? styles.heroEmojiIcon : ''}`}>
+            {hasIcon(species)
+              ? <PlantIcon species={species} health={health} ariaLabel={`${name || species} — ${health}`} />
+              : emoji}
+          </span>
           <div className={styles.heroText}>
             <div className={styles.heroNameRow}>
               <h1 className={styles.heroName}>{name || titleCase(species)}</h1>
