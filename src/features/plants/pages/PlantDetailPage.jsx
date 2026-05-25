@@ -323,12 +323,6 @@ export default function PlantDetailPage({
                     <span className={styles.cardDecorEmoji} role="img" aria-label="">🌿</span>
                   </div>
                   <div className={styles.careList}>
-                    {careProfile.moistureRange && (
-                      <div className={styles.careItem}>
-                        <span className={styles.careLabel}>Ideal moisture</span>
-                        <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
-                      </div>
-                    )}
                     {careProfile.wateringStyle && (
                       <div className={styles.careItem}>
                         <span className={styles.careLabel}>Watering style</span>
@@ -336,6 +330,12 @@ export default function PlantDetailPage({
                         {careProfile.wateringFrequency && (
                           <span className={styles.careSubvalue}>{careProfile.wateringFrequency}</span>
                         )}
+                      </div>
+                    )}
+                    {careProfile.moistureRange && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Ideal moisture</span>
+                        <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
                       </div>
                     )}
                     {careProfile.light && (
