@@ -369,15 +369,31 @@
   color: var(--text-primary);
 }
 
-.statPredTag {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
 .statMeta {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Model's estimate of the current value, shown as a secondary line below
+   the raw reading + its timestamp. Smaller and muted so the actual logged
+   reading remains the primary number. */
+.statEstimate {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.statEstimateLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.statEstimateMeta {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .statusBar {

@@ -56,10 +56,16 @@ function fmtTime(ts) {
   })
 }
 function relTime(ts) {
-  const days = Math.floor((Date.now() - new Date(ts)) / 86_400_000)
-  if (days === 0) return 'today'
-  if (days === 1) return 'yesterday'
-  return `${days}d ago`
+  const mins = Math.floor((Date.now() - new Date(ts)) / 60_000)
+  if (mins < 1)    return 'just now'
+  if (mins < 60)   return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)    return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days === 1)  return 'yesterday'
+  if (days < 7)    return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  return `${weeks}w ago`
 }
 
 const CHART_WINDOWS = ['1W', '1M', '3M', 'all']
@@ -182,10 +188,21 @@ export default function PlantDetailPage({
                 <div className={styles.statItem}>
                   <span className={styles.statLabel}>Moisture</span>
                   <span className={styles.statValue}>
-                    {badgeMoisture != null ? `${badgeMoisture} / 10` : '—'}
-                    {usePredicted && <span className={styles.statPredTag}> est.</span>}
+                    {rawMoisture != null ? `${rawMoisture} / 10` : '—'}
                   </span>
                   <span className={styles.statMeta}>{relTime(reading.timestamp)}</span>
+                  {/* Model's estimate of current moisture, shown as a smaller
+                      secondary line when we have a confident prediction. Lets
+                      the user see how much the raw reading may have drifted
+                      since it was taken. */}
+                  {predMoisture != null && !wateredAfterReading && (
+                    <span className={styles.statEstimate}>
+                      <span className={styles.statEstimateLabel}>est.</span>
+                      {' '}
+                      {predMoisture} / 10
+                      <span className={styles.statEstimateMeta}> · now</span>
+                    </span>
+                  )}
                 </div>
               )}
               {watering && (
