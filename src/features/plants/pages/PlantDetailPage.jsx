@@ -289,54 +289,60 @@ export default function PlantDetailPage({
 
         </div>{/* /mainCol */}
 
-        {/* ── Sidebar: care guide ── */}
+        {/* ── Sidebar: stacked care cards, styled like the dashboard Care Tip ── */}
         {(careProfile || reading) && (
           <aside className={styles.sidebar}>
-            <section className={styles.sidebarSection}>
+            <div className={styles.sidebarStack}>
               {reading && (
-                <div className={styles.predictionBlock}>
-                  <PlantPrediction plant={plant} careProfile={careProfile} />
-                </div>
+                <section className={styles.careCard}>
+                  <h2 className={styles.careCardTitle}>Recommendation</h2>
+                  <div className={styles.careCardBody}>
+                    <PlantPrediction plant={plant} careProfile={careProfile} />
+                  </div>
+                </section>
               )}
-              {careProfile && <>
-              <h2 className={styles.sectionTitle}>Care guide</h2>
-              <div className={styles.careList}>
-                {careProfile.moistureRange && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Ideal moisture</span>
-                    <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
+
+              {careProfile && (
+                <section className={styles.careCard}>
+                  <h2 className={styles.careCardTitle}>Care guide</h2>
+                  <div className={styles.careList}>
+                    {careProfile.moistureRange && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Ideal moisture</span>
+                        <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
+                      </div>
+                    )}
+                    {careProfile.wateringStyle && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Watering style</span>
+                        <span className={styles.careValue}>{WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}</span>
+                      </div>
+                    )}
+                    {careProfile.light && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Light</span>
+                        <span className={styles.careValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
+                      </div>
+                    )}
+                    {careProfile.humidity && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Humidity</span>
+                        <span className={styles.careValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
+                      </div>
+                    )}
+                    {careProfile.minWaterAmount && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Min watering</span>
+                        <span className={styles.careValue}>{careProfile.minWaterAmount.cups} cups / {careProfile.minWaterAmount.liters} L</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {careProfile.wateringStyle && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Watering style</span>
-                    <span className={styles.careValue}>{WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}</span>
-                  </div>
-                )}
-                {careProfile.light && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Light</span>
-                    <span className={styles.careValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
-                  </div>
-                )}
-                {careProfile.humidity && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Humidity</span>
-                    <span className={styles.careValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
-                  </div>
-                )}
-                {careProfile.minWaterAmount && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Min watering</span>
-                    <span className={styles.careValue}>{careProfile.minWaterAmount.cups} cups / {careProfile.minWaterAmount.liters} L</span>
-                  </div>
-                )}
-              </div>
-              {careProfile.notes && (
-                <p className={styles.careNotes}>{careProfile.notes}</p>
+                  {careProfile.notes && (
+                    <p className={styles.careNotes}>{careProfile.notes}</p>
+                  )}
+                </section>
               )}
-              </>}
-            </section>
+            </div>
           </aside>
         )}
       </div>

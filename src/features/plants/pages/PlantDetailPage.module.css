@@ -167,15 +167,60 @@
   min-width: 0;
 }
 
+/* ── Sidebar (right column) ─────────────────────────────────────────
+   No more border-left divider — the sidebar now reads as a stack of
+   self-contained Care Tip-style cards. The whole stack is sticky as a
+   unit so it follows the user as they scroll the plant history chart. */
 .sidebar {
-  padding: 20px 20px 0 0;
-  border-left: 1px solid var(--border-default);
+  padding: 20px 20px 0 12px;
 }
 
-.sidebarSection {
-  padding: 0 0 0 20px;
+.sidebarStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   position: sticky;
   top: 76px; /* under the sticky top nav */
+}
+
+/* ── Care card: shared base for all stacked cards on the right ──────
+   Visual language mirrors the dashboard's CareTipCard — surface-2 base
+   with a soft radial glow on the right side, rounded corners, padded
+   generously, subtle shadow. Looks identical in dark and light themes
+   thanks to all-token usage. */
+.careCard {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 22px;
+  background:
+    radial-gradient(circle at 92% 50%, var(--color-care-tip-glow), transparent 42%),
+    var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--dash-card-radius, 1.25rem);
+  box-shadow: var(--shadow-card-subtle);
+}
+
+:global([data-theme="dark"]) .careCard {
+  background:
+    radial-gradient(circle at 92% 50%, var(--color-care-tip-glow), transparent 42%),
+    var(--color-surface);
+}
+
+.careCardTitle {
+  margin: 0 0 14px;
+  font-size: var(--font-size-card-title, 17px);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+/* PlantPrediction sizes its children in em from a 10px base — bumping the
+   wrapping font-size here scales the recommendation text up to legible
+   sidebar size without per-element overrides. */
+.careCardBody {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
 }
 
 /* ── Quick actions ── */
@@ -296,15 +341,6 @@
   margin-bottom: 12px;
 }
 
-.predictionBlock {
-  margin-bottom: 20px;
-}
-
-/* Scale the embedded PlantPrediction up — its child sizes are in em so a
-   larger font-size on the wrapping element cascades to everything inside. */
-.predictionBlock > * {
-  font-size: 13px;
-}
 
 /* ── Chart ── */
 .chartWrap {
@@ -449,21 +485,20 @@
 }
 
 /* ── Mobile tweaks ── */
-/* Stack sidebar below main on narrower viewports */
+/* Stack sidebar below main on narrower viewports — and stop the sticky
+   pin so the cards just flow with the page. */
 @media (max-width: 899px) {
   .content {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
   }
   .sidebar {
-    border-left: none;
-    border-top: 1px solid var(--border-default);
-    padding: 0;
+    padding: 16px 20px 0;
     margin-top: 24px;
   }
-  .sidebarSection {
-    padding: 20px;
+  .sidebarStack {
     position: static;
+    gap: 14px;
   }
 }
 
