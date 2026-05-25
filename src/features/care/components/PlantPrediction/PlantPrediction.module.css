@@ -6,8 +6,8 @@
   flex-direction: column;
   gap: 0.4em;
   padding: 0.8em 0.6em;
-  background: rgba(13, 23, 10, 0.6);
-  border: 1px solid rgba(71, 133, 61, 0.2);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   width: 100%;
   box-sizing: border-box;

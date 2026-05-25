@@ -95,7 +95,7 @@
 .chartToggle {
   display: flex;
   gap: 3px;
-  background: rgba(13,23,10,0.6);
+  background: var(--color-surface-inset);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   padding: 3px;
