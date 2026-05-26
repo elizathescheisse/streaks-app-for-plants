@@ -52,6 +52,20 @@
   flex-shrink: 0;
 }
 
+/* When displaying an animated SVG icon, give it more canvas — the plant
+   illustration needs room to breathe in a way that a single emoji glyph
+   doesn't. */
+.heroEmojiIcon {
+  width:  64px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Pull the surrounding nav layout in a little so the icon's extra height
+     doesn't push the whole row taller. */
+  margin: -14px 0;
+}
+
 .heroText {
   display: flex;
   flex-direction: column;

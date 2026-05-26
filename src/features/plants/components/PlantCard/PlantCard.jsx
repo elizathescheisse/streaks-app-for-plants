@@ -5,6 +5,7 @@ import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantCard.module.css'
 import MoistureBar from '../../../care/components/MoistureBar'
 import PlantHistoryChart from '../../../care/components/PlantHistoryChart'
+import PlantIcon, { hasIcon } from '../plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '../../../../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../../../../utils/plantSelectors.js'
 import { computeModel, getRecommendation } from '../../../../utils/plantModel.js'
@@ -113,7 +114,11 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   return (
     <div className={styles.cardWrap}>
       <div className={`${styles.card} ${styles[health]} ${isCompact && status ? styles[`cardStatus_${status.cls}`] : ''}`}>
-        <div className={styles.iconCircle}>{emoji}</div>
+        <div className={styles.iconCircle}>
+          {hasIcon(species)
+            ? <PlantIcon species={species} health={health} ariaLabel={`${name || species} — ${health}`} />
+            : emoji}
+        </div>
 
         <div className={styles.cardInner}>
 

@@ -26,12 +26,68 @@
 .cardStatus_struggling:hover { border-color: rgba(229, 97, 71, 0.65); }
 
 .iconCircle {
-  width: 48px; height: 48px;
+  width: 72px; height: 72px;
   border-radius: 50%;
   background: var(--bg-surface-raised);
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
+  font-size: 32px;
   flex-shrink: 0;
+  position: relative;     /* anchor for the absolutely-positioned plant SVG */
+  overflow: visible;      /* let leaves spill above the card border */
+}
+
+/* When the iconCircle wraps an animated plant SVG (vs. a plain emoji), the
+   plant lives in a 140px absolute box but is scaled DOWN to fit the 72px
+   circle by default — so it sits quietly inside the circle and doesn't
+   compete with the action badges. Pointer-events disabled so leaves don't
+   intercept clicks on the card above when they overflow into the grid gap.
+
+   Default opacity (0.9) targets mobile / touch devices where there is no
+   hover state — icons need to be clearly visible since the user never
+   gets a "reveal" interaction. On hover-capable devices we drop to 0.65
+   so the action badges read first, and bump back to 1.0 on card hover. */
+.iconCircle > svg {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  bottom: -4px;           /* small downward nudge so pot meets circle bottom */
+  left: -34px;            /* center 140px wide over 72px circle: (72-140)/2 */
+  transform: scale(0.514);/* 72/140 — shrink to fit the circle exactly */
+  transform-origin: bottom center;
+  opacity: 0.9;           /* mobile default — icons stay clearly visible */
+  transition: transform 0.4s ease, bottom 0.4s ease, opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 2;             /* render above adjacent cards if leaves overlap */
+}
+
+/* Animations run by default — on mobile / touch devices there's no hover
+   reveal, so a gentle baseline of sway/wiggle/sparkle motion keeps the
+   icons feeling alive. Hover-capable devices override this to paused so
+   the icons sit still until the user hovers (then we resume below). */
+.iconCircle {
+  --plant-anim: running;
+}
+
+/* Hover-capable devices: dim + still at rest so action UI takes priority,
+   then grow + brighten + animate on card hover. Touch devices skip this
+   entire block, leaving the always-animated 0.9-opacity state from above. */
+@media (hover: hover) {
+  .iconCircle {
+    --plant-anim: paused;
+  }
+  .iconCircle > svg {
+    opacity: 0.65;
+  }
+
+  .cardWrap:hover .iconCircle > svg {
+    transform: scale(1);
+    bottom: -12px;
+    opacity: 1;
+  }
+  .cardWrap:hover .iconCircle {
+    --plant-anim: running;
+    --leaftop-color: #90BF4F;   /* thriving plants: brighten the highlight leaf on hover */
+  }
 }
 
 /* Two-column inner layout */
