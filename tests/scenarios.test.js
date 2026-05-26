@@ -2,7 +2,7 @@
 // outcome. Each `describe` block corresponds to one fixture and one or more
 // historical bugs. See tests/fixtures/README.md for the convention.
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -28,6 +28,22 @@ function loadFixture(name) {
 describe('Alocasia — probe variance immediately after watering (#101)', () => {
   const plant = loadFixture('alocasia-2026-05-20-probe-variance.json')
   const careProfile = lookupPlant(plant.species)
+
+  // The fixture's last event is at 2026-05-20T18:33Z. The scenario is
+  // "user just took two post-watering readings" — so the model should
+  // see "no time has passed" since the latest reading. Without faking
+  // Date.now() the test would drift further into the future every day,
+  // because predictMoisture() multiplies beta by (Date.now() − reading
+  // timestamp) and would then claim the plant has dried out by ~beta·days
+  // per real-world day since the fixture was written.
+  const FIXTURE_NOW = new Date('2026-05-20T18:34:00.000Z')
+  beforeAll(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(FIXTURE_NOW)
+  })
+  afterAll(() => {
+    vi.useRealTimers()
+  })
 
   it('takes the higher post-watering reading, not the median with the dry-pocket one', () => {
     expect(smoothedCurrentMoisture(plant)).toBe(6)
