@@ -1,25 +1,17 @@
 .wrap {
-  /* Base layout + typography. Child sizes are in em so the whole block
-     can be scaled from a parent (e.g. the detail page sidebar uses a
-     larger base font-size). Used both standalone and inside a parent
-     card — see .wrapBoxed for the standalone surface treatment. */
+  /* Base font-size — child sizes are in em so the whole block can be
+     scaled from a parent (e.g. by setting font-size on the wrapping
+     element to bump everything proportionally). */
   font-size: 10px;
   display: flex;
   flex-direction: column;
   gap: 0.4em;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Standalone surface — used when PlantPrediction renders on its own
-   (e.g. in PlantCard's chart strip), not when it's nested inside a
-   card that already provides its own background. Pass bare={true} to
-   skip this. */
-.wrapBoxed {
   padding: 0.8em 0.6em;
   background: var(--color-surface-inset);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .row {

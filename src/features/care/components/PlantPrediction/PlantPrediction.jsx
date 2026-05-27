@@ -15,15 +15,7 @@ function relTime(ts) {
   return `${weeks}w ago`
 }
 
-// `bare` strips the component's own surface-inset box (bg/border/padding)
-// when it's already rendered inside a styled parent card — avoids the
-// "card inside a card" look. Layout and typography stay identical.
-//
-// `hideCareInfo` skips the watering-style and watering-frequency lines.
-// Use when a parent (e.g. PlantDetailPage's Care guide card) already shows
-// the same info elsewhere on the page so we don't duplicate it.
-export default function PlantPrediction({ plant, careProfile, bare = false, hideCareInfo = false }) {
-  const wrapClass = bare ? styles.wrap : `${styles.wrap} ${styles.wrapBoxed}`
+export default function PlantPrediction({ plant, careProfile }) {
   const reading  = lastReading(plant)
   const watering = lastWatering(plant)
   if (!reading) return null
@@ -37,7 +29,7 @@ export default function PlantPrediction({ plant, careProfile, bare = false, hide
 
   if (wateredAfterReading) {
     return (
-      <div className={wrapClass}>
+      <div className={styles.wrap}>
         <div className={styles.row}>
           <span className={styles.settling}>
             💧 Watered {relTime(watering.timestamp)}
@@ -70,11 +62,11 @@ export default function PlantPrediction({ plant, careProfile, bare = false, hide
   const stillLearning = usingDefaults || confidence === 'low'
   if (stillLearning) {
     return (
-      <div className={wrapClass}>
-        {!hideCareInfo && wateringStyleLabel && (
+      <div className={styles.wrap}>
+        {wateringStyleLabel && (
           <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
         )}
-        {!hideCareInfo && wateringFrequency && (
+        {wateringFrequency && (
           <span className={styles.wateringFrequency}>{wateringFrequency}</span>
         )}
         <div className={styles.progressRow}>
@@ -92,11 +84,11 @@ export default function PlantPrediction({ plant, careProfile, bare = false, hide
   }
 
   return (
-    <div className={wrapClass}>
-      {!hideCareInfo && wateringStyleLabel && (
+    <div className={styles.wrap}>
+      {wateringStyleLabel && (
         <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
       )}
-      {!hideCareInfo && wateringFrequency && (
+      {wateringFrequency && (
         <span className={styles.wateringFrequency}>{wateringFrequency}</span>
       )}
       <span className={styles.moistureRaw}>
