@@ -30,6 +30,24 @@ A change that's technically correct but premature, unnecessary, or too granular 
 
 Always check whether what's being asked for already exists, partially or fully, before writing any code. Search the codebase for related components, utilities, or patterns first. The plant detail modal existing while I assumed it didn't is a concrete example of why this matters — building on top of what's there is almost always better than duplicating it.
 
+## Dead code
+
+If a refactor, removal, or pivot leaves code that nothing references anymore — unused props, orphan CSS classes, dead functions, leftover imports, unreachable branches — **remove it.** Don't leave it sitting around "in case we need it later." YAGNI applies; the abstraction can be re-added when it's actually needed, and you'll be in a better position to design it correctly then.
+
+The one exception: if there's a specific, near-term reason to keep something, leave it with an inline comment that says so. Examples:
+
+```js
+// KEEP: needed for the schedule-based care mode landing in #112
+export function buildScheduleForm() { ... }
+```
+
+```css
+/* KEEP: re-enable when we have >50% icon coverage */
+/* .iconCircle > svg { ... } */
+```
+
+Without that comment, it's dead code and goes. The `bare` and `hideCareInfo` props on `PlantPrediction` are a concrete example of how easy it is to accumulate unused complexity if you don't clean up after a pivot.
+
 ## "Is this worth building?"
 
 When Eliza asks whether something is worth doing, treat it as a genuine product design question, not a request for validation. Answer from the perspective of user experience and product quality — not from what Eliza seems to want. It's okay to say "I don't think this serves users well because..." even if Eliza is clearly enthusiastic about it. The fact that she wants something doesn't mean it's the right call for the product.

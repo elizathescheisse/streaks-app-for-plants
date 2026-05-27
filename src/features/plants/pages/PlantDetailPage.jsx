@@ -6,7 +6,6 @@ import styles from './PlantDetailPage.module.css'
 import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
-import PlantPrediction from '../../care/components/PlantPrediction'
 import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents
@@ -56,10 +55,16 @@ function fmtTime(ts) {
   })
 }
 function relTime(ts) {
-  const days = Math.floor((Date.now() - new Date(ts)) / 86_400_000)
-  if (days === 0) return 'today'
-  if (days === 1) return 'yesterday'
-  return `${days}d ago`
+  const mins = Math.floor((Date.now() - new Date(ts)) / 60_000)
+  if (mins < 1)    return 'just now'
+  if (mins < 60)   return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)    return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days === 1)  return 'yesterday'
+  if (days < 7)    return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  return `${weeks}w ago`
 }
 
 const CHART_WINDOWS = ['1W', '1M', '3M', 'all']
@@ -101,6 +106,12 @@ export default function PlantDetailPage({
   const predMoisture = isConfident ? Math.round(rec.predicted) : null
   const drift        = (rawMoisture != null && predMoisture != null)
     ? Math.abs(predMoisture - rawMoisture) : 0
+
+  // Show the "est. now" secondary line whenever the model's prediction
+  // would round to a different value than the raw reading. If they match,
+  // the line adds nothing — even at 5 days stale, "EST. 5 · now" next to
+  // "5 / 10 · 5d ago" is just repeating the same number.
+  const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1
   const usePredicted = isConfident && drift >= 1
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
@@ -182,10 +193,21 @@ export default function PlantDetailPage({
                 <div className={styles.statItem}>
                   <span className={styles.statLabel}>Moisture</span>
                   <span className={styles.statValue}>
-                    {badgeMoisture != null ? `${badgeMoisture} / 10` : '—'}
-                    {usePredicted && <span className={styles.statPredTag}> est.</span>}
+                    {rawMoisture != null ? `${rawMoisture} / 10` : '—'}
                   </span>
                   <span className={styles.statMeta}>{relTime(reading.timestamp)}</span>
+                  {/* Model's estimate of current moisture, shown as a smaller
+                      secondary line only when the raw reading is stale enough
+                      that the estimate adds information. See showEstimate
+                      above for the freshness threshold. */}
+                  {showEstimate && (
+                    <span className={styles.statEstimate}>
+                      <span className={styles.statEstimateLabel}>est.</span>
+                      {' '}
+                      {predMoisture} / 10
+                      <span className={styles.statEstimateMeta}> · now</span>
+                    </span>
+                  )}
                 </div>
               )}
               {watering && (
@@ -289,54 +311,58 @@ export default function PlantDetailPage({
 
         </div>{/* /mainCol */}
 
-        {/* ── Sidebar: care guide ── */}
-        {(careProfile || reading) && (
+        {/* ── Sidebar: stacked care cards, styled like the dashboard Care Tip ── */}
+        {careProfile && (
           <aside className={styles.sidebar}>
-            <section className={styles.sidebarSection}>
-              {reading && (
-                <div className={styles.predictionBlock}>
-                  <PlantPrediction plant={plant} careProfile={careProfile} />
-                </div>
+            <div className={styles.sidebarStack}>
+              {careProfile && (
+                <section className={styles.careCard}>
+                  <h2 className={styles.careCardTitle}>Care guide</h2>
+                  <div className={styles.cardDecor} aria-hidden="true">
+                    <div className={styles.cardDecorGlow} />
+                    <span className={styles.cardDecorEmoji} role="img" aria-label="">🌿</span>
+                  </div>
+                  <div className={styles.careList}>
+                    {careProfile.wateringStyle && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Watering style</span>
+                        <span className={styles.careValue}>{WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}</span>
+                        {careProfile.wateringFrequency && (
+                          <span className={styles.careSubvalue}>{careProfile.wateringFrequency}</span>
+                        )}
+                      </div>
+                    )}
+                    {careProfile.moistureRange && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Ideal moisture</span>
+                        <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
+                      </div>
+                    )}
+                    {careProfile.light && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Light</span>
+                        <span className={styles.careValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
+                      </div>
+                    )}
+                    {careProfile.humidity && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Humidity</span>
+                        <span className={styles.careValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
+                      </div>
+                    )}
+                    {careProfile.minWaterAmount && (
+                      <div className={styles.careItem}>
+                        <span className={styles.careLabel}>Min watering</span>
+                        <span className={styles.careValue}>{careProfile.minWaterAmount.cups} cups / {careProfile.minWaterAmount.liters} L</span>
+                      </div>
+                    )}
+                  </div>
+                  {careProfile.notes && (
+                    <p className={styles.careNotes}>{careProfile.notes}</p>
+                  )}
+                </section>
               )}
-              {careProfile && <>
-              <h2 className={styles.sectionTitle}>Care guide</h2>
-              <div className={styles.careList}>
-                {careProfile.moistureRange && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Ideal moisture</span>
-                    <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
-                  </div>
-                )}
-                {careProfile.wateringStyle && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Watering style</span>
-                    <span className={styles.careValue}>{WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}</span>
-                  </div>
-                )}
-                {careProfile.light && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Light</span>
-                    <span className={styles.careValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
-                  </div>
-                )}
-                {careProfile.humidity && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Humidity</span>
-                    <span className={styles.careValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
-                  </div>
-                )}
-                {careProfile.minWaterAmount && (
-                  <div className={styles.careItem}>
-                    <span className={styles.careLabel}>Min watering</span>
-                    <span className={styles.careValue}>{careProfile.minWaterAmount.cups} cups / {careProfile.minWaterAmount.liters} L</span>
-                  </div>
-                )}
-              </div>
-              {careProfile.notes && (
-                <p className={styles.careNotes}>{careProfile.notes}</p>
-              )}
-              </>}
-            </section>
+            </div>
           </aside>
         )}
       </div>

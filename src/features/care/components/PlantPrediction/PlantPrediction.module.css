@@ -1,6 +1,7 @@
 .wrap {
   /* Base font-size — child sizes are in em so the whole block can be
-     scaled from a parent (e.g. the detail page sidebar uses a larger base). */
+     scaled from a parent (e.g. by setting font-size on the wrapping
+     element to bump everything proportionally). */
   font-size: 10px;
   display: flex;
   flex-direction: column;

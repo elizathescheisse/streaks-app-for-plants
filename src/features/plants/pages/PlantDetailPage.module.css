@@ -167,15 +167,103 @@
   min-width: 0;
 }
 
+/* ── Sidebar (right column) ─────────────────────────────────────────
+   No more border-left divider — the sidebar now reads as a stack of
+   self-contained Care Tip-style cards. The whole stack is sticky as a
+   unit so it follows the user as they scroll the plant history chart. */
 .sidebar {
-  padding: 20px 20px 0 0;
-  border-left: 1px solid var(--border-default);
+  padding: 20px 20px 0 12px;
 }
 
-.sidebarSection {
-  padding: 0 0 0 20px;
+.sidebarStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   position: sticky;
   top: 76px; /* under the sticky top nav */
+}
+
+/* ── Care card: shared base for all stacked cards on the right ──────
+   Visual language mirrors the dashboard's CareTipCard — surface-2 base
+   with a soft radial glow on the right side anchored on the decorative
+   emoji, rounded corners, padded generously, subtle shadow. */
+.careCard {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 28px 32px;
+  min-height: 150px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--dash-card-radius, 1.25rem);
+  box-shadow: var(--shadow-card-subtle);
+}
+
+:global([data-theme="dark"]) .careCard {
+  background: var(--color-surface);
+}
+
+.careCardTitle {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 22px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.015em;
+}
+
+/* Constrain text content to the left half so the decorative emoji on
+   the right has room to breathe. PlantPrediction sizes its children
+   in em from a 10px base; bumping font-size here scales it up. */
+.careCardBody {
+  position: relative;
+  z-index: 2;
+  font-size: 13px;
+  max-width: 65%;
+}
+
+/* The careList (and its parent) also need to dodge the emoji on the right */
+.careCard .careList {
+  position: relative;
+  z-index: 2;
+  max-width: 65%;
+}
+
+/* ── Decorative emoji + focused glow on the right of each card ─────
+   Same signature pattern as CareTipCard's plant illustration: a soft
+   radial glow circle behind a single sized emoji, anchored to the
+   right-center of the card. */
+.cardDecor {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cardDecorGlow {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--color-care-tip-glow),
+    transparent 72%
+  );
+}
+
+.cardDecorEmoji {
+  position: relative;
+  z-index: 1;
+  font-size: 58px;
+  line-height: 1;
+  filter: saturate(1.05);
 }
 
 /* ── Quick actions ── */
@@ -281,30 +369,37 @@
   color: var(--text-primary);
 }
 
-.statPredTag {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
 .statMeta {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Model's estimate of the current value, shown as a secondary line below
+   the raw reading + its timestamp. Smaller and muted so the actual logged
+   reading remains the primary number. */
+.statEstimate {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.statEstimateLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.statEstimateMeta {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .statusBar {
   margin-bottom: 12px;
 }
 
-.predictionBlock {
-  margin-bottom: 20px;
-}
-
-/* Scale the embedded PlantPrediction up — its child sizes are in em so a
-   larger font-size on the wrapping element cascades to everything inside. */
-.predictionBlock > * {
-  font-size: 13px;
-}
 
 /* ── Chart ── */
 .chartWrap {
@@ -343,7 +438,7 @@
 .careList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .careItem {
@@ -363,6 +458,15 @@
 .careValue {
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+/* Secondary line under a careValue — e.g. the watering-frequency description
+   ("when the top inch dries out") that sits below the watering style itself. */
+.careSubvalue {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
 }
 
 .careNotes {
@@ -449,21 +553,20 @@
 }
 
 /* ── Mobile tweaks ── */
-/* Stack sidebar below main on narrower viewports */
+/* Stack sidebar below main on narrower viewports — and stop the sticky
+   pin so the cards just flow with the page. */
 @media (max-width: 899px) {
   .content {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
   }
   .sidebar {
-    border-left: none;
-    border-top: 1px solid var(--border-default);
-    padding: 0;
+    padding: 16px 20px 0;
     margin-top: 24px;
   }
-  .sidebarSection {
-    padding: 20px;
+  .sidebarStack {
     position: static;
+    gap: 14px;
   }
 }
 
