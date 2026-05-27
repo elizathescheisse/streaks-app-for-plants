@@ -190,7 +190,7 @@
 .careCard {
   position: relative;
   overflow: hidden;
-  padding: 22px 24px;
+  padding: 28px 28px 32px;
   min-height: 150px;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
@@ -205,11 +205,11 @@
 .careCardTitle {
   position: relative;
   z-index: 2;
-  margin: 0 0 14px;
-  font-size: var(--font-size-card-title, 17px);
-  font-weight: 600;
+  margin: 0 0 22px;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--color-text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 /* Constrain text content to the left half so the decorative emoji on
@@ -438,7 +438,7 @@
 .careList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .careItem {
