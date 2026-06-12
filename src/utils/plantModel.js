@@ -5,10 +5,12 @@
  *   α (alpha) — moisture rise per unit of water  (e.g. 1.5 moisture points per cup)
  *   β (beta)  — moisture drop per day            (e.g. 0.5 points/day)
  *
- * Both are estimated from the most recent N observations using exponential
- * smoothing (γ = 0.25). Older observations outside the window are dropped so
- * the estimate adapts to seasonal changes (e.g. slower drying in winter).
- * Cold-start defaults are used when not enough data exists yet.
+ * Both are estimated per drying cycle by fitting a least-squares regression
+ * line through that cycle's readings (see computeModel), then blended across
+ * the most recent N cycles with exponential smoothing (γ = 0.25). Older cycles
+ * outside the window are dropped so the estimate adapts to seasonal changes
+ * (e.g. slower drying in winter). Cold-start defaults are used when not enough
+ * data exists yet.
  */
 
 import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture } from './plantSelectors.js'
@@ -19,26 +21,31 @@ const GAMMA         = 0.25  // EMA smoothing factor: recent obs weighted more
 const BETA_WINDOW   = 6     // only use the N most recent β observations
 const ALPHA_WINDOW  = 4     // only use the N most recent α observations
 
-// β-learning guardrails — see #109 (self-reinforcing feedback loop).
-// A triple only yields a trustworthy drying rate if there's a reading soon
-// after the watering. Past this window the "post-water peak" is a guess and
-// produces wildly inflated β (e.g. a 3-day gap back-calcs to ~1.17/day).
-const MIN_READING_FRESHNESS_MS = 24 * 3_600_000  // 24h
+// A cycle's readings must span at least this long to yield a drying slope —
+// below it the points are same-session probe noise, not a drying trend.
+const MIN_SPAN_DAYS = 0.167  // 4h
 // Hard ceiling on the learned drying rate. Most indoor plants dry at
 // 0.1–0.4 points/day; nothing realistic exceeds this. Stops a single noisy
-// observation from pushing β into runaway territory.
+// cycle from pushing β into runaway territory.
 const BETA_CEILING  = 0.7
 
 // ─────────────────────────────────────────────────────────
 // computeModel
-// Walks the event timeline and estimates α and β.
+// Splits the event timeline into drying cycles (the readings between two
+// waterings) and fits a least-squares line to each cycle:
 //
-// β sources: any two consecutive readings with no watering between them
-//   β_obs = (M_t1 − M_t2) / days_between
+//   moisture = intercept − β · (days since the cycle's watering)
 //
-// α sources: reading → watering → next reading (no extra watering in between)
-//   M_peak ≈ M_next_reading + β * days_since_watering  (Option B back-calc)
-//   α_obs = (M_peak − M_before) / water_amount
+//   • slope → β (drying rate) for that cycle
+//   • intercept → the post-watering peak → α = (peak − M_before) / water
+//
+// Fitting the whole cycle at once de-noises the unreliable moisture probe:
+// one bad reading barely moves a best-fit line, whereas the old
+// two-points-at-a-time method let a single outlier corrupt the slope. With
+// exactly 2 readings the fit reduces to the same pairwise slope as before, so
+// nothing is lost; with 1 reading a cycle yields no slope (no guessing). This
+// also removes the max-peak selection heuristic that caused the #109 feedback
+// loop — there's no peak to "pick," it's just the regression intercept.
 // ─────────────────────────────────────────────────────────
 // Parse a user-entered water amount string to a number.
 // Handles decimals ('1.5'), integers ('2'), and fractions ('3/4', '1/3').
@@ -54,134 +61,135 @@ function parseAmount(s) {
   return isNaN(v) ? null : v
 }
 
+// Ordinary least-squares fit of y = intercept + slope·x.
+// Returns { slope, intercept, r2, n } or null when it can't fit — fewer than
+// two points, or every point shares the same x (vertical, no slope defined).
+function linearFit(points) {
+  const n = points.length
+  if (n < 2) return null
+  let sx = 0, sy = 0
+  for (const p of points) { sx += p.x; sy += p.y }
+  const mx = sx / n, my = sy / n
+  let sxx = 0, sxy = 0, syy = 0
+  for (const p of points) {
+    const dx = p.x - mx, dy = p.y - my
+    sxx += dx * dx; sxy += dx * dy; syy += dy * dy
+  }
+  if (sxx === 0) return null
+  const slope = sxy / sxx
+  const intercept = my - slope * mx
+  // R²: fraction of variance explained. A flat line through flat data (syy=0)
+  // is a perfect fit by convention.
+  const r2 = syy === 0 ? 1 : (sxy * sxy) / (sxx * syy)
+  return { slope, intercept, r2, n }
+}
+
 export function computeModel(plant, careProfile) {
   const timeline = (plant.events ?? [])
     .filter(e => e.type === 'reading' || e.type === 'watering')
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
-  const betaObs  = []
-  const alphaObs = []
+  // ── Segment into drying cycles ────────────────────────────────────────
+  // A cycle is opened by a watering (or the start of history) and holds every
+  // reading until the next watering. `preReading` is the reading immediately
+  // before the cycle's watering — the baseline the watering lifted moisture
+  // from, used to derive α.
+  const cycles = []
+  let cur = { watering: null, preReading: null, readings: [] }
+  for (const e of timeline) {
+    if (e.type === 'reading') {
+      cur.readings.push(e)
+    } else { // watering — close the current cycle, open the next
+      cycles.push(cur)
+      const preReading = cur.readings.length
+        ? cur.readings[cur.readings.length - 1]
+        : null
+      cur = { watering: e, preReading, readings: [] }
+    }
+  }
+  cycles.push(cur)
 
-  for (let i = 0; i < timeline.length; i++) {
-    const e = timeline[i]
-    if (e.type !== 'reading') continue
+  const betaObs  = []   // one drying slope per qualifying cycle
+  const alphaObs = []   // one rise-per-water per qualifying cycle
+  const betaR2s  = []   // goodness-of-fit, parallel to betaObs
 
-    // ── β source 1: consecutive readings with no watering in between ──
-    // (cleanest signal — directly measures drying rate)
-    if (i + 1 < timeline.length && timeline[i + 1].type === 'reading') {
-      const next = timeline[i + 1]
-      const days = (new Date(next.timestamp) - new Date(e.timestamp)) / 86_400_000
-      if (days >= 0.167) {                       // at least 4 hours apart
-        const drop = e.moisture - next.moisture
-        if (drop > 0) betaObs.push(drop / days)
+  for (const cycle of cycles) {
+    const originTs = cycle.watering
+      ? new Date(cycle.watering.timestamp).getTime()
+      : (cycle.readings.length ? new Date(cycle.readings[0].timestamp).getTime() : null)
+    if (originTs == null) continue
+
+    // Drop dry-pocket outliers: a post-watering reading cannot physically sit
+    // below the pre-watering moisture (the probe landed in a dry pocket). Only
+    // filter when it leaves at least one reading.
+    let kept = cycle.readings
+    if (cycle.preReading) {
+      const base = Number(cycle.preReading.moisture)
+      const filtered = kept.filter(r => Number(r.moisture) >= base)
+      if (filtered.length) kept = filtered
+    }
+
+    const points = kept.map(r => ({
+      x: (new Date(r.timestamp).getTime() - originTs) / 86_400_000,
+      y: Number(r.moisture),
+    }))
+    const fit = linearFit(points)
+
+    // ── β: drying rate = −slope, when the cycle spans a real time window ──
+    // β is taken purely from the regression slope. It NEVER depends on which
+    // reading we treat as the post-watering peak — that decoupling is what
+    // structurally removes the #109 feedback loop.
+    if (fit) {
+      const span = points[points.length - 1].x - points[0].x
+      const betaCycle = -fit.slope
+      if (span >= MIN_SPAN_DAYS && betaCycle > 0) {
+        betaObs.push(betaCycle)
+        betaR2s.push(fit.r2)
       }
     }
 
-    // ── α + β source 2: reading → watering → reading triple ──
-    // This is the natural workflow (read, water, check days later).
-    // Gives α directly; also gives β using the current α estimate to
-    // back-calculate the moisture peak. Both parameters are extractable
-    // from the same triple — they refine each other over time.
-    if (i + 1 < timeline.length && timeline[i + 1].type === 'watering') {
-      const watering = timeline[i + 1]
-      const waterAmt = parseAmount(watering.amount)
-      if (!waterAmt || waterAmt <= 0) continue
-      // Skip insignificant waterings for flood-and-dry plants — a tablespoon
-      // of water doesn't count as a real soak and would corrupt the α estimate.
-      if (!isSignificantWatering(watering, careProfile)) continue
-
-      // Running estimates so far (or defaults if nothing yet) — used both
-      // for picking the best post-watering reading and for the actual
-      // α/β computation below.
-      const runningBeta  = betaObs.length
-        ? betaObs.reduce((s, v) => s + v, 0)  / betaObs.length
-        : DEFAULT_BETA
-      const runningAlpha = alphaObs.length
-        ? alphaObs.reduce((s, v) => s + v, 0) / alphaObs.length
-        : DEFAULT_ALPHA
-
-      // Scan ALL readings in the current drying cycle (until the next
-      // watering) and pick the one that back-calculates to the highest
-      // moisture peak right after watering: M_peak = reading + β × days.
-      //
-      // Why max-peak: probe placement variance can make the FIRST reading
-      // after watering low (probe in a dry pocket) while a reading 2 days
-      // later in a wetter spot reveals the watering was actually effective.
-      // The back-calc accounts for drying, so the higher peak is the more
-      // accurate estimate of how much water actually went in.
-      //
-      // Asymmetric by design:
-      //  • If readings genuinely decrease over time (normal drying), the
-      //    first reading already produces the highest back-calc — picked
-      //    automatically. No change vs. the previous "first reading" logic.
-      //  • If readings increase (probe variance / water redistribution),
-      //    max-peak picks the later, higher reading.
-      //
-      // Selection uses a CONSERVATIVE β (capped at the default prior), not the
-      // running estimate — see #109. If selection used runningBeta, an inflated
-      // β would make later/lower readings back-calc to higher implied peaks,
-      // so the model would prefer them and then learn an even higher β from
-      // them: a self-reinforcing loop. Decoupling selection from the estimate
-      // breaks that loop.
-      const selectionBeta = Math.min(runningBeta, DEFAULT_BETA)
-      let bestAfterIdx = -1
-      let bestPeak     = -Infinity
-      for (let j = i + 2; j < timeline.length; j++) {
-        if (timeline[j].type === 'watering') break
-        if (timeline[j].type === 'reading') {
-          const days = (new Date(timeline[j].timestamp) - new Date(watering.timestamp)) / 86_400_000
-          const peak = Number(timeline[j].moisture) + selectionBeta * days
-          if (peak > bestPeak) { bestPeak = peak; bestAfterIdx = j }
-        }
-      }
-      if (bestAfterIdx === -1) continue
-
-      const afterReading   = timeline[bestAfterIdx]
-      const daysAfterWater =
-        (new Date(afterReading.timestamp) - new Date(watering.timestamp)) / 86_400_000
-
-      // Layer 1 — reject physically impossible triples.
-      // If the BEST post-watering reading is ≤ the pre-watering reading,
-      // even the most generous back-calc shows the watering didn't register
-      // (bad probe placement throughout, entered in wrong order, etc.).
-      // A rise from back-calc would be tiny or negative, producing a badly
-      // inflated α estimate. Skip entirely.
-      if (afterReading.moisture <= e.moisture) continue
-
-      // ── α: back-calc M_peak from β, then compute moisture rise per unit water ──
-      const MpeakForAlpha = afterReading.moisture + runningBeta * daysAfterWater
-      const rise = MpeakForAlpha - e.moisture
-      if (rise > 0 && rise <= 10) {
-        alphaObs.push(rise / waterAmt)
-      }
-
-      // ── β: forward-calc M_peak from α, then compute drying rate ──
-      // Only when the post-water reading is fresh enough to actually witness
-      // the drying. With a long gap (e.g. 3 days) there's no evidence of the
-      // curve — the back/forward-calc is a guess that inflates β (#109). Skip
-      // the β contribution in that case (α above is still computed).
-      const freshEnough = daysAfterWater * 86_400_000 <= MIN_READING_FRESHNESS_MS
-      const MpeakForBeta = e.moisture + runningAlpha * waterAmt
-      const drop = MpeakForBeta - afterReading.moisture
-      if (freshEnough && drop > 0 && daysAfterWater > 0 && drop / daysAfterWater < 5) {
-        betaObs.push(drop / daysAfterWater)
+    // ── α: moisture rise per unit water, from the post-watering peak ──
+    if (cycle.watering && cycle.preReading && points.length) {
+      const waterAmt = parseAmount(cycle.watering.amount)
+      if (waterAmt && waterAmt > 0 && isSignificantWatering(cycle.watering, careProfile)) {
+        // Conservative drying rate for back-extrapolating readings to the
+        // moment of watering: β learned so far, capped at the default so a high
+        // β can't over-inflate the implied peak. Not a feedback loop — β is
+        // learned from regression slopes above, independent of this.
+        const runningBeta = betaObs.length
+          ? betaObs.reduce((s, v) => s + v, 0) / betaObs.length
+          : DEFAULT_BETA
+        const betaExtrap = Math.min(runningBeta, DEFAULT_BETA)
+        // Peak = the highest moisture the soil reached, extrapolated back to
+        // watering time. A clean drying cycle → the regression intercept (the
+        // de-noised value at x=0). A rising cycle (probe in a dry pocket first,
+        // a wetter spot later) → the max back-calc recovers the true peak (#98).
+        const peak = (fit && fit.slope <= 0)
+          ? fit.intercept
+          : Math.max(...points.map(p => p.y + betaExtrap * p.x))
+        const rise = peak - Number(cycle.preReading.moisture)
+        if (rise > 0 && rise <= 10) alphaObs.push(rise / waterAmt)
       }
     }
   }
 
-  // Apply EMA over a rolling window of the most recent N observations.
-  // Older samples (outside the window) are discarded so the estimate adapts
-  // to seasonal drift — e.g. slower drying in winter — without anchoring
-  // to stale summer data. Total sample counts are preserved for confidence.
+  // EMA over the most recent cycles (seasonal adaptation — older cycles drop
+  // out of the window so the estimate tracks the current season), then cap β.
   const recentBeta  = betaObs.slice(-BETA_WINDOW)
   const recentAlpha = alphaObs.slice(-ALPHA_WINDOW)
 
   let beta  = null
   for (const obs of recentBeta)  { beta  = beta  == null ? obs : GAMMA * obs + (1 - GAMMA) * beta  }
-  // Hard ceiling — a final guard against runaway β (#109).
   if (beta != null) beta = Math.min(beta, BETA_CEILING)
   let alpha = null
   for (const obs of recentAlpha) { alpha = alpha == null ? obs : GAMMA * obs + (1 - GAMMA) * alpha }
+
+  // Mean goodness-of-fit across the β-contributing cycles in the window — a
+  // noisy fit shouldn't read as high confidence (see getRecommendation).
+  const recentR2 = betaR2s.slice(-BETA_WINDOW)
+  const betaR2 = recentR2.length
+    ? recentR2.reduce((s, v) => s + v, 0) / recentR2.length
+    : null
 
   // Dominant watering unit — for displaying recommendation in the right unit
   const waterings = (plant.events ?? []).filter(e => e.type === 'watering')
@@ -193,8 +201,9 @@ export function computeModel(plant, careProfile) {
   return {
     alpha,                              // null if not enough data yet
     beta,                               // null if not enough data yet
-    alphaSamples: alphaObs.length,
+    alphaSamples: alphaObs.length,      // qualifying cycles, not raw pairs
     betaSamples:  betaObs.length,
+    betaR2,                             // mean R² of β-contributing cycles, or null
     dominantUnit,
   }
 }
@@ -276,10 +285,16 @@ export function getRecommendation(plant, model, careProfile) {
   const waterNeeded  = Math.min(physicalCap, Math.max(0, (rangeHi - predicted) / alpha))
 
   const totalSamples = model.betaSamples + model.alphaSamples
-  const confidence = totalSamples === 0 ? 'none'
+  let confidence = totalSamples === 0 ? 'none'
     : totalSamples < 3 ? 'low'
     : totalSamples < 8 ? 'medium'
     : 'high'
+  // A scattery drying fit shouldn't read as fully confident even with lots of
+  // cycles — the line through the noise isn't trustworthy. Knock 'high' down a
+  // notch when the mean R² across cycles is poor.
+  if (confidence === 'high' && model.betaR2 != null && model.betaR2 < 0.4) {
+    confidence = 'medium'
+  }
 
   return {
     predicted:     Math.round(predicted * 10) / 10,
