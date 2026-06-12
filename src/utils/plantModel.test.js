@@ -158,6 +158,32 @@ describe('computeModel', () => {
     const m = computeModel(plant(events))
     expect(m.alphaSamples).toBe(0)
   })
+
+  // ── Per-cycle regression slope (#131) ───────────────────────────────────
+  // β is now the slope of a least-squares line fit through the cycle's
+  // readings, not a two-points-at-a-time difference. This de-noises the probe.
+
+  it('recovers the true drying slope from a clean linear cycle', () => {
+    // Perfect line 8→7→6→5 over 6 days = 0.5/day. One drying cycle (no
+    // watering), so betaSamples = 1 and the fit is exact (R² = 1).
+    const m = computeModel(plant([reading(8, 6), reading(7, 4), reading(6, 2), reading(5, 0)]))
+    expect(m.betaSamples).toBe(1)
+    expect(m.beta).toBeCloseTo(0.5, 1)
+    expect(m.betaR2).toBeCloseTo(1, 1)
+  })
+
+  it('absorbs a single outlier reading without shifting the slope (de-noising)', () => {
+    // Underlying trend ≈ 0.5/day (8, 7.5, _, 6.5, 6 at days 0–4) with one
+    // probe outlier (9) at the centre of the window. Least squares leaves the
+    // slope at 0.5 — the old adjacent-pairwise method would have swung wildly
+    // around the outlier (7.5→9 then 9→6.5). The noise shows up as a lower R².
+    const m = computeModel(plant([
+      reading(8, 4), reading(7.5, 3), reading(9, 2), reading(6.5, 1), reading(6, 0),
+    ]))
+    expect(m.betaSamples).toBe(1)
+    expect(m.beta).toBeCloseTo(0.5, 1)
+    expect(m.betaR2).toBeLessThan(0.7)   // the outlier is detected as scatter
+  })
 })
 
 // ── predictMoisture ────────────────────────────────────────────────────────

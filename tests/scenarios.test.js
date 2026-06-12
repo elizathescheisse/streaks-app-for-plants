@@ -62,12 +62,15 @@ describe('Alocasia — probe variance immediately after watering (#101)', () => 
 })
 
 // ────────────────────────────────────────────────────────────────────────
-// big-monstera-2026-05-22-beta-feedback-loop — issue #109
-// The first triple (May 14 watering → first post-water reading 3 days later)
-// has no reading within 24h of the watering, so β is seeded from a pure guess
-// (~1.17/day). That inflated β then biases the max-peak selection in later
-// triples toward later/lower readings, which confirm the high β. β snowballs
-// to ~0.86/day and the model predicts the plant much drier than it really is.
+// big-monstera-2026-05-22-beta-feedback-loop — issue #109 (+ #131)
+// Originally a self-reinforcing β loop: the max-peak post-watering selection
+// used the current β to pick "the peak," so an inflated β confirmed itself and
+// snowballed to ~0.86/day, predicting the plant far drier than reality.
+//
+// #130 patched the loop; #131 then replaced the whole β extraction with a
+// per-cycle regression slope, which never depends on peak-selection — so the
+// loop is gone *by construction*. This fixture stays as a permanent guard that
+// β stays sane and the prediction tracks the real readings.
 //
 // Symptom in the wild: the plant sat at 6, but the model decayed it to ~4 over
 // a couple of days — the chronic "thinks it dries too fast" under-prediction.
