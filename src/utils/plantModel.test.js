@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability } from './plantModel.js'
+import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability, learnedWaterAmount } from './plantModel.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -439,5 +439,88 @@ describe('getPredictionReliability', () => {
     const m = computeModel(p, CARE)
     expect(m.betaSamples + m.alphaSamples).toBeGreaterThanOrEqual(3)
     expect(getPredictionReliability(p, CARE)).toBe('shaky')
+  })
+})
+
+// ── learnedWaterAmount (adaptive amount loop) ────────────────────────────────
+
+describe('learnedWaterAmount', () => {
+  it('returns null when there is nothing to seed from', () => {
+    expect(learnedWaterAmount(plant([reading(5, 1)]), CARE)).toBeNull()
+  })
+
+  it('honors an explicit override and does not let the loop drift it', () => {
+    const p = {
+      ...plant([
+        watering(1, 20), reading(4, 19),   // under cycles that would push it up
+        watering(1, 14), reading(4, 13),
+        watering(1, 8),  reading(4, 7),
+      ]),
+      typicalWater: { amount: '2', unit: 'cups' },
+    }
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.source).toBe('override')
+    expect(t.amount).toBe(2)
+    expect(t.outcomes).toBe(0)
+  })
+
+  it('returns the seed (no drift) when there are no gradeable outcomes', () => {
+    // 3 waterings, but no post-water readings → nothing to grade.
+    const p = plant([watering(2, 20), watering(2, 13), watering(2, 6)])
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.source).toBe('history')   // median of past waterings
+    expect(t.amount).toBe(2)
+    expect(t.outcomes).toBe(0)
+  })
+
+  it('climbs the recommendation when the plant never gets wet enough', () => {
+    // Range [4,7]; each 1-cup watering only reaches 4 (well below the top) →
+    // 'under' every cycle → the recommended amount should climb above 1.
+    const p = plant([
+      watering(1, 20), reading(4, 19),
+      watering(1, 14), reading(4, 13),
+      watering(1, 8),  reading(4, 7),
+      watering(1, 3),  reading(4, 2),
+    ])
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.source).toBe('outcome')
+    expect(t.confidence).toBe('learned')
+    expect(t.lastOutcome).toBe('under')
+    expect(t.amount).toBeGreaterThan(1.2)   // pushed up from the 1 cup poured
+  })
+
+  it('lowers the recommendation when the plant is waterlogged', () => {
+    // 5 cups drives moisture to 9, above the [4,7] band + buffer → 'over'.
+    const p = plant([
+      watering(5, 20), reading(9, 19),
+      watering(5, 14), reading(9, 13),
+      watering(5, 8),  reading(9, 7),
+    ])
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.source).toBe('outcome')
+    expect(t.lastOutcome).toBe('over')
+    expect(t.amount).toBeLessThan(5)
+  })
+
+  it('holds steady when the amount reliably lands in the band', () => {
+    // 2 cups reaches 7 (top of band) → 'good' → stays ~2.
+    const p = plant([
+      watering(2, 20), reading(7, 19),
+      watering(2, 14), reading(7, 13),
+      watering(2, 8),  reading(7, 7),
+    ])
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.lastOutcome).toBe('good')
+    expect(t.amount).toBeCloseTo(2, 1)
+  })
+
+  it('never runs away past a sane ceiling of what has been tried', () => {
+    const p = plant([
+      watering(1, 20), reading(4, 19),
+      watering(1, 14), reading(4, 13),
+      watering(1, 8),  reading(4, 7),
+    ])
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.amount).toBeLessThanOrEqual(1 * 2.5)   // ceiling = max(seed, maxObserved) * 2.5
   })
 })

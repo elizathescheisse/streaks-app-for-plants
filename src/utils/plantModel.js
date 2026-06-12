@@ -13,7 +13,7 @@
  * data exists yet.
  */
 
-import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture } from './plantSelectors.js'
+import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture, typicalWaterAmount } from './plantSelectors.js'
 
 const DEFAULT_ALPHA = 1.5   // moisture points per cup (generic prior)
 const DEFAULT_BETA  = 0.5   // moisture points per day (generic prior)
@@ -286,17 +286,32 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
   const physicalCap  = rangeHi / alpha
   const modelWaterNeeded = Math.min(physicalCap, Math.max(0, (rangeHi - predicted) / alpha))
 
-  // Per-plant water-amount override (#76, Phase 4b). α is often badly
-  // mislearned (e.g. an Alocasia where the model suggests ~9 cups but the user
-  // knows 2 is right), so when the user has told us their usual amount, trust
-  // it over the α-derived guess — but only the *amount*; whether water is
-  // needed at all still comes from the model (waterNeeded > 0).
-  const override = parseAmount(plant.typicalWater?.amount)
-  const usingWaterOverride = override != null && override > 0 && modelWaterNeeded > 0
-  const waterNeeded = usingWaterOverride ? override : modelWaterNeeded
-  const dominantUnit = usingWaterOverride
-    ? (plant.typicalWater?.unit ?? model.dominantUnit)
-    : model.dominantUnit
+  // ── How much water ───────────────────────────────────────────────────────
+  // The α physics model (modelWaterNeeded) is fragile, so prefer the learned
+  // amount: an explicit override (#135), or the outcome-feedback loop / typical
+  // amount (Phase A/B). Whether to water *at all* still comes from the model —
+  // a learned amount only applies once water is actually needed.
+  const learnedAmt = learnedWaterAmount(plant, careProfile)
+  const waterIsNeeded = modelWaterNeeded > 0
+  let waterNeeded, dominantUnit, amountSource, amountConfidence
+  if (!waterIsNeeded) {
+    waterNeeded = 0
+    dominantUnit = learnedAmt?.unit ?? model.dominantUnit
+    amountSource = 'none'
+    amountConfidence = null
+  } else if (learnedAmt) {
+    waterNeeded = learnedAmt.amount
+    dominantUnit = learnedAmt.unit
+    amountSource = learnedAmt.source          // 'override' | 'outcome' | 'history' | 'species'
+    amountConfidence = learnedAmt.confidence  // 'set' | 'dialing-in' | 'learned' | 'default'
+  } else {
+    waterNeeded = modelWaterNeeded
+    dominantUnit = model.dominantUnit
+    amountSource = 'model'
+    amountConfidence = null
+  }
+  // Back-compat flag some UI reads; true only for an explicit user override.
+  const usingWaterOverride = waterIsNeeded && learnedAmt?.source === 'override'
 
   const totalSamples = model.betaSamples + model.alphaSamples
   let confidence = totalSamples === 0 ? 'none'
@@ -319,6 +334,8 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
     confidence,
     usingDefaults: model.beta == null,
     usingWaterOverride,
+    amountSource,        // where the recommended amount came from
+    amountConfidence,    // 'set'|'dialing-in'|'learned'|'default'|null
     totalSamples,
   }
 }
@@ -444,4 +461,134 @@ export function getPredictionReliability(plant, careProfile) {
   if (model.betaR2 != null && model.betaR2 < SHAKY_R2) return 'shaky'
 
   return 'reliable'
+}
+
+// ─────────────────────────────────────────────────────────
+// learnedWaterAmount  (the outcome feedback loop — adaptive amount)
+//
+// Instead of deriving "how much water" from the fragile α physics model, learn
+// it directly from OUTCOMES, like a thermostat: each past watering is graded
+// (did the plant get wet enough? did the soak last?), and the recommended
+// amount is nudged up or down toward "just enough". This sidesteps soil
+// saturation / runoff / probe noise (it only needs "was the result good?"),
+// and it *corrects* a bad habit instead of echoing it (the gap in #64).
+//
+// Seeded by typicalWaterAmount (override → history median → species default).
+// An EXPLICIT user override short-circuits the loop (we honor what they told
+// us); otherwise the loop refines the seed cycle by cycle.
+//
+// Per watering cycle we derive a verdict:
+//   • post-water peak reading vs the style target (primary, when a reading
+//     exists soon after watering): below target ⇒ 'under', way over ⇒ 'over'
+//     (consistent plants only — a full soak isn't "over" for flood-and-dry).
+//   • else dry-down: crossed the dry threshold far faster than expected ⇒
+//     'under' (the passive, zero-extra-effort signal — "dried out immediately").
+// Each verdict turns this cycle's actual amount A into a suggestion S
+// (under → A·(1+step), over → A·(1−step), good → A), and the running estimate
+// is an EMA over recent S's, clamped to a sane range.
+//
+// Returns { amount, unit, confidence, source, outcomes, lastOutcome } or null.
+//   confidence: 'set'|'default'|'learned'|'dialing-in'   source: 'override'|'outcome'|'history'|'species'
+// ─────────────────────────────────────────────────────────
+const AMOUNT_STEP        = 0.18  // ±18% nudge per under/over cycle
+const AMOUNT_SMOOTH      = 0.45  // EMA weight on each cycle's suggestion
+const PEAK_FRESH_MS      = 2 * 86_400_000  // a reading within 2 days = the post-water peak
+const UNDER_TOL          = 1.0   // peak this far below target ⇒ under-watered
+const OVER_BUFFER        = 1.5   // peak this far above range top ⇒ waterlogged (consistent)
+const DRYDOWN_FAST_FRAC  = 0.5   // dried in < half the expected time ⇒ under-watered
+
+export function learnedWaterAmount(plant, careProfile) {
+  const seed = typicalWaterAmount(plant, careProfile)
+  if (!seed) return null
+
+  // An explicit override is a hard value — honor it, don't let the loop drift.
+  if (seed.source === 'override') {
+    return { amount: seed.amount, unit: seed.unit, confidence: 'set', source: 'override', outcomes: 0, lastOutcome: null }
+  }
+
+  const unit = seed.unit
+  const [rangeLo, rangeHi] = careProfile?.moistureRange ?? [3, 7]
+  const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
+  const dryThreshold  = isFloodAndDry ? (careProfile?.dryThreshold ?? rangeLo) : rangeLo
+  const beta = computeModel(plant, careProfile).beta ?? DEFAULT_BETA
+
+  // Segment into cycles (watering → its readings until the next watering).
+  const timeline = (plant.events ?? [])
+    .filter(e => e.type === 'reading' || e.type === 'watering')
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+  const cycles = []
+  let cur = { watering: null, readings: [] }
+  for (const e of timeline) {
+    if (e.type === 'reading') cur.readings.push(e)
+    else { cycles.push(cur); cur = { watering: e, readings: [] } }
+  }
+  cycles.push(cur)
+
+  let amount = seed.amount
+  let maxObserved = seed.amount
+  let outcomes = 0
+  let lastOutcome = null
+
+  for (const cycle of cycles) {
+    if (!cycle.watering) continue
+    const A = parseAmount(cycle.watering.amount)
+    if (!A || A <= 0 || !isSignificantWatering(cycle.watering, careProfile)) continue
+    if ((cycle.watering.unit ?? 'cups') !== unit) continue   // learn within one unit
+    maxObserved = Math.max(maxObserved, A)
+
+    const wTs = new Date(cycle.watering.timestamp).getTime()
+
+    // ── Verdict ──
+    let verdict = null
+    // Primary: post-water peak (wettest reading within the fresh window)
+    const freshReadings = cycle.readings.filter(r => {
+      const dt = new Date(r.timestamp).getTime() - wTs
+      return dt >= 0 && dt <= PEAK_FRESH_MS
+    })
+    if (freshReadings.length) {
+      const peak = Math.max(...freshReadings.map(r => Number(r.moisture)))
+      if (peak < rangeHi - UNDER_TOL)                       verdict = 'under'
+      else if (!isFloodAndDry && peak > rangeHi + OVER_BUFFER) verdict = 'over'
+      else                                                  verdict = 'good'
+    } else {
+      // Passive fallback: did it cross the dry threshold far faster than expected?
+      const firstDry = cycle.readings.find(r => Number(r.moisture) <= dryThreshold)
+      if (firstDry) {
+        const observedDays = (new Date(firstDry.timestamp).getTime() - wTs) / 86_400_000
+        const expectedDays = beta > 0 ? (rangeHi - dryThreshold) / beta : Infinity
+        if (observedDays > 0 && expectedDays > 0 && observedDays < DRYDOWN_FAST_FRAC * expectedDays) {
+          verdict = 'under'
+        }
+      }
+    }
+    if (!verdict) continue
+
+    // 'good' → the poured amount worked, so anchor to it (ground truth).
+    // 'under'/'over' → push the running *recommendation* up/down, so repeated
+    // unders keep climbing toward the real need even if the user keeps pouring
+    // the same too-small amount (the ceiling clamp below stops runaway).
+    const suggestion = verdict === 'under' ? amount * (1 + AMOUNT_STEP)
+      : verdict === 'over' ? amount * (1 - AMOUNT_STEP)
+      : A
+    amount = AMOUNT_SMOOTH * suggestion + (1 - AMOUNT_SMOOTH) * amount
+    outcomes++
+    lastOutcome = verdict
+  }
+
+  // Clamp to a sane range so it can't run away if the user never follows it.
+  const ceiling = Math.max(seed.amount, maxObserved) * 2.5
+  amount = Math.min(ceiling, Math.max(0.1, amount))
+  amount = Math.round(amount * 10) / 10
+
+  if (outcomes === 0) {
+    // No gradeable cycles yet — just the seed (history median or species default).
+    return { amount, unit, confidence: seed.confidence, source: seed.source, outcomes: 0, lastOutcome: null }
+  }
+  return {
+    amount, unit,
+    confidence: outcomes < 2 ? 'dialing-in' : 'learned',
+    source: 'outcome',
+    outcomes,
+    lastOutcome,
+  }
 }
