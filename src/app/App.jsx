@@ -58,7 +58,10 @@ export default function App() {
     if (form.id) {
       setPlants(ps => ps.map(p => {
         if (p.id !== form.id) return p
-        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name }
+        const typicalWater = String(form.typicalWaterAmount ?? '').trim()
+          ? { amount: String(form.typicalWaterAmount).trim(), unit: form.typicalWaterUnit ?? 'cups' }
+          : null
+        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name, typicalWater }
         // Append a health_change event only if health actually changed
         if (form.health && form.health !== currentHealth(p)) {
           updated.events = [...p.events, {
@@ -82,11 +85,15 @@ export default function App() {
           health:    form.health,
         })
       }
+      const typicalWater = String(form.typicalWaterAmount ?? '').trim()
+        ? { amount: String(form.typicalWaterAmount).trim(), unit: form.typicalWaterUnit ?? 'cups' }
+        : null
       setPlants(ps => [...ps, {
         id:      crypto.randomUUID(),
         emoji:   form.emoji,
         species: form.species,
         name:    form.name,
+        ...(typicalWater ? { typicalWater } : {}),
         events:  initialEvents,
       }])
     }
@@ -100,7 +107,12 @@ export default function App() {
   function editPlant(plant) {
     setPanel({
       mode: 'identity',
-      form: { id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name, health: currentHealth(plant) }
+      form: {
+        id: plant.id, emoji: plant.emoji, species: plant.species, name: plant.name,
+        health: currentHealth(plant),
+        typicalWaterAmount: plant.typicalWater?.amount ?? '',
+        typicalWaterUnit:   plant.typicalWater?.unit ?? 'cups',
+      }
     })
   }
 

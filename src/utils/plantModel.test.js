@@ -295,6 +295,30 @@ describe('getRecommendation', () => {
     const rec = getRecommendation(p, m, CARE)
     expect(rec.daysUntilDry).toBeGreaterThanOrEqual(0)
   })
+
+  // ── Per-plant water-amount override (#76, Phase 4b) ──────────────────────
+  it('uses the user’s typical water amount over the α-derived guess when set', () => {
+    // Old, dry reading → the model wants a lot of water. With a typicalWater
+    // override the recommended amount should be the user's number + unit.
+    const base = plant([reading(1, 5)])
+    const recModel = getRecommendation(base, computeModel(base), CARE)
+    expect(recModel.waterNeeded).toBeGreaterThan(2)   // model over-recommends
+
+    const p = { ...base, typicalWater: { amount: '2', unit: 'cups' } }
+    const rec = getRecommendation(p, computeModel(p), CARE)
+    expect(rec.usingWaterOverride).toBe(true)
+    expect(rec.waterNeeded).toBe(2)
+    expect(rec.dominantUnit).toBe('cups')
+  })
+
+  it('ignores the override when no water is needed', () => {
+    // Freshly at the top of the range → waterNeeded 0; the override must not
+    // manufacture a recommendation to water a plant that doesn’t need it.
+    const p = { ...plant([reading(7, 0)]), typicalWater: { amount: '2', unit: 'cups' } }
+    const rec = getRecommendation(p, computeModel(p), CARE)
+    expect(rec.waterNeeded).toBe(0)
+    expect(rec.usingWaterOverride).toBe(false)
+  })
 })
 
 // ── getLastResidual ────────────────────────────────────────────────────────
