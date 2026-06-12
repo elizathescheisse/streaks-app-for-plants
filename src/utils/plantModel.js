@@ -19,6 +19,16 @@ const GAMMA         = 0.25  // EMA smoothing factor: recent obs weighted more
 const BETA_WINDOW   = 6     // only use the N most recent β observations
 const ALPHA_WINDOW  = 4     // only use the N most recent α observations
 
+// β-learning guardrails — see #109 (self-reinforcing feedback loop).
+// A triple only yields a trustworthy drying rate if there's a reading soon
+// after the watering. Past this window the "post-water peak" is a guess and
+// produces wildly inflated β (e.g. a 3-day gap back-calcs to ~1.17/day).
+const MIN_READING_FRESHNESS_MS = 24 * 3_600_000  // 24h
+// Hard ceiling on the learned drying rate. Most indoor plants dry at
+// 0.1–0.4 points/day; nothing realistic exceeds this. Stops a single noisy
+// observation from pushing β into runaway territory.
+const BETA_CEILING  = 0.7
+
 // ─────────────────────────────────────────────────────────
 // computeModel
 // Walks the event timeline and estimates α and β.
@@ -106,13 +116,21 @@ export function computeModel(plant, careProfile) {
       //    automatically. No change vs. the previous "first reading" logic.
       //  • If readings increase (probe variance / water redistribution),
       //    max-peak picks the later, higher reading.
+      //
+      // Selection uses a CONSERVATIVE β (capped at the default prior), not the
+      // running estimate — see #109. If selection used runningBeta, an inflated
+      // β would make later/lower readings back-calc to higher implied peaks,
+      // so the model would prefer them and then learn an even higher β from
+      // them: a self-reinforcing loop. Decoupling selection from the estimate
+      // breaks that loop.
+      const selectionBeta = Math.min(runningBeta, DEFAULT_BETA)
       let bestAfterIdx = -1
       let bestPeak     = -Infinity
       for (let j = i + 2; j < timeline.length; j++) {
         if (timeline[j].type === 'watering') break
         if (timeline[j].type === 'reading') {
           const days = (new Date(timeline[j].timestamp) - new Date(watering.timestamp)) / 86_400_000
-          const peak = Number(timeline[j].moisture) + runningBeta * days
+          const peak = Number(timeline[j].moisture) + selectionBeta * days
           if (peak > bestPeak) { bestPeak = peak; bestAfterIdx = j }
         }
       }
@@ -138,9 +156,14 @@ export function computeModel(plant, careProfile) {
       }
 
       // ── β: forward-calc M_peak from α, then compute drying rate ──
+      // Only when the post-water reading is fresh enough to actually witness
+      // the drying. With a long gap (e.g. 3 days) there's no evidence of the
+      // curve — the back/forward-calc is a guess that inflates β (#109). Skip
+      // the β contribution in that case (α above is still computed).
+      const freshEnough = daysAfterWater * 86_400_000 <= MIN_READING_FRESHNESS_MS
       const MpeakForBeta = e.moisture + runningAlpha * waterAmt
       const drop = MpeakForBeta - afterReading.moisture
-      if (drop > 0 && daysAfterWater > 0 && drop / daysAfterWater < 5) {
+      if (freshEnough && drop > 0 && daysAfterWater > 0 && drop / daysAfterWater < 5) {
         betaObs.push(drop / daysAfterWater)
       }
     }
@@ -155,6 +178,8 @@ export function computeModel(plant, careProfile) {
 
   let beta  = null
   for (const obs of recentBeta)  { beta  = beta  == null ? obs : GAMMA * obs + (1 - GAMMA) * beta  }
+  // Hard ceiling — a final guard against runaway β (#109).
+  if (beta != null) beta = Math.min(beta, BETA_CEILING)
   let alpha = null
   for (const obs of recentAlpha) { alpha = alpha == null ? obs : GAMMA * obs + (1 - GAMMA) * alpha }
 

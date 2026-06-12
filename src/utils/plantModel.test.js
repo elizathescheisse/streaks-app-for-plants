@@ -40,11 +40,28 @@ describe('computeModel', () => {
   })
 
   it('estimates beta from two consecutive readings with no watering', () => {
-    // Moisture dropped from 8 → 6 over 2 days → β = 1.0/day
-    const m = computeModel(plant([reading(8, 2), reading(6, 0)]))
-    expect(m.beta).toBeCloseTo(1.0, 1)
+    // Moisture dropped from 8 → 6.8 over 2 days → β = 0.6/day (under the cap)
+    const m = computeModel(plant([reading(8, 2), reading(6.8, 0)]))
+    expect(m.beta).toBeCloseTo(0.6, 1)
     expect(m.betaSamples).toBe(1)
     expect(m.alpha).toBeNull()   // no watering triple yet
+  })
+
+  it('caps the learned beta at the realistic ceiling (#109)', () => {
+    // 8 → 5 over 2 days = 1.5/day — physically implausible for an indoor
+    // plant. The cap (0.7) prevents a runaway observation from poisoning every
+    // future prediction.
+    const m = computeModel(plant([reading(8, 2), reading(5, 0)]))
+    expect(m.beta).toBe(0.7)
+  })
+
+  it('skips beta from a triple with no reading within 24h of watering (#109)', () => {
+    // read 2 → water 3c → (4 days later) read 6. The drying curve is never
+    // observed, so β must NOT be learned from this triple — but α still can be.
+    const m = computeModel(plant([reading(2, 5), watering(3, 4), reading(6, 0)]), CARE)
+    expect(m.beta).toBeNull()
+    expect(m.betaSamples).toBe(0)
+    expect(m.alphaSamples).toBe(1)
   })
 
   it('does not count a beta obs when moisture did not drop', () => {
@@ -161,15 +178,16 @@ describe('predictMoisture', () => {
   })
 
   it('uses the learned beta when available', () => {
-    // β estimated at ~1.0/day; readings are 4 days ago (8) and 2 days ago (6)
-    const p = plant([reading(8, 4), reading(6, 2)])  // β≈1.0
+    // β estimated at ~0.6/day (distinct from DEFAULT_BETA 0.5, under the cap);
+    // readings are 4 days ago (8) and 2 days ago (6.8)
+    const p = plant([reading(8, 4), reading(6.8, 2)])  // β≈0.6
     const m = computeModel(p)
-    expect(m.beta).toBeCloseTo(1.0, 1)
+    expect(m.beta).toBeCloseTo(0.6, 1)
     // Layer 2: readings are 48 h apart — outside the 24-h smoothing window.
-    // Only the most recent reading (6, 2 days ago) is used as start.
-    // predicted = 6 - 1.0*2 = 4
+    // Only the most recent reading (6.8, 2 days ago) is used as start.
+    // predicted = 6.8 - 0.6*2 = 5.6
     const pred = predictMoisture(p, m)
-    expect(pred).toBeCloseTo(4, 0)
+    expect(pred).toBeCloseTo(5.6, 1)
   })
 
   it('clamps predicted moisture to 0', () => {
