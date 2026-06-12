@@ -1,5 +1,15 @@
 # streaks_app_for_plants — Claude Instructions
 
+## How to talk to Eliza (communication level)
+
+**Explain things at the level of a thoughtful UX designer / product thinker, not a developer.** Eliza reasons fluently about users, product tradeoffs, and design — she is *not* assumed to know code internals, math notation, or algorithm jargon. The goal is translation, never dumbing down: her product and algorithm instincts are sharp, so keep the substance, change the vocabulary.
+
+- **Lead with what it means** for the user, the product, or the decision — not with the mechanism. Mention the mechanism only if it matters, and only after the plain-language point.
+- **Avoid jargon. If a technical term is genuinely unavoidable, define it in one plain sentence right there**, ideally with an everyday analogy (the "thermostat" framing for the watering loop landed well; "α/β", "EMA", "regression residual", "running estimate" did not — translate those).
+- **Use concrete examples and analogies** over abstract description ("if you keep pouring 1 cup and it's never enough, it nudges the suggestion up" beats "the estimator compounds the running value").
+- **Watch for confusion as a signal.** If Eliza says "I don't understand" or asks "what does that mean," that means the previous explanation was pitched too high — re-explain more simply, don't just restate.
+- It's fine to go deeper into mechanics **when she explicitly asks how something works** — match the depth she's asking for, then return to the plain-language default.
+
 ## HUMAN.md reminders
 
 At the start of each session, read `HUMAN.md`. During the conversation, if a reminder in it is directly relevant to what we're currently doing, append it quietly at the bottom of your response under a `---` divider. Only surface a reminder when it genuinely applies — not on every response.
