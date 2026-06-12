@@ -1,0 +1,19 @@
+{
+  "id": "fixture-big-monstera",
+  "emoji": "🌿",
+  "species": "monstera deliciosa",
+  "name": "Big Monstera",
+  "_note": "Repro for #109 — self-reinforcing β feedback loop. The first triple (May 14 watering → first post-water reading 3 days later) has no reading within 24h of watering, so β is seeded from a pure guess and comes out huge (~1.17/day). That inflated β then biases the max-peak selection in later triples toward later/lower readings, which confirm the high β. Net effect: β snowballs to ~0.85/day and the model predicts the plant much drier than it actually is. Fix: skip β-learning for long-gap triples, decouple peak-selection from the running β, and cap β. Timestamps anchored to fixed past dates for determinism. Notes from the wild (not modeled): May 17 5c watering leaked out the bottom; May 17/18 readings taken in a humid bathroom.",
+  "events": [
+    { "id": "r1",  "type": "reading",  "timestamp": "2026-05-13T22:18:00.000Z", "moisture": 2, "bundleId": "b1" },
+    { "id": "w1",  "type": "watering", "timestamp": "2026-05-14T22:19:00.000Z", "amount": "3", "unit": "cups", "bundleId": "b2" },
+    { "id": "r2",  "type": "reading",  "timestamp": "2026-05-17T22:19:00.000Z", "moisture": 3, "bundleId": "b3" },
+    { "id": "w2",  "type": "watering", "timestamp": "2026-05-17T22:51:00.000Z", "amount": "5", "unit": "cups", "bundleId": "b4" },
+    { "id": "r3",  "type": "reading",  "timestamp": "2026-05-18T02:45:00.000Z", "moisture": 6, "bundleId": "b5" },
+    { "id": "r4",  "type": "reading",  "timestamp": "2026-05-18T23:12:00.000Z", "moisture": 6, "bundleId": "b6" },
+    { "id": "r5",  "type": "reading",  "timestamp": "2026-05-20T16:24:00.000Z", "moisture": 5, "bundleId": "b7" },
+    { "id": "w3",  "type": "watering", "timestamp": "2026-05-20T19:01:00.000Z", "amount": "2", "unit": "cups", "bundleId": "b8" },
+    { "id": "r6",  "type": "reading",  "timestamp": "2026-05-20T20:03:00.000Z", "moisture": 7, "bundleId": "b9" },
+    { "id": "r7",  "type": "reading",  "timestamp": "2026-05-22T02:28:00.000Z", "moisture": 6, "bundleId": "b10" }
+  ]
+}
