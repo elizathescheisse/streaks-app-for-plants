@@ -9,6 +9,7 @@ import {
   buildEventsFromForm,
   isSuspiciousReading,
   smoothedCurrentMoisture,
+  typicalWaterAmount,
 } from './plantSelectors.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -463,5 +464,37 @@ describe('buildEventsFromForm', () => {
     const form = { ...baseForm, moisture: 7 }
     const events = buildEventsFromForm(form, 'existing-bundle-id')
     expect(events[0].bundleId).toBe('existing-bundle-id')
+  })
+})
+
+describe('typicalWaterAmount', () => {
+  const CARE = { moistureRange: [4, 7], minWaterAmount: { cups: 2, liters: 0.5 } }
+
+  it('prefers the explicit override over everything else', () => {
+    const plant = {
+      typicalWater: { amount: '3', unit: 'cups' },
+      events: [makeWatering('1', 6), makeWatering('1', 4), makeWatering('1', 2)],
+    }
+    const t = typicalWaterAmount(plant, CARE)
+    expect(t).toEqual({ amount: 3, unit: 'cups', confidence: 'set', source: 'override' })
+  })
+
+  it('learns the median of past waterings once there are ≥3', () => {
+    const plant = { events: [makeWatering('2', 6), makeWatering('4', 4), makeWatering('2', 2)] }
+    const t = typicalWaterAmount(plant, CARE)
+    expect(t.source).toBe('history')
+    expect(t.confidence).toBe('learned')
+    expect(t.amount).toBe(2)        // median of [2,2,4]
+    expect(t.unit).toBe('cups')
+  })
+
+  it('falls back to the species default below 3 waterings', () => {
+    const plant = { events: [makeWatering('5', 2)] }
+    const t = typicalWaterAmount(plant, CARE)
+    expect(t).toEqual({ amount: 2, unit: 'cups', confidence: 'default', source: 'species' })
+  })
+
+  it('returns null when there is nothing to go on', () => {
+    expect(typicalWaterAmount({ events: [] }, {})).toBeNull()
   })
 })
