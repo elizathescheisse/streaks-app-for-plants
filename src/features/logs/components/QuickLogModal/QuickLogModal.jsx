@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
-import { lastWatering, isSignificantWatering, isSuspiciousReading } from '../../../../utils/plantSelectors.js'
+import { lastWatering, isSignificantWatering, isSuspiciousReading, typicalWaterAmount } from '../../../../utils/plantSelectors.js'
 import { lookupPlant } from '../../../../utils/plantLookup.js'
 
 function titleCase(s) {
@@ -13,8 +13,11 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
   const lastWater   = lastWatering(plant)
 
   // ── Water defaults ───────────────────────────────────────
-  const defaultUnit   = lastWater?.unit ?? 'cups'
-  const defaultAmount = lastWater?.amount ?? ''
+  // Pre-fill the plant's typical amount (override → learned → species default)
+  // so the common case is a single tap; fall back to the last watering.
+  const typical       = typicalWaterAmount(plant, careProfile)
+  const defaultUnit   = typical?.unit ?? lastWater?.unit ?? 'cups'
+  const defaultAmount = typical ? String(typical.amount) : (lastWater?.amount ?? '')
   const [amount, setAmount] = useState(defaultAmount)
   const [unit,   setUnit]   = useState(defaultUnit)
 

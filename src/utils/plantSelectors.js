@@ -208,3 +208,56 @@ export function buildEventsFromForm(form, existingBundleId) {
 
   return events
 }
+
+// Returns the best per-plant "typical" watering amount, or null when unknown.
+// Priority (most-trusted first):
+//   1. explicit user override (plant.typicalWater, set in the edit form, #135)
+//   2. the user's own history — median of significant past waterings in the
+//      dominant unit, once there are ≥3 to median over (#64)
+//   3. the species default (careProfile.minWaterAmount)
+//
+// Returns { amount, unit, confidence, source }:
+//   confidence: 'set' | 'learned' | 'default'   source: 'override' | 'history' | 'species'
+//
+// This is the SEED layer for the adaptive-amount work: Phase B's outcome loop
+// (learnedWaterAmount) will supersede the history-median with something that
+// can correct a bad habit, not just echo it.
+export function typicalWaterAmount(plant, careProfile) {
+  // 1. Explicit override
+  const ov = plant?.typicalWater
+  const ovAmount = ov ? parseFloat(ov.amount) : NaN
+  if (!isNaN(ovAmount) && ovAmount > 0) {
+    return { amount: ovAmount, unit: ov.unit ?? 'cups', confidence: 'set', source: 'override' }
+  }
+
+  // 2. Learned from the user's own waterings (median is robust to one deep soak)
+  const waterings = getEvents(plant, 'watering').filter(w => {
+    const a = parseFloat(w.amount)
+    return !isNaN(a) && a > 0 && isSignificantWatering(w, careProfile)
+  })
+  if (waterings.length >= 3) {
+    const unitCounts = {}
+    for (const w of waterings) {
+      const u = w.unit ?? 'cups'
+      unitCounts[u] = (unitCounts[u] ?? 0) + 1
+    }
+    const unit = Object.entries(unitCounts).sort((a, b) => b[1] - a[1])[0][0]
+    const vals = waterings
+      .filter(w => (w.unit ?? 'cups') === unit)
+      .map(w => parseFloat(w.amount))
+      .sort((a, b) => a - b)
+    if (vals.length >= 3) {
+      const mid = Math.floor(vals.length / 2)
+      const median = vals.length % 2 === 0 ? (vals[mid - 1] + vals[mid]) / 2 : vals[mid]
+      return { amount: Math.round(median * 100) / 100, unit, confidence: 'learned', source: 'history' }
+    }
+  }
+
+  // 3. Species default
+  const min = careProfile?.minWaterAmount
+  if (min && min.cups != null) {
+    return { amount: min.cups, unit: 'cups', confidence: 'default', source: 'species' }
+  }
+
+  return null
+}

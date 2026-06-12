@@ -8,7 +8,7 @@ import PlantHistoryChart from '../../care/components/PlantHistoryChart'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
-  lastReading, lastWatering, currentHealth, logBundles, chartEvents
+  lastReading, lastWatering, currentHealth, logBundles, chartEvents, typicalWaterAmount
 } from '../../../utils/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '../../../utils/plantModel.js'
 import { moistureStatus } from '../../../utils/plantStatus.js'
@@ -359,12 +359,32 @@ export default function PlantDetailPage({
                         <span className={styles.careValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
                       </div>
                     )}
-                    {careProfile.minWaterAmount && (
-                      <div className={styles.careItem}>
-                        <span className={styles.careLabel}>Min watering</span>
-                        <span className={styles.careValue}>{careProfile.minWaterAmount.cups} cups / {careProfile.minWaterAmount.liters} L</span>
-                      </div>
-                    )}
+                    {(() => {
+                      // "Typical watering" — style-aware (#119). Flood-and-dry
+                      // plants have no meaningful fixed amount until we've
+                      // actually learned one (override / history); until then
+                      // the honest instruction is to soak until it drains.
+                      const typical = typicalWaterAmount(plant, careProfile)
+                      const isFloodAndDry = careProfile.wateringStyle === 'flood-and-dry'
+                      const soakText = isFloodAndDry && (!typical || typical.source === 'species')
+                      if (!typical && !isFloodAndDry) return null
+                      const amountLabel = typical
+                        ? (typical.unit === 'liters'
+                            ? `~${typical.amount} L`
+                            : `~${typical.amount} cup${typical.amount === 1 ? '' : 's'}`)
+                        : null
+                      return (
+                        <div className={styles.careItem}>
+                          <span className={styles.careLabel}>Typical watering</span>
+                          <span className={styles.careValue}>
+                            {soakText ? 'Soak until water drains out' : amountLabel}
+                          </span>
+                          {typical?.source === 'history' && (
+                            <span className={styles.careSubvalue}>learned from your waterings</span>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </div>
                   {careProfile.notes && (
                     <p className={styles.careNotes}>{careProfile.notes}</p>
