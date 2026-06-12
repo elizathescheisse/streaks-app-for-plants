@@ -90,5 +90,7 @@ export function buildDefaultAddPlantForm() {
     species: option.speciesKey,
     name: '',
     health: null,
+    typicalWaterAmount: '',
+    typicalWaterUnit:   'cups',
   }
 }

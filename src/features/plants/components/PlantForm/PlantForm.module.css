@@ -353,6 +353,26 @@
   font-weight: 500;
 }
 
+/* Typical water amount: number input + unit toggle side by side (#76) */
+.waterOverrideRow {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.waterOverrideRow .input { flex: 1; min-width: 0; }
+/* Fixed basis so the two unit labels ("cups" / "L") aren't squeezed — the
+   shared .seg style is flex:1 with no min-width, which collapses inline. */
+.waterOverrideRow .segmented { flex: 0 0 124px; }
+.waterOverrideRow .seg { padding: 0 8px; }
+
+.fieldHint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
 /* Stepper */
 .stepper {
   display: flex;

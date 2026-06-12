@@ -16,6 +16,8 @@ export const EMPTY_PLANT_FORM = {
   species: '',
   name:    '',
   health:  null,
+  typicalWaterAmount: '',
+  typicalWaterUnit:   'cups',
 }
 
 const HEALTH_OPTIONS = [
@@ -197,6 +199,40 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
                 ))}
               </div>
             </div>
+
+          {/* Typical water amount — overrides the app's suggested cups when
+              the learned amount is off (#76). Whether to water at all is still
+              decided by the moisture model. */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              TYPICAL WATER AMOUNT <span className={styles.optional}>(optional)</span>
+            </label>
+            <div className={styles.waterOverrideRow}>
+              <input
+                className={styles.input}
+                type="number"
+                min="0"
+                step="0.25"
+                inputMode="decimal"
+                placeholder="e.g. 2"
+                value={form.typicalWaterAmount ?? ''}
+                onChange={e => set('typicalWaterAmount', e.target.value)}
+              />
+              <div className={styles.segmented}>
+                {['cups', 'liters'].map(u => (
+                  <button
+                    key={u}
+                    type="button"
+                    className={`${styles.seg} ${(form.typicalWaterUnit ?? 'cups') === u ? styles.segActive : ''}`}
+                    onClick={() => set('typicalWaterUnit', u)}
+                  >{u === 'cups' ? 'cups' : 'L'}</button>
+                ))}
+              </div>
+            </div>
+            <p className={styles.fieldHint}>
+              Use this if the suggested amount looks wrong — the app will recommend your amount instead.
+            </p>
+          </div>
 
           <div className={styles.formActions}>
             <button className={styles.saveBtn} onClick={onSave} disabled={!canSave}>

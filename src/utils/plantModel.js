@@ -284,7 +284,19 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
   // to bring the plant from bone-dry (0) all the way to the target moisture.
   // This is the true upper bound regardless of what the model computed.
   const physicalCap  = rangeHi / alpha
-  const waterNeeded  = Math.min(physicalCap, Math.max(0, (rangeHi - predicted) / alpha))
+  const modelWaterNeeded = Math.min(physicalCap, Math.max(0, (rangeHi - predicted) / alpha))
+
+  // Per-plant water-amount override (#76, Phase 4b). α is often badly
+  // mislearned (e.g. an Alocasia where the model suggests ~9 cups but the user
+  // knows 2 is right), so when the user has told us their usual amount, trust
+  // it over the α-derived guess — but only the *amount*; whether water is
+  // needed at all still comes from the model (waterNeeded > 0).
+  const override = parseAmount(plant.typicalWater?.amount)
+  const usingWaterOverride = override != null && override > 0 && modelWaterNeeded > 0
+  const waterNeeded = usingWaterOverride ? override : modelWaterNeeded
+  const dominantUnit = usingWaterOverride
+    ? (plant.typicalWater?.unit ?? model.dominantUnit)
+    : model.dominantUnit
 
   const totalSamples = model.betaSamples + model.alphaSamples
   let confidence = totalSamples === 0 ? 'none'
@@ -302,10 +314,11 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
     predicted:     Math.round(predicted * 10) / 10,
     daysUntilDry:  Math.round(daysUntilDry * 10) / 10,
     waterNeeded:   Math.round(waterNeeded  * 10) / 10,
-    dominantUnit:  model.dominantUnit,
+    dominantUnit,
     hasRange,
     confidence,
     usingDefaults: model.beta == null,
+    usingWaterOverride,
     totalSamples,
   }
 }
