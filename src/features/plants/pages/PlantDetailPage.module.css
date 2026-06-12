@@ -400,6 +400,15 @@
   margin-bottom: 12px;
 }
 
+/* Honest-uncertainty note (Phase 4a): recent predictions have been off, so
+   defer to a fresh reading rather than the confident estimate. */
+.shakyNote {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--status-okay);
+}
+
 
 /* ── Chart ── */
 .chartWrap {

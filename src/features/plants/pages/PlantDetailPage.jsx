@@ -10,7 +10,7 @@ import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents
 } from '../../../utils/plantSelectors.js'
-import { computeModel, getRecommendation } from '../../../utils/plantModel.js'
+import { computeModel, getRecommendation, getPredictionReliability } from '../../../utils/plantModel.js'
 import { moistureStatus } from '../../../utils/plantStatus.js'
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
@@ -107,12 +107,16 @@ export default function PlantDetailPage({
   const drift        = (rawMoisture != null && predMoisture != null)
     ? Math.abs(predMoisture - rawMoisture) : 0
 
+  // When recent predictions have been unreliable, don't assert a confident
+  // "est. now" number — defer to a fresh reading instead (Phase 4a).
+  const shaky = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
+
   // Show the "est. now" secondary line whenever the model's prediction
   // would round to a different value than the raw reading. If they match,
   // the line adds nothing — even at 5 days stale, "EST. 5 · now" next to
-  // "5 / 10 · 5d ago" is just repeating the same number.
-  const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1
-  const usePredicted = isConfident && drift >= 1
+  // "5 / 10 · 5d ago" is just repeating the same number. Suppressed when shaky.
+  const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1 && !shaky
+  const usePredicted = isConfident && drift >= 1 && !shaky
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
   const status = wateredAfterReading
@@ -227,6 +231,11 @@ export default function PlantDetailPage({
                   isPredicted={usePredicted}
                 />
               </div>
+            )}
+            {shaky && (
+              <p className={styles.shakyNote}>
+                🤔 Predictions have been unreliable for this plant lately — trust a fresh reading over the estimate.
+              </p>
             )}
           </section>
         )}

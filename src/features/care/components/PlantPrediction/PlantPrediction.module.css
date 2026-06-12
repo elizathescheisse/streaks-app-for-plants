@@ -69,6 +69,15 @@
   white-space: nowrap;
 }
 
+/* Shown when recent predictions have been unreliable — defer to a fresh
+   reading instead of a confident-but-wrong estimate (Phase 4a). */
+.shaky {
+  font-size: 1.05em;
+  color: var(--status-okay);
+  line-height: 1.35;
+  margin: 0.2em 0 0;
+}
+
 .residual {
   font-size: 1.1em;
   color: var(--text-muted);
