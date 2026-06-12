@@ -211,14 +211,16 @@ export function computeModel(plant, careProfile) {
 // ─────────────────────────────────────────────────────────
 // predictMoisture
 // Extrapolates from the last reading using β (or default).
+// `asOf` lets callers ask "what would the prediction have been at time T"
+// (used by getResidualHistory to replay past predictions); defaults to now.
 // Returns null if no readings exist.
 // ─────────────────────────────────────────────────────────
-export function predictMoisture(plant, model) {
+export function predictMoisture(plant, model, asOf = Date.now()) {
   const reading = lastReading(plant)
   if (!reading) return null
 
   const beta      = model.beta ?? DEFAULT_BETA
-  const daysSince = (Date.now() - new Date(reading.timestamp)) / 86_400_000
+  const daysSince = (asOf - new Date(reading.timestamp)) / 86_400_000
   // Layer 2 — use smoothed (median of last 2–3 readings in cycle) as starting
   // moisture, so a single outlier probe reading doesn't spike the prediction.
   const startMoisture = smoothedCurrentMoisture(plant) ?? reading.moisture
@@ -258,14 +260,14 @@ export function getLastResidual(plant, model) {
 // getRecommendation
 // Full recommendation object — powers the PlantPrediction UI.
 // ─────────────────────────────────────────────────────────
-export function getRecommendation(plant, model, careProfile) {
+export function getRecommendation(plant, model, careProfile, asOf = Date.now()) {
   const reading = lastReading(plant)
   if (!reading) return null
 
   const beta  = model.beta  ?? DEFAULT_BETA
   const alpha = model.alpha ?? DEFAULT_ALPHA
 
-  const predicted = predictMoisture(plant, model)
+  const predicted = predictMoisture(plant, model, asOf)
   if (predicted === null) return null
 
   const hasRange = !!careProfile?.moistureRange
@@ -306,4 +308,82 @@ export function getRecommendation(plant, model, careProfile) {
     usingDefaults: model.beta == null,
     totalSamples,
   }
+}
+
+// ─────────────────────────────────────────────────────────
+// getResidualHistory
+// Replays the model over a plant's history to build a "report card" of how
+// well past predictions held up — the automated version of the predicted-vs-
+// actual log. For each reading after the first, it rebuilds the model from
+// only the events *before* that reading (so the comparison is honest — the
+// model never gets to peek at the reading it's being graded on), then:
+//
+//   • decay points (no watering since the previous reading): records the
+//     predicted moisture vs. the actual reading, and the residual
+//     (actual − predicted; positive = the plant was wetter than predicted).
+//   • post-water points (a watering happened since the previous reading): the
+//     model can't predict the post-watering moisture, so instead of a bogus
+//     residual it records what the model *recommended* watering vs. what was
+//     actually given — the over/under-watering signal.
+//
+// Returns an array (oldest → newest); [] when there aren't two readings yet.
+// ─────────────────────────────────────────────────────────
+export function getResidualHistory(plant, careProfile) {
+  const readings = getEvents(plant, 'reading')
+  if (readings.length < 2) return []
+
+  const allEvents = plant.events ?? []
+  const out = []
+
+  for (let i = 1; i < readings.length; i++) {
+    const prev = readings[i - 1]
+    const cur  = readings[i]
+    const curTs  = new Date(cur.timestamp).getTime()
+    const prevTs = new Date(prev.timestamp)
+
+    const wateringsBetween = allEvents.filter(e =>
+      e.type === 'watering' &&
+      new Date(e.timestamp) > prevTs &&
+      new Date(e.timestamp) < new Date(cur.timestamp)
+    )
+    const kind = wateringsBetween.length ? 'post-water' : 'decay'
+
+    const entry = {
+      timestamp:        cur.timestamp,
+      actual:           Number(cur.moisture),
+      kind,
+      predicted:        null,
+      residual:         null,
+      recommendedWater: null,
+      givenWater:       null,
+      unit:             null,
+    }
+
+    if (kind === 'decay') {
+      // What would the model — built only from events before this reading —
+      // have predicted for this moment?
+      const history = { ...plant, events: allEvents.filter(e => new Date(e.timestamp) < new Date(cur.timestamp)) }
+      const model = computeModel(history, careProfile)
+      const predicted = predictMoisture(history, model, curTs)
+      if (predicted != null) {
+        entry.predicted = Math.round(predicted * 10) / 10
+        entry.residual  = Math.round((entry.actual - predicted) * 10) / 10
+      }
+    } else {
+      // Compare the model's recommendation (as of just before the watering)
+      // against what was actually poured.
+      const watering = wateringsBetween[wateringsBetween.length - 1]
+      const wTs = new Date(watering.timestamp).getTime()
+      entry.givenWater = parseAmount(watering.amount)
+      const preWater = { ...plant, events: allEvents.filter(e => new Date(e.timestamp) < new Date(watering.timestamp)) }
+      const model = computeModel(preWater, careProfile)
+      const rec = getRecommendation(preWater, model, careProfile, wTs)
+      entry.recommendedWater = rec ? rec.waterNeeded : null
+      entry.unit = rec?.dominantUnit ?? watering.unit ?? 'cups'
+    }
+
+    out.push(entry)
+  }
+
+  return out
 }

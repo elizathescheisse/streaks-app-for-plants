@@ -1,0 +1,167 @@
+.main {
+  flex: 1;
+  width: 100%;
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--dash-page-x) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Intro ── */
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  max-width: 60ch;
+}
+
+.empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── Per-plant cards ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--dash-card-radius, 1.25rem);
+  box-shadow: var(--shadow-card-subtle);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+.cardHeader:hover { background: var(--color-surface-2); }
+
+.icon {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.iconArt {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: -8px 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.summary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+.summary_good     { color: var(--status-thriving); }
+.summary_off      { color: var(--status-okay); }
+.summary_learning { color: var(--color-text-muted); font-style: italic; }
+
+.caret {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  transition: transform 0.15s ease;
+}
+.caretOpen { transform: rotate(180deg); }
+
+/* ── Expanded entry list ── */
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.entryDate {
+  flex-shrink: 0;
+  width: 52px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.entryBody {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text-secondary, var(--color-text-muted));
+}
+.entryBody strong { color: var(--color-text); font-weight: 600; }
+
+.chip {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chipGood { color: var(--status-thriving);   background: rgba(64,217,97,0.14);  }
+.chipWarn { color: var(--status-okay);        background: rgba(245,166,35,0.16); }
+.chipBad  { color: var(--status-struggling);  background: rgba(229,97,71,0.16);  }
+
+@media (max-width: 639px) {
+  .container { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .entryBody { font-size: var(--font-size-xs); }
+}
