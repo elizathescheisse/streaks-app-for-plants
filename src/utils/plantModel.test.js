@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeModel, predictMoisture, getRecommendation, getLastResidual } from './plantModel.js'
+import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory } from './plantModel.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -327,5 +327,53 @@ describe('getLastResidual', () => {
     expect(result).toHaveProperty('residual')
     // residual = actual - predicted; both should be numbers
     expect(typeof result.residual).toBe('number')
+  })
+})
+
+// ── getResidualHistory ───────────────────────────────────────────────────────
+
+describe('getResidualHistory', () => {
+  it('returns [] with fewer than 2 readings', () => {
+    expect(getResidualHistory(plant([]), CARE)).toEqual([])
+    expect(getResidualHistory(plant([reading(6, 0)]), CARE)).toEqual([])
+  })
+
+  it('records a predicted/actual/residual for a clean decay pair', () => {
+    // reading 8 (4d ago) → reading 6 (now), no watering between.
+    // History before the last reading has one reading (8) → DEFAULT_BETA 0.5,
+    // predicted = 8 − 0.5·4 = 6, actual 6 → residual 0.
+    const hist = getResidualHistory(plant([reading(8, 4, 'bA'), reading(6, 0, 'bB')]), CARE)
+    expect(hist).toHaveLength(1)
+    expect(hist[0].kind).toBe('decay')
+    expect(hist[0].actual).toBe(6)
+    expect(hist[0].predicted).toBeCloseTo(6, 1)
+    expect(hist[0].residual).toBeCloseTo(0, 1)
+    expect(hist[0].recommendedWater).toBeNull()
+  })
+
+  it('records recommended-vs-given water for a post-watering reading', () => {
+    // reading 5 → water 2c → reading 7. The middle watering makes this a
+    // post-water point: no moisture residual, but a watering comparison.
+    const hist = getResidualHistory(plant([
+      reading(5, 4, 'bA'), watering(2, 2, 'cups', 'bB'), reading(7, 0, 'bC'),
+    ]), CARE)
+    expect(hist).toHaveLength(1)
+    expect(hist[0].kind).toBe('post-water')
+    expect(hist[0].predicted).toBeNull()
+    expect(hist[0].residual).toBeNull()
+    expect(hist[0].givenWater).toBe(2)
+    expect(typeof hist[0].recommendedWater).toBe('number')  // enables over/under flag
+  })
+
+  it('returns entries oldest → newest with mixed kinds', () => {
+    const hist = getResidualHistory(plant([
+      reading(8, 6, 'b1'),                       // first reading (no entry)
+      reading(6, 4, 'b2'),                       // decay
+      watering(2, 3, 'cups', 'b3'),
+      reading(7, 2, 'b4'),                       // post-water
+      reading(6, 0, 'b5'),                       // decay
+    ]), CARE)
+    expect(hist.map(e => e.kind)).toEqual(['decay', 'post-water', 'decay'])
+    expect(hist[0].timestamp).not.toBe(hist[2].timestamp)
   })
 })

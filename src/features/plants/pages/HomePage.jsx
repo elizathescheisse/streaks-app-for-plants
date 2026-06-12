@@ -2,21 +2,24 @@ import { useState } from 'react'
 import ViewTabs from '../../../shared/components/ViewTabs'
 import PlantListView from './PlantListView.jsx'
 import DashboardHome from './DashboardHome.jsx'
+import AccuracyView from './AccuracyView.jsx'
 import styles from './HomePage.module.css'
 
 const TABS = [
   { key: 'focus',     label: 'Focus'     },
   { key: 'timeline',  label: 'Timeline'  },
   { key: 'dashboard', label: 'Dashboard' },
+  { key: 'accuracy',  label: 'Accuracy'  },
 ]
 
-// Tab orchestrator for the home route. Renders the ViewTabs at the top,
-// then either PlantListView (Focus or Timeline) or the Dashboard placeholder
-// (Phase 6 will replace the placeholder with the real DashboardHome).
+// Tab orchestrator for the home route. Renders the ViewTabs at the top, then
+// the active view.
 //
-// - Focus    → PlantListView with cardView='compact'
-// - Timeline → PlantListView with cardView='chart'
-// - Dashboard → placeholder until Phase 6
+// - Focus     → PlantListView with cardView='compact'
+// - Timeline  → PlantListView with cardView='chart'
+// - Dashboard → DashboardHome (garden overview)
+// - Accuracy  → AccuracyView (prediction report card; buried last, for the
+//   data-curious — most users never open it)
 //
 // The two list-flavored tabs intentionally share PlantListView so the date
 // header, search, and add-plant button all work identically — they just
@@ -42,6 +45,8 @@ export default function HomePage({ plants, today, openAdd, detailCallbacks }) {
           openAdd={openAdd}
           detailCallbacks={detailCallbacks}
         />
+      ) : viewMode === 'accuracy' ? (
+        <AccuracyView plants={plants} />
       ) : (
         <PlantListView
           plants={plants}
