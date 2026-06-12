@@ -121,3 +121,30 @@ describe('Big Monstera — β feedback loop biases predictions low (#109)', () =
     expect(Math.abs(rec.predicted - 6)).toBeLessThanOrEqual(1)  // actual was 6
   })
 })
+
+// ────────────────────────────────────────────────────────────────────────
+// underwatered-2026-05-25-amount-loop — Phase B (adaptive amount loop)
+// The user keeps pouring 1 cup and the plant never reaches its band (every
+// post-water reading is 4 / ideal 4–7). The recommendation should *climb*
+// above the 1 cup being poured — telling the user to give more — instead of
+// echoing the too-small habit or trusting the fragile α guess.
+// ────────────────────────────────────────────────────────────────────────
+describe('Chronically under-watered — amount loop climbs the recommendation (Phase B)', () => {
+  const plant = loadFixture('underwatered-2026-05-25-amount-loop.json')
+  const careProfile = lookupPlant(plant.species)
+
+  // Two days after the last reading — the plant is drying and needs water.
+  const FIXTURE_NOW = new Date('2026-05-25T17:00:00.000Z')
+  beforeAll(() => { vi.useFakeTimers(); vi.setSystemTime(FIXTURE_NOW) })
+  afterAll(() => { vi.useRealTimers() })
+
+  it('recommends more than the 1 cup the user keeps pouring', () => {
+    const model = computeModel(plant, careProfile)
+    const rec   = getRecommendation(plant, model, careProfile)
+    expect(rec).not.toBeNull()
+    expect(rec.waterNeeded).toBeGreaterThan(0)         // water is needed
+    expect(rec.amountSource).toBe('outcome')           // the loop is driving the amount
+    expect(rec.waterNeeded).toBeGreaterThan(1)         // climbed above the poured 1 cup
+    expect(rec.waterNeeded).toBeLessThanOrEqual(2.5)   // but bounded — no runaway
+  })
+})

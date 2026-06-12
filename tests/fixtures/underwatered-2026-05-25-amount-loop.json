@@ -1,0 +1,17 @@
+{
+  "id": "fixture-underwatered",
+  "emoji": "🌿",
+  "species": "alocasia portora",
+  "name": "Chronically under-watered",
+  "_note": "Phase B (adaptive amount loop). A consistent-moisture plant (ideal 4–7) that the user keeps giving just 1 cup — every post-watering reading only reaches 4, well below the top of the band, so each cycle grades as 'under'. The outcome loop should climb the recommended amount above the 1 cup being poured (telling the user to give more), rather than echoing their too-small habit (#64's gap) or trusting the fragile α guess. Timestamps anchored to fixed dates for determinism.",
+  "events": [
+    { "id": "w1", "type": "watering", "timestamp": "2026-05-01T17:00:00.000Z", "amount": "1", "unit": "cups", "bundleId": "b1" },
+    { "id": "r1", "type": "reading",  "timestamp": "2026-05-02T17:00:00.000Z", "moisture": 4, "bundleId": "b2" },
+    { "id": "w2", "type": "watering", "timestamp": "2026-05-08T17:00:00.000Z", "amount": "1", "unit": "cups", "bundleId": "b3" },
+    { "id": "r2", "type": "reading",  "timestamp": "2026-05-09T17:00:00.000Z", "moisture": 4, "bundleId": "b4" },
+    { "id": "w3", "type": "watering", "timestamp": "2026-05-15T17:00:00.000Z", "amount": "1", "unit": "cups", "bundleId": "b5" },
+    { "id": "r3", "type": "reading",  "timestamp": "2026-05-16T17:00:00.000Z", "moisture": 4, "bundleId": "b6" },
+    { "id": "w4", "type": "watering", "timestamp": "2026-05-22T17:00:00.000Z", "amount": "1", "unit": "cups", "bundleId": "b7" },
+    { "id": "r4", "type": "reading",  "timestamp": "2026-05-23T17:00:00.000Z", "moisture": 4, "bundleId": "b8" }
+  ]
+}
