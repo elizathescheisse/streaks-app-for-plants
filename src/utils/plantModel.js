@@ -387,3 +387,48 @@ export function getResidualHistory(plant, careProfile) {
 
   return out
 }
+
+// ─────────────────────────────────────────────────────────
+// getPredictionReliability
+// Answers "should the user trust this plant's predicted moisture, or go feel
+// the soil?" by grading how well recent predictions have actually held up.
+// Returns one of:
+//   'learning' — not enough data yet to predict (or to judge accuracy). The UI
+//                already shows a "still learning" state here.
+//   'shaky'    — enough data, but recent predictions have been off (large mean
+//                residual) or the drying fit is scattery (low R²). Don't assert
+//                a confident number — tell the user to take a fresh reading.
+//   'reliable' — enough data and recent predictions have tracked reality well.
+//
+// Honest-by-design: a chronically-wrong plant gets flagged 'shaky' so the app
+// stops showing a confident-but-wrong estimate (Phase 4a).
+// ─────────────────────────────────────────────────────────
+const RELIABILITY_RECENT   = 4    // judge accuracy on the last N clean decay checks
+const RELIABILITY_MIN_CHECKS = 2  // need at least this many to grade at all
+const SHAKY_MEAN_RESIDUAL  = 1.5  // mean |actual − predicted| above this = shaky
+const SHAKY_R2             = 0.4  // mean drying-fit R² below this = shaky
+
+export function getPredictionReliability(plant, careProfile) {
+  const model = computeModel(plant, careProfile)
+  const totalSamples = model.betaSamples + model.alphaSamples
+
+  // Mirrors getRecommendation's confidence floor — below this the model is
+  // still calibrating and shouldn't be graded on accuracy.
+  if (model.beta == null || totalSamples < 3) return 'learning'
+
+  const decay = getResidualHistory(plant, careProfile)
+    .filter(e => e.kind === 'decay' && e.residual != null)
+  const recent = decay.slice(-RELIABILITY_RECENT)
+
+  // Not enough clean predicted-vs-actual checks to judge accuracy yet.
+  if (recent.length < RELIABILITY_MIN_CHECKS) return 'learning'
+
+  const meanAbs = recent.reduce((s, e) => s + Math.abs(e.residual), 0) / recent.length
+
+  // Either signal of untrustworthiness is enough: predictions land far off on
+  // average, or the underlying drying fit is too scattery to believe.
+  if (meanAbs > SHAKY_MEAN_RESIDUAL) return 'shaky'
+  if (model.betaR2 != null && model.betaR2 < SHAKY_R2) return 'shaky'
+
+  return 'reliable'
+}

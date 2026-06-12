@@ -284,6 +284,15 @@
   margin-top: 2px;
 }
 
+/* Honest-uncertainty hint on the Focus card: recent predictions unreliable,
+   so defer to a fresh reading rather than the extrapolated number (4a). */
+.shakyHint {
+  font-size: 12px;
+  color: var(--status-okay);
+  line-height: 1.35;
+  margin-top: 4px;
+}
+
 .meta {
   display: flex;
   gap: 20px;

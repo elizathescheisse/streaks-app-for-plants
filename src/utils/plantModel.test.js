@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory } from './plantModel.js'
+import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability } from './plantModel.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -375,5 +375,45 @@ describe('getResidualHistory', () => {
     ]), CARE)
     expect(hist.map(e => e.kind)).toEqual(['decay', 'post-water', 'decay'])
     expect(hist[0].timestamp).not.toBe(hist[2].timestamp)
+  })
+})
+
+// ── getPredictionReliability ─────────────────────────────────────────────────
+
+describe('getPredictionReliability', () => {
+  it("is 'learning' with no/too-little data", () => {
+    expect(getPredictionReliability(plant([reading(6, 0)]), CARE)).toBe('learning')
+    // One drying cycle = a single sample — below the 3-sample floor.
+    expect(getPredictionReliability(plant([reading(8, 4), reading(6, 0)]), CARE)).toBe('learning')
+  })
+
+  it("is 'reliable' when predictions have tracked reality across several cycles", () => {
+    // Steady ~0.5/day drying across three cycles → β learned cleanly, and the
+    // replayed predictions land on the actual readings (residuals ≈ 0).
+    const p = plant([
+      reading(8, 20, 'a1'), reading(7, 18, 'a2'),
+      watering(3, 17, 'cups', 'a3'),
+      reading(8, 16, 'a4'), reading(7, 14, 'a5'),
+      watering(3, 13, 'cups', 'a6'),
+      reading(8, 12, 'a7'), reading(7, 10, 'a8'),
+    ])
+    const m = computeModel(p, CARE)
+    expect(m.betaSamples + m.alphaSamples).toBeGreaterThanOrEqual(3)  // past the floor
+    expect(getPredictionReliability(p, CARE)).toBe('reliable')
+  })
+
+  it("is 'shaky' when there's plenty of data but predictions keep missing badly", () => {
+    // The plant crashes 8 → 1 every cycle (far faster than the β cap can track),
+    // so the replayed predictions are off by ~5–6 every time despite ample data.
+    const p = plant([
+      reading(8, 20, 'b1'), reading(1, 18, 'b2'),
+      watering(3, 17, 'cups', 'b3'),
+      reading(8, 16, 'b4'), reading(1, 14, 'b5'),
+      watering(3, 13, 'cups', 'b6'),
+      reading(8, 12, 'b7'), reading(1, 10, 'b8'),
+    ])
+    const m = computeModel(p, CARE)
+    expect(m.betaSamples + m.alphaSamples).toBeGreaterThanOrEqual(3)
+    expect(getPredictionReliability(p, CARE)).toBe('shaky')
   })
 })

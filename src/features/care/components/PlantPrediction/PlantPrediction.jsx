@@ -1,5 +1,5 @@
 import styles from './PlantPrediction.module.css'
-import { computeModel, getRecommendation } from '../../../../utils/plantModel.js'
+import { computeModel, getRecommendation, getPredictionReliability } from '../../../../utils/plantModel.js'
 import { lastReading, lastWatering } from '../../../../utils/plantSelectors.js'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDroplet } from '@fortawesome/free-solid-svg-icons'
@@ -79,6 +79,26 @@ export default function PlantPrediction({ plant, careProfile }) {
               : 'Still learning — keep logging readings'}
           </span>
         </div>
+      </div>
+    )
+  }
+
+  // ── Shaky (we have data, but recent predictions keep missing) ─────────────
+  // Don't assert a confident "estimated now" number the model can't back up —
+  // show the last real reading and tell the user to trust the soil (Phase 4a).
+  const reliability = getPredictionReliability(plant, careProfile)
+  if (reliability === 'shaky') {
+    return (
+      <div className={styles.wrap}>
+        {wateringStyleLabel && (
+          <span className={styles.wateringStyle}>{wateringStyleLabel}</span>
+        )}
+        <span className={styles.moistureRaw}>
+          ◎ {Math.round(Number(reading.moisture))} ({relTime(reading.timestamp)})
+        </span>
+        <p className={styles.shaky}>
+          🤔 Hard to predict lately — check the soil before watering
+        </p>
       </div>
     )
   }

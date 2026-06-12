@@ -8,7 +8,7 @@ import PlantHistoryChart from '../../../care/components/PlantHistoryChart'
 import PlantIcon, { hasIcon } from '../plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '../../../../utils/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '../../../../utils/plantSelectors.js'
-import { computeModel, getRecommendation } from '../../../../utils/plantModel.js'
+import { computeModel, getRecommendation, getPredictionReliability } from '../../../../utils/plantModel.js'
 import { moistureStatus } from '../../../../utils/plantStatus.js'
 import PlantPrediction from '../../../care/components/PlantPrediction'
 
@@ -93,11 +93,14 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   const model      = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
   const rec        = model ? getRecommendation(plant, model, careProfile) : null
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
+  // When recent predictions have been unreliable, don't trust the extrapolated
+  // value — fall back to the last real reading and prompt a fresh one (4a).
+  const shaky        = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
   const rawMoisture  = reading ? Math.round(Number(reading.moisture)) : null
   const predMoisture = isConfident ? Math.round(rec.predicted) : null
   const drift        = (rawMoisture != null && predMoisture != null)
     ? Math.abs(predMoisture - rawMoisture) : 0
-  const usePredicted = isConfident && drift >= 1
+  const usePredicted = isConfident && drift >= 1 && !shaky
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
   const status = wateredAfterReading
@@ -188,6 +191,12 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
             {/* ── COMPACT MODE only: bar + prediction full-width ── */}
             {isCompact && hasStats && badgeMoisture != null && (
               <MoistureBar value={badgeMoisture} range={careProfile.moistureRange} careProfile={careProfile} isPredicted={usePredicted} />
+            )}
+
+            {/* Honest-uncertainty hint: recent predictions have been off, so
+                nudge the user to trust the soil over the number (4a). */}
+            {isCompact && shaky && (
+              <span className={styles.shakyHint}>🤔 Hard to predict — check soil</span>
             )}
 
             {/* ── Actions row ── */}
