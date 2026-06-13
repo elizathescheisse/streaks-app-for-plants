@@ -144,10 +144,12 @@
   align-items: center;
   gap: 12px;
   padding: 48px 24px;
+  width: 100%;
   background: rgba(26,46,23,0.4);
   border: 1.5px dashed rgba(71,133,61,0.35);
   border-radius: var(--radius-lg);
   text-align: center;
+  box-sizing: border-box;
 }
 
 .emptyIcon {
