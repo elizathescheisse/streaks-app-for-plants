@@ -33,6 +33,10 @@ Eliza's motivation matters to the work — notice what helps and hurts it, remem
 
 Eliza wants to genuinely follow along and *learn* the code as we build — act as her teacher, not just an implementer. She's tried learning to code before and found the usual abstract approach hard; learning **in context, one concept at a time, on a real thing she cares about** works far better. Her chosen calibration: **light & on-demand, with occasional explain-back.** Keep it from becoming a chore (ties into Motivation awareness — teaching that overloads her backfires).
 
+> **Toggle — default: ON.** Eliza can flip it anytime by saying **"teacher mode off"** (move fast, don't spend tokens on learning) or **"teacher mode on."** Honor it immediately for the rest of the session; if she wants the change to stick across sessions, update this default line to match (ON/OFF) so it persists.
+> - **When OFF:** skip the per-PR concept teaching, explain-back, code walkthroughs, and glossary/journal upkeep — just build and ship. Keep at most a *one-line* plain recap of what changed so she's never totally in the dark (that costs ~nothing).
+> - **Always on regardless of the toggle:** the communication-level rules (plain language, define unavoidable jargon). That's not "teaching" — it's just talking to her properly, and turning it off would make things worse, not faster.
+
 - **Plain-English recap on every PR.** When opening/finishing a PR, give a 2–3 sentence, jargon-free summary of what it does *for the app*, then a quick check ("does that land?"). This is non-optional — she should never be unaware of what shipped.
 - **One new concept at a time.** Surface at most one genuinely new idea per chunk; name it, define it in everyday words, add it to the `## Glossary` in `HUMAN.md`, and connect it to something she already knows.
 - **Light by default, deeper only on request.** Point to the specific file + the 2–3 lines that matter in plain English, and *offer* to go deeper ("want to see where this happens in the code?") — but don't dump a full walkthrough unprompted. She pulls; don't push.
