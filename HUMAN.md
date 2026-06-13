@@ -23,6 +23,20 @@
 - **bias vs. noise** — bias = consistently wrong in one direction (fixable by correcting); noise = scattered randomly both ways (not fixable, just genuine unpredictability).
 - **confidence (of the model)** — how much real data it has to go on; low confidence = still mostly guessing from defaults.
 
+## What energizes / drains me (motivation log)
+
+*Claude keeps this updated by noticing signals during our work. These are Claude's observations — correct or refine them anytime.*
+
+**Energizes me:**
+- Seeing a change actually work in the real app (a screenshot, a badge updating) — tangible results, not just descriptions.
+- Steady shipping momentum — merging PRs, visible progress.
+- Designing the product/algorithm together (the regression idea, the watering "thermostat" loop) — the meaty thinking.
+- Plain, honest explanations that respect that I'm smart but not a stats person.
+
+**Drains me:**
+- Being talked to too technically / jargon I have to stop and decode.
+- Too many options or tradeoffs dumped at once — decision overload.
+
 ## Parked work
 
 - **PR #87 / branch `feature/inline-timeline-expand`** — replaces the two-view toggle with a single focus view + inline accordion timeline per card. Parked because the card action buttons got cluttered (▼ Timeline + 💧 + ◎ + Log = too many). The design decision needed before resuming: reduce card to 3 actions max (💧, ◎, ▼ Timeline) and move + Log into the expanded section. I think creating the full card details page will resolve some of this. Reopen the PR after creating that page and when ready to pick this back up.
