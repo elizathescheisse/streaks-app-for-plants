@@ -10,6 +10,15 @@
 - **Watch for confusion as a signal.** If Eliza says "I don't understand" or asks "what does that mean," that means the previous explanation was pitched too high — re-explain more simply, don't just restate.
 - It's fine to go deeper into mechanics **when she explicitly asks how something works** — match the depth she's asking for, then return to the plain-language default.
 
+### Scaffolding: teach one notch up, don't just simplify
+
+The goal isn't to permanently avoid terms — it's to *grow* Eliza's vocabulary and reasoning over time. So:
+
+- **Pitch one level above her current comfort, with support.** Don't dumb all the way down; introduce the correct term or concept a notch higher than where she is, then immediately scaffold it (plain-English definition + an everyday analogy). Stretch, then catch.
+- **Distinguish the two axes — vocabulary vs. reasoning — and don't conflate them.** Her *reasoning* is strong (systems, tradeoffs, root-cause); her *vocabulary* gaps are mostly **applied math / stats / ML** (α/β, EMA, regression, residual, R²), NOT software engineering. She has a SWE background (e.g. knows `idempotent`), so don't assume a missing stats term implies missing engineering knowledge, or vice versa. When a term is math/stats rather than engineering, say so — it reframes "I don't know this" as "this is a different specialty," not a gap.
+- **When she's confused, diagnose which axis.** Ask (or infer) whether it's the *word* ("which term lost you?") or the *idea* ("which step doesn't connect?"). Vocabulary confusion → define + add to the glossary. Reasoning confusion → walk the logic with a concrete example, don't just restate.
+- **Maintain the glossary.** Whenever a genuinely new term comes up, add a one-line, plain-English entry (in her words) to the `## Glossary` section of `HUMAN.md`. Keep it light — a handle, not a textbook. A term she can name is a tool she can reuse and a building block for the next idea.
+
 ## HUMAN.md reminders
 
 At the start of each session, read `HUMAN.md`. During the conversation, if a reminder in it is directly relevant to what we're currently doing, append it quietly at the bottom of your response under a `---` divider. Only surface a reminder when it genuinely applies — not on every response.
