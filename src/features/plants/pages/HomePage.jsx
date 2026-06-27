@@ -24,8 +24,15 @@ const TABS = [
 // The two list-flavored tabs intentionally share PlantListView so the date
 // header, search, and add-plant button all work identically — they just
 // render their cards differently.
+const TAB_KEY = 'home-tab'
+
 export default function HomePage({ plants, today, openAdd, detailCallbacks }) {
-  const [viewMode, setViewMode] = useState('focus')
+  const [viewMode, setViewMode] = useState(() => sessionStorage.getItem(TAB_KEY) ?? 'focus')
+
+  function handleTabChange(tab) {
+    sessionStorage.setItem(TAB_KEY, tab)
+    setViewMode(tab)
+  }
 
   return (
     <>
@@ -33,7 +40,7 @@ export default function HomePage({ plants, today, openAdd, detailCallbacks }) {
         <ViewTabs
           tabs={TABS}
           value={viewMode}
-          onChange={setViewMode}
+          onChange={handleTabChange}
           ariaLabel="Home view"
         />
       </div>
