@@ -11,6 +11,10 @@ import {
   smoothedCurrentMoisture,
   typicalWaterAmount,
   pctTimeInRange,
+  avgWateringInterval,
+  idealWateringInterval,
+  avgPourAmount,
+  predictedLandingMoisture,
 } from './plantSelectors.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -538,5 +542,155 @@ describe('typicalWaterAmount', () => {
 
   it('returns null when there is nothing to go on', () => {
     expect(typicalWaterAmount({ events: [] }, {})).toBeNull()
+  })
+})
+
+// ── pctTimeInRange ────────────────────────────────────────────────────────────
+
+describe('pctTimeInRange', () => {
+  const CARE = { moistureRange: [4, 8] }
+
+  it('returns null with no careProfile', () => {
+    expect(pctTimeInRange({ events: [makeReading(5)] }, null)).toBeNull()
+  })
+
+  it('returns null with careProfile but no moistureRange', () => {
+    expect(pctTimeInRange({ events: [makeReading(5)] }, {})).toBeNull()
+  })
+
+  it('returns null with no readings', () => {
+    expect(pctTimeInRange({ events: [] }, CARE)).toBeNull()
+  })
+
+  it('returns 100 when all readings are in range', () => {
+    const plant = { events: [makeReading(5), makeReading(6), makeReading(7)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(100)
+  })
+
+  it('returns 0 when no readings are in range', () => {
+    const plant = { events: [makeReading(2), makeReading(3)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(0)
+  })
+
+  it('rounds to nearest integer for mixed readings', () => {
+    const plant = { events: [makeReading(5), makeReading(3), makeReading(6), makeReading(2)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(50)
+  })
+
+  it('counts boundary values as in range', () => {
+    const plant = { events: [makeReading(4), makeReading(8)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(100)
+  })
+})
+
+// ── avgWateringInterval ───────────────────────────────────────────────────────
+
+describe('avgWateringInterval', () => {
+  it('returns null with no waterings', () => {
+    expect(avgWateringInterval({ events: [] })).toBeNull()
+  })
+
+  it('returns null with only one watering', () => {
+    expect(avgWateringInterval({ events: [makeWatering(1, 3)] })).toBeNull()
+  })
+
+  it('returns the gap in days between two waterings', () => {
+    const plant = { events: [makeWatering(1, 7), makeWatering(1, 0)] }
+    const interval = avgWateringInterval(plant)
+    expect(interval).toBeCloseTo(7, 0)
+  })
+
+  it('averages multiple gaps', () => {
+    // waterings at 12, 6, and 0 days ago → gaps of 6 and 6 → avg 6
+    const plant = { events: [makeWatering(1, 12), makeWatering(1, 6), makeWatering(1, 0)] }
+    const interval = avgWateringInterval(plant)
+    expect(interval).toBeCloseTo(6, 0)
+  })
+})
+
+// ── idealWateringInterval ─────────────────────────────────────────────────────
+
+describe('idealWateringInterval', () => {
+  const CARE = { moistureRange: [4, 8] }
+
+  it('returns null with no model.beta', () => {
+    expect(idealWateringInterval({}, CARE)).toBeNull()
+  })
+
+  it('returns null with no careProfile', () => {
+    expect(idealWateringInterval({ beta: 1 }, null)).toBeNull()
+  })
+
+  it('divides range width by beta', () => {
+    // range width = 8 - 4 = 4; beta = 2 → 2 days
+    expect(idealWateringInterval({ beta: 2 }, CARE)).toBeCloseTo(2)
+  })
+
+  it('returns null when range[1] <= range[0]', () => {
+    expect(idealWateringInterval({ beta: 1 }, { moistureRange: [5, 5] })).toBeNull()
+  })
+})
+
+// ── avgPourAmount ─────────────────────────────────────────────────────────────
+
+describe('avgPourAmount', () => {
+  it('returns null with no waterings', () => {
+    expect(avgPourAmount({ events: [] })).toBeNull()
+  })
+
+  it('returns null when all waterings lack amounts', () => {
+    const plant = { events: [{ type: 'watering', timestamp: ts(1), bundleId: 'b', amount: '' }] }
+    expect(avgPourAmount(plant)).toBeNull()
+  })
+
+  it('averages pour amounts in cups', () => {
+    const plant = { events: [makeWatering(2, 3), makeWatering(4, 1)] }
+    const result = avgPourAmount(plant)
+    expect(result.amount).toBeCloseTo(3)
+    expect(result.unit).toBe('cups')
+  })
+
+  it('uses the dominant unit when mixed', () => {
+    const liters = { id: 'w3', type: 'watering', timestamp: ts(5), amount: '0.5', unit: 'liters', bundleId: 'b' }
+    const plant = { events: [makeWatering(2, 3), makeWatering(2, 1), liters] }
+    const result = avgPourAmount(plant)
+    expect(result.unit).toBe('cups')
+  })
+})
+
+// ── predictedLandingMoisture ──────────────────────────────────────────────────
+
+describe('predictedLandingMoisture', () => {
+  const CARE = { moistureRange: [4, 8] }
+
+  it('returns null with no model.alpha', () => {
+    expect(predictedLandingMoisture({ events: [] }, {}, CARE)).toBeNull()
+  })
+
+  it('returns null with no pour data', () => {
+    const plant = { events: [makeReading(3, 1), makeWatering(0, 0)] }
+    expect(predictedLandingMoisture(plant, { alpha: 2 }, CARE)).toBeNull()
+  })
+
+  it('uses pre-watering reading as base and adds pour × alpha', () => {
+    // reading at 3 moisture before watering; pour 2 cups; alpha 2 → lands at 7
+    const plant = {
+      events: [
+        makeReading(3, 2, 'b1'),          // pre-watering reading
+        makeWatering(2, 1, 'cups', 'b2'), // watering
+        makeReading(7, 0, 'b3'),          // post-watering (not used as base)
+      ],
+    }
+    const result = predictedLandingMoisture(plant, { alpha: 2 }, CARE)
+    expect(result).toBeCloseTo(7, 0)
+  })
+
+  it('clamps to careProfile.moistureRange[1] as upper bound', () => {
+    // base 3 + 5 cups × 2 alpha = 13 → clamped to range ceiling 8
+    const plant = {
+      events: [makeReading(3, 2, 'b1'), makeWatering(5, 1, 'cups', 'b2'), makeReading(8, 0, 'b3')],
+    }
+    const result = predictedLandingMoisture(plant, { alpha: 2 }, CARE)
+    expect(result).toBeLessThanOrEqual(8)
   })
 })

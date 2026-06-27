@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantDetailPage.module.css'
 import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
+import PlantInsightsSection from '../../care/components/PlantInsightsSection/PlantInsightsSection.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
@@ -76,13 +77,15 @@ export default function PlantDetailPage({
   const navigate = useNavigate()
   const [chartWindow, setChartWindow] = useState('1W')
 
+  useEffect(() => { window.scrollTo(0, 0) }, [id])
+
   const plant = plants.find(p => p.id === id)
 
   if (!plant) {
     return (
       <div className={styles.notFound}>
         <p>Plant not found.</p>
-        <button className={styles.backBtn} onClick={() => navigate('/')}>← Back to plants</button>
+        <button className={styles.backBtn} onClick={() => navigate(-1)}>← Back to plants</button>
       </div>
     )
   }
@@ -134,7 +137,7 @@ export default function PlantDetailPage({
     <div className={styles.page}>
       {/* ── Top nav with inline plant identity ── */}
       <div className={`${styles.topNav} ${styles[health]}`}>
-        <button className={styles.backBtn} onClick={() => navigate('/')} type="button" aria-label="Back to plants">
+        <button className={styles.backBtn} onClick={() => navigate(-1)} type="button" aria-label="Back to plants">
           ‹
         </button>
         <div className={styles.heroInline}>
@@ -239,6 +242,9 @@ export default function PlantDetailPage({
             )}
           </section>
         )}
+
+        {/* ── Insights ── */}
+        <PlantInsightsSection plant={plant} model={model} rec={rec} careProfile={careProfile} />
 
         {/* ── History chart ── */}
         {readings.length >= 2 && (
