@@ -10,6 +10,7 @@ import {
   getPrimaryHealthyPlant,
   getRecentActivities,
   getGreeting,
+  getGardenHealthStats,
 } from './dashboardCare.js'
 
 const plant = (overrides = {}) => ({
@@ -88,5 +89,86 @@ describe('dashboardCare', () => {
   it('getGreeting varies by hour', () => {
     expect(getGreeting(new Date('2026-05-22T08:00:00'))).toBe('Good morning')
     expect(getGreeting(new Date('2026-05-22T14:00:00'))).toBe('Good afternoon')
+  })
+})
+
+// ── getGardenHealthStats ────────────────────────────────────────────────────
+
+// pothos has moistureRange [4, 7] in plantLookup — used for pctTimeInRange
+function trackedPlant(id, readings = [], extraEvents = []) {
+  return {
+    id,
+    emoji: '🌿',
+    species: 'pothos',
+    name: `Plant ${id}`,
+    events: [
+      ...readings.map((m, i) => ({
+        type: 'reading', bundleId: `b${i}`, moisture: m,
+        timestamp: new Date(Date.now() - (readings.length - i) * 86_400_000).toISOString(),
+      })),
+      ...extraEvents,
+    ],
+  }
+}
+
+describe('getGardenHealthStats', () => {
+  it('returns empty state for no plants', () => {
+    const stats = getGardenHealthStats([], new Date())
+    expect(stats.plants).toEqual([])
+    expect(stats.trackedCount).toBe(0)
+    expect(stats.readToday).toBe(0)
+    expect(stats.unreadToday).toEqual([])
+    expect(stats.focusPlant).toBeNull()
+  })
+
+  it('assigns correct pct to tracked plants', () => {
+    // pothos range [4,7]: readings [5, 6, 2] → 2/3 in range = 67%
+    const p = trackedPlant('a', [5, 6, 2])
+    const stats = getGardenHealthStats([p], new Date())
+    expect(stats.trackedCount).toBe(1)
+    expect(stats.plants[0].pct).toBe(67)
+  })
+
+  it('sorts plants worst-first', () => {
+    const good = trackedPlant('g', [5, 6, 7])   // 100%
+    const bad  = trackedPlant('b', [2, 2, 2])   // 0%
+    const stats = getGardenHealthStats([good, bad], new Date())
+    expect(stats.plants[0].plant.id).toBe('b')
+    expect(stats.plants[1].plant.id).toBe('g')
+  })
+
+  it('sets focusPlant to the one with the lowest pct', () => {
+    const good = trackedPlant('g', [5, 6])
+    const bad  = trackedPlant('b', [2, 3])
+    const stats = getGardenHealthStats([good, bad], new Date())
+    expect(stats.focusPlant.id).toBe('b')
+  })
+
+  it('counts plants read today vs unread', () => {
+    const today = new Date('2026-05-22T12:00:00')
+    const readPlant = {
+      id: 'r', emoji: '🌿', species: 'pothos', name: 'Read',
+      events: [{ type: 'reading', bundleId: 'b1', moisture: 5, timestamp: '2026-05-22T10:00:00' }],
+    }
+    const unreadPlant = trackedPlant('u', [5, 6])  // no reading today
+    const stats = getGardenHealthStats([readPlant, unreadPlant], today)
+    expect(stats.readToday).toBe(1)
+    expect(stats.unreadToday).toHaveLength(1)
+    expect(stats.unreadToday[0].id).toBe('u')
+  })
+
+  it('session tracker is empty when no plants have been read today', () => {
+    const p = trackedPlant('a', [5])
+    const stats = getGardenHealthStats([p], new Date('2026-01-01T12:00:00'))
+    expect(stats.readToday).toBe(0)
+    expect(stats.unreadToday).toHaveLength(1)
+  })
+
+  it('session tracker is empty when all plants have been read today', () => {
+    const today = new Date()
+    const reading = { type: 'reading', bundleId: 'b', moisture: 5, timestamp: new Date().toISOString() }
+    const p = { id: 'a', emoji: '🌿', species: 'pothos', name: 'P', events: [reading] }
+    const stats = getGardenHealthStats([p], today)
+    expect(stats.unreadToday).toHaveLength(0)
   })
 })

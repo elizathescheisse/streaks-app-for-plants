@@ -3,8 +3,9 @@
  * prediction-based "due today" logic exists. See TODOs below.
  */
 
-import { currentHealth, lastReading, lastWatering, logBundles } from './plantSelectors.js'
+import { currentHealth, lastReading, lastWatering, logBundles, pctTimeInRange, getEvents } from './plantSelectors.js'
 import { getPlantSortPriority } from './plantStatus.js'
+import { lookupPlant } from './plantLookup.js'
 
 const HEALTH_LABELS = {
   thriving: 'Thriving',
@@ -90,7 +91,61 @@ export function getDashboardMetrics(plants, day = new Date()) {
   const needAttention = plants.filter(needsAttention).length
   const wateredToday = countEventsToday(plants, 'watering', day)
   const readingsToday = countEventsToday(plants, 'reading', day)
-  return { total, needAttention, wateredToday, readingsToday }
+
+  // Count distinct plants that have at least one reading today
+  const plantsReadToday = plants.filter(p =>
+    (p.events ?? []).some(e => e.type === 'reading' && isSameLocalDay(e.timestamp, day))
+  ).length
+  const measuredToday = total > 0 ? `${plantsReadToday} / ${total}` : '0'
+
+  return { total, needAttention, wateredToday, readingsToday, measuredToday }
+}
+
+// Returns garden-wide health stats for the dashboard health grid and session tracker.
+// Each plant in `plants` is looked up against its species careProfile.
+// Returns:
+//   plants:       [{ plant, pct }] sorted worst-first — for the colored circles
+//   focusPlant:   plant with the lowest pctTimeInRange (the one needing most attention)
+//   readToday:    count of plants with at least one reading today
+//   unreadToday:  plants that have no reading today (for the session-tracker row)
+//   trackedCount: plants that have a careProfile + at least one reading ever
+export function getGardenHealthStats(plants, today = new Date()) {
+  const tracked = []
+  let focusPlant = null
+  let lowestPct = Infinity
+  let readTodayCount = 0
+  const unreadToday = []
+
+  for (const plant of plants) {
+    const careProfile = lookupPlant(plant.species)
+    const readings = getEvents(plant, 'reading')
+    const pct = pctTimeInRange(plant, careProfile)
+
+    const hadReadingToday = readings.some(r => isSameLocalDay(r.timestamp, today))
+    if (hadReadingToday) {
+      readTodayCount++
+    } else {
+      unreadToday.push(plant)
+    }
+
+    if (pct != null) {
+      tracked.push({ plant, pct })
+      if (pct < lowestPct) {
+        lowestPct = pct
+        focusPlant = plant
+      }
+    }
+  }
+
+  tracked.sort((a, b) => a.pct - b.pct)
+
+  return {
+    plants: tracked,
+    focusPlant,
+    readToday: readTodayCount,
+    unreadToday,
+    trackedCount: tracked.length,
+  }
 }
 
 export function getSummaryLine(plants) {

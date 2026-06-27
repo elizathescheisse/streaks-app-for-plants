@@ -209,6 +209,20 @@ export function buildEventsFromForm(form, existingBundleId) {
   return events
 }
 
+// What % of all readings for this plant fell within its healthy moisture range.
+// Returns a number 0-100, or null when there's no range or no readings.
+export function pctTimeInRange(plant, careProfile) {
+  const [lo, hi] = careProfile?.moistureRange ?? [null, null]
+  if (lo == null || hi == null) return null
+  const readings = getEvents(plant, 'reading')
+  if (!readings.length) return null
+  const inRange = readings.filter(r => {
+    const m = Number(r.moisture)
+    return m >= lo && m <= hi
+  }).length
+  return Math.round((inRange / readings.length) * 100)
+}
+
 // Returns the best per-plant "typical" watering amount, or null when unknown.
 // Priority (most-trusted first):
 //   1. explicit user override (plant.typicalWater, set in the edit form, #135)

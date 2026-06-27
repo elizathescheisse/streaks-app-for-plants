@@ -10,6 +10,7 @@ import {
   isSuspiciousReading,
   smoothedCurrentMoisture,
   typicalWaterAmount,
+  pctTimeInRange,
 } from './plantSelectors.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -464,6 +465,47 @@ describe('buildEventsFromForm', () => {
     const form = { ...baseForm, moisture: 7 }
     const events = buildEventsFromForm(form, 'existing-bundle-id')
     expect(events[0].bundleId).toBe('existing-bundle-id')
+  })
+})
+
+// ── pctTimeInRange ─────────────────────────────────────────────────────────
+
+describe('pctTimeInRange', () => {
+  const CARE = { moistureRange: [4, 7] }
+
+  it('returns null when no careProfile', () => {
+    const plant = { events: [makeReading(5, 0)] }
+    expect(pctTimeInRange(plant, null)).toBeNull()
+  })
+
+  it('returns null when careProfile has no moistureRange', () => {
+    const plant = { events: [makeReading(5, 0)] }
+    expect(pctTimeInRange(plant, {})).toBeNull()
+  })
+
+  it('returns null when no readings', () => {
+    expect(pctTimeInRange(emptyPlant, CARE)).toBeNull()
+  })
+
+  it('returns 100 when all readings are in range', () => {
+    const plant = { events: [makeReading(4, 3), makeReading(6, 2), makeReading(7, 1)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(100)
+  })
+
+  it('returns 0 when no readings are in range', () => {
+    const plant = { events: [makeReading(2, 2), makeReading(9, 1)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(0)
+  })
+
+  it('calculates the correct percentage for mixed readings', () => {
+    // 3 in range out of 4 total = 75%
+    const plant = { events: [makeReading(4, 4), makeReading(5, 3), makeReading(7, 2), makeReading(2, 1)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(75)
+  })
+
+  it('includes boundary values (lo and hi) as in-range', () => {
+    const plant = { events: [makeReading(4, 2), makeReading(7, 1)] }
+    expect(pctTimeInRange(plant, CARE)).toBe(100)
   })
 })
 
