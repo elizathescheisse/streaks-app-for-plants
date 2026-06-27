@@ -22,6 +22,7 @@
 - **feedback loop / "thermostat"** — a system that watches the result, compares it to a goal, and adjusts again and again until it settles on the right value.
 - **bias vs. noise** — bias = consistently wrong in one direction (fixable by correcting); noise = scattered randomly both ways (not fixable, just genuine unpredictability).
 - **confidence (of the model)** — how much real data it has to go on; low confidence = still mostly guessing from defaults.
+- **field capacity / saturation ceiling** — the max water soil can hold, like a full sponge; pour past it and the extra just runs out the bottom ("pees out"). Watering "a lot" only buys runway up to this ceiling, not beyond.
 
 ## What energizes / drains me (motivation log)
 
