@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardHero from '../../dashboard/components/DashboardHero'
 import StatCard from '../../dashboard/components/StatCard'
@@ -14,17 +14,16 @@ import {
 } from '../../../utils/dashboardCare.js'
 import styles from './DashboardHome.module.css'
 
-const STAT_CARDS = [
-  { key: 'total', label: 'Total Plants', icon: '🌿' },
-  { key: 'needAttention', label: 'Needs Attention', icon: '👀' },
-  { key: 'wateredToday', label: 'Watered Today', icon: '💧' },
-  { key: 'measuredToday', label: 'Measured Today', icon: '◎' },
-]
-
 function healthColor(pct) {
   if (pct >= 80) return 'green'
   if (pct >= 50) return 'yellow'
   return 'red'
+}
+
+function plantName(plant) {
+  return plant.name || (plant.species
+    ? plant.species[0].toUpperCase() + plant.species.slice(1)
+    : '?')
 }
 
 export default function DashboardHome({
@@ -36,20 +35,32 @@ export default function DashboardHome({
   const { onLog: openLog, onQuickWater, onQuickReading } = detailCallbacks
   const navigate = useNavigate()
 
-  const metrics = useMemo(() => getDashboardMetrics(plants, today), [plants, today])
+  const attentionRef = useRef(null)
+  const sessionRef   = useRef(null)
+
+  const metrics      = useMemo(() => getDashboardMetrics(plants, today), [plants, today])
   const attentionPlant = useMemo(() => getPrimaryNeedsAttentionPlant(plants), [plants])
   const healthyPlant = useMemo(() => getPrimaryHealthyPlant(plants), [plants])
-  const activities = useMemo(() => getRecentActivities(plants, 5), [plants])
+  const activities   = useMemo(() => getRecentActivities(plants, 5), [plants])
   const gardenHealth = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
 
-  // Session tracker: show when at least one plant has been read today but some haven't
-  const sessionActive = gardenHealth.readToday > 0 && gardenHealth.unreadToday.length > 0
+  // Show whenever any plant hasn't been read today — not just mid-session
+  const showSessionTracker = gardenHealth.unreadToday.length > 0
+  const sessionInProgress  = gardenHealth.readToday > 0
+
+  const scrollTo = (ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   const plantActions = (plant) => ({
-    onWater: () => onQuickWater(plant),
+    onWater:   () => onQuickWater(plant),
     onReading: () => onQuickReading(plant),
-    onLog: () => openLog(plant),
+    onLog:     () => openLog(plant),
   })
+
+  // Which stat cards get click handlers
+  const statCardActions = {
+    needAttention: metrics.needAttention > 0 ? () => scrollTo(attentionRef) : undefined,
+    measuredToday: showSessionTracker        ? () => scrollTo(sessionRef)   : undefined,
+  }
 
   if (plants.length === 0) {
     return (
@@ -77,36 +88,46 @@ export default function DashboardHome({
         <DashboardHero today={today} onAddPlant={openAdd} />
 
         <div className={styles.statsRow} role="list" aria-label="Garden summary">
-          {STAT_CARDS.map(({ key, label, icon }) => (
+          {[
+            { key: 'total',        label: 'Total Plants',    icon: '🌿' },
+            { key: 'needAttention', label: 'Needs Attention', icon: '👀' },
+            { key: 'wateredToday', label: 'Watered Today',   icon: '💧' },
+            { key: 'measuredToday', label: 'Measured Today', icon: '◎' },
+          ].map(({ key, label, icon }) => (
             <StatCard
               key={key}
               icon={icon}
               value={metrics[key]}
               label={label}
+              onClick={statCardActions[key]}
             />
           ))}
         </div>
 
-        {sessionActive && (
-          <section className={styles.sessionTracker} aria-label="Reading session in progress">
-            <p className={styles.sessionTitle}>Still needs a reading today</p>
+        {showSessionTracker && (
+          <section ref={sessionRef} className={styles.sessionTracker} aria-label="Plants needing a reading">
+            <p className={styles.sessionTitle}>
+              {sessionInProgress
+                ? `Still needs a reading today · ${gardenHealth.unreadToday.length} left`
+                : 'Which plants need a reading today'}
+            </p>
             <div className={styles.sessionChips}>
               {gardenHealth.unreadToday.map(plant => (
                 <button
                   key={plant.id}
                   className={styles.sessionChip}
                   onClick={() => onQuickReading(plant)}
-                  title={`Log reading for ${plant.name || plant.species}`}
+                  title={`Log reading for ${plantName(plant)}`}
                   type="button"
                 >
-                  {plant.emoji || '🌿'} {plant.name || plant.species}
+                  {plant.emoji || '🌿'} {plantName(plant)}
                 </button>
               ))}
             </div>
           </section>
         )}
 
-        <div className={styles.overviewGrid}>
+        <div ref={attentionRef} className={styles.overviewGrid}>
           <DashboardPlantSpotlight
             title="Needs your attention"
             plant={attentionPlant}
@@ -130,18 +151,21 @@ export default function DashboardHome({
         {gardenHealth.plants.length > 0 && (
           <section className={styles.healthGrid} aria-label="Garden health at a glance">
             <p className={styles.healthGridTitle}>Garden health at a glance</p>
-            <p className={styles.healthGridSub}>% of readings in healthy moisture range</p>
+            <p className={styles.healthGridSub}>% of readings in healthy moisture range — tap to open</p>
             <div className={styles.healthCircles}>
               {gardenHealth.plants.map(({ plant, pct }) => (
                 <button
                   key={plant.id}
-                  className={`${styles.healthCircle} ${styles[`healthCircle_${healthColor(pct)}`]}`}
+                  className={`${styles.healthPlantBtn} ${styles[`healthPlantBtn_${healthColor(pct)}`]}`}
                   onClick={() => navigate(`/plant/${plant.id}`)}
-                  title={`${plant.name || plant.species} — ${pct}% in range`}
+                  title={`${plantName(plant)} — ${pct}% in range`}
                   type="button"
                 >
-                  <span className={styles.healthCircleEmoji}>{plant.emoji || '🌿'}</span>
-                  <span className={styles.healthCirclePct}>{pct}%</span>
+                  <span className={styles.healthCircle}>
+                    <span className={styles.healthCircleEmoji}>{plant.emoji || '🌿'}</span>
+                    <span className={styles.healthCirclePct}>{pct}%</span>
+                  </span>
+                  <span className={styles.healthCircleName}>{plantName(plant)}</span>
                 </button>
               ))}
             </div>
