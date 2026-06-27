@@ -38,6 +38,7 @@ export default function DashboardHome({
 
   const attentionRef = useRef(null)
   const sessionRef   = useRef(null)
+  const wateringDueRef = useRef(null)
 
   const metrics      = useMemo(() => getDashboardMetrics(plants, today), [plants, today])
   const attentionPlant = useMemo(() => getPrimaryNeedsAttentionPlant(plants), [plants])
@@ -62,6 +63,7 @@ export default function DashboardHome({
   const statCardActions = {
     needAttention: metrics.needAttention > 0 ? () => scrollTo(attentionRef) : undefined,
     measuredToday: showSessionTracker        ? () => scrollTo(sessionRef)   : undefined,
+    wateredToday:  wateringDue.length > 0    ? () => scrollTo(wateringDueRef) : undefined,
   }
 
   if (plants.length === 0) {
@@ -130,7 +132,7 @@ export default function DashboardHome({
         )}
 
         {wateringDue.length > 0 && (
-          <section className={styles.sessionTracker} aria-label="Plants due for watering">
+          <section ref={wateringDueRef} className={styles.sessionTracker} aria-label="Plants due for watering">
             <p className={styles.sessionTitle}>
               Which plants need water today · {wateringDue.length} {wateringDue.length === 1 ? 'plant' : 'plants'}
             </p>
