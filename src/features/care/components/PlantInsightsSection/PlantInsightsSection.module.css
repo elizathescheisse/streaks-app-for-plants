@@ -1,0 +1,128 @@
+.section {
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--border-default);
+}
+
+.title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-4);
+}
+
+/* ── In-range bar ── */
+
+.inRangeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.barTrack {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-surface-raised, rgba(255,255,255,0.06));
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+.barGreen  { background: var(--status-thriving); }
+.barYellow { background: var(--status-okay); }
+.barRed    { background: var(--status-struggling); }
+
+.barLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Stat rows ── */
+
+.statGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.statRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.statLabel {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.statValue {
+  color: var(--text-primary);
+  text-align: right;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.statSep {
+  color: var(--text-muted);
+  margin: 0 2px;
+}
+
+.iconOk {
+  color: var(--status-thriving);
+  font-size: 12px;
+  margin-left: 2px;
+}
+
+.iconWarn {
+  color: var(--status-okay);
+  font-size: 12px;
+  margin-left: 2px;
+}
+
+/* ── Insight sentence ── */
+
+.insightText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface-raised, rgba(255,255,255,0.04));
+  border-left: 2px solid var(--brand-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+@media (max-width: 640px) {
+  .statRow {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .statValue {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .barLabel {
+    white-space: normal;
+  }
+}

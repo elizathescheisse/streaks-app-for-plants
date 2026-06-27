@@ -209,8 +209,8 @@ export function buildEventsFromForm(form, existingBundleId) {
   return events
 }
 
-// What % of all readings for this plant fell within its healthy moisture range.
-// Returns a number 0-100, or null when there's no range or no readings.
+// Percentage of all readings that fell within the careProfile's healthy moisture range.
+// Returns null if no careProfile.moistureRange or no readings.
 export function pctTimeInRange(plant, careProfile) {
   const [lo, hi] = careProfile?.moistureRange ?? [null, null]
   if (lo == null || hi == null) return null
@@ -221,6 +221,94 @@ export function pctTimeInRange(plant, careProfile) {
     return m >= lo && m <= hi
   }).length
   return Math.round((inRange / readings.length) * 100)
+}
+
+// Average number of days between consecutive watering events.
+// Returns null if fewer than 2 waterings.
+export function avgWateringInterval(plant) {
+  const waterings = getEvents(plant, 'watering')
+  if (waterings.length < 2) return null
+  let totalDays = 0
+  for (let i = 1; i < waterings.length; i++) {
+    totalDays += (new Date(waterings[i].timestamp) - new Date(waterings[i - 1].timestamp)) / 86_400_000
+  }
+  return totalDays / (waterings.length - 1)
+}
+
+// How many days the plant can sustain before dropping from the top of its
+// healthy range to the floor, given the model's drying rate (beta).
+// Returns null if model.beta or careProfile.moistureRange is missing.
+export function idealWateringInterval(model, careProfile) {
+  const beta = model?.beta
+  const range = careProfile?.moistureRange
+  if (!beta || !range || range[1] <= range[0]) return null
+  return (range[1] - range[0]) / beta
+}
+
+// Average watering amount in the most common unit the user uses.
+// Returns { amount, unit } or null if no watering amounts on record.
+export function avgPourAmount(plant) {
+  const waterings = getEvents(plant, 'watering').filter(w => {
+    const a = parseFloat(w.amount)
+    return !isNaN(a) && a > 0
+  })
+  if (!waterings.length) return null
+
+  const unitCounts = {}
+  for (const w of waterings) {
+    const u = w.unit ?? 'cups'
+    unitCounts[u] = (unitCounts[u] ?? 0) + 1
+  }
+  const unit = Object.entries(unitCounts).sort((a, b) => b[1] - a[1])[0][0]
+
+  const vals = waterings
+    .filter(w => (w.unit ?? 'cups') === unit)
+    .map(w => parseFloat(w.amount))
+
+  if (!vals.length) return null
+  const avg = vals.reduce((s, v) => s + v, 0) / vals.length
+  return { amount: Math.round(avg * 100) / 100, unit }
+}
+
+// Predicted moisture level immediately after a typical watering.
+// Uses the median pre-watering moisture (moisture recorded just before each watering)
+// as the starting point, adds avgPour × model.alpha, and clamps to the observed
+// peak (the highest moisture ever recorded — the pot's real field capacity).
+// Returns null if the model lacks alpha or there's no pour history.
+export function predictedLandingMoisture(plant, model, careProfile) {
+  const alpha = model?.alpha
+  if (!alpha) return null
+  const pour = avgPourAmount(plant)
+  if (!pour) return null
+
+  const waterings = getEvents(plant, 'watering')
+  const readings = getEvents(plant, 'reading') // sorted oldest-first
+
+  // Collect the moisture reading recorded most recently before each watering
+  const preMoistures = []
+  for (const w of waterings) {
+    const wTs = new Date(w.timestamp).getTime()
+    const before = [...readings].reverse().find(r => new Date(r.timestamp).getTime() < wTs)
+    if (before) preMoistures.push(Number(before.moisture))
+  }
+
+  let base
+  if (preMoistures.length) {
+    const sorted = [...preMoistures].sort((a, b) => a - b)
+    const mid = Math.floor(sorted.length / 2)
+    base = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
+  } else {
+    base = careProfile?.moistureRange?.[0] ?? null
+  }
+
+  if (base == null) return null
+
+  const rawLanding = base + pour.amount * alpha
+
+  // Clamp to the observed field capacity of this specific pot
+  const observedPeak = readings.length ? Math.max(...readings.map(r => Number(r.moisture))) : Infinity
+  const rangeCeiling = careProfile?.moistureRange?.[1] ?? Infinity
+  return Math.min(rawLanding, observedPeak, rangeCeiling)
 }
 
 // Returns the best per-plant "typical" watering amount, or null when unknown.

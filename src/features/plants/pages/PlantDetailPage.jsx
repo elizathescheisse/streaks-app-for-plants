@@ -5,6 +5,7 @@ import { faClock } from '@fortawesome/free-solid-svg-icons'
 import styles from './PlantDetailPage.module.css'
 import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
+import PlantInsightsSection from '../../care/components/PlantInsightsSection/PlantInsightsSection.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '../../../utils/plantLookup.js'
 import {
@@ -239,6 +240,9 @@ export default function PlantDetailPage({
             )}
           </section>
         )}
+
+        {/* ── Insights ── */}
+        <PlantInsightsSection plant={plant} model={model} rec={rec} careProfile={careProfile} />
 
         {/* ── History chart ── */}
         {readings.length >= 2 && (
