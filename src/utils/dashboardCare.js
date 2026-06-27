@@ -139,12 +139,20 @@ export function getGardenHealthStats(plants, today = new Date()) {
 
   tracked.sort((a, b) => a.pct - b.pct)
 
+  const avgPct = tracked.length > 0
+    ? Math.round(tracked.reduce((sum, { pct }) => sum + pct, 0) / tracked.length)
+    : null
+
+  const noReadingCount = plants.filter(p => getEvents(p, 'reading').length === 0).length
+
   return {
     plants: tracked,
     focusPlant,
     readToday: readTodayCount,
     unreadToday,
     trackedCount: tracked.length,
+    avgPct,
+    noReadingCount,
   }
 }
 

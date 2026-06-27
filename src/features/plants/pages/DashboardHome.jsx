@@ -86,14 +86,23 @@ export default function DashboardHome({
     )
   }
 
+  const gardenHealthSublabel = gardenHealth.noReadingCount > 0
+    ? `${gardenHealth.noReadingCount} plant${gardenHealth.noReadingCount === 1 ? '' : 's'} without any readings`
+    : undefined
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <DashboardHero today={today} onAddPlant={openAdd} />
+        <DashboardHero today={today} onAddPlant={openAdd} plantCount={plants.length} />
 
         <div className={styles.statsRow} role="list" aria-label="Garden summary">
+          <StatCard
+            icon="🌿"
+            value={gardenHealth.avgPct != null ? `${gardenHealth.avgPct}%` : '—'}
+            label="Garden Health"
+            sublabel={gardenHealthSublabel}
+          />
           {[
-            { key: 'total',        label: 'Total Plants',    icon: '🌿' },
             { key: 'needAttention', label: 'Needs Attention', icon: '👀' },
             { key: 'wateredToday', label: 'Watered Today',   icon: '💧' },
             { key: 'measuredToday', label: 'Measured Today', icon: '◎' },

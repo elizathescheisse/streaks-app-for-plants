@@ -46,6 +46,14 @@
   color: var(--color-text-muted);
 }
 
+.sublabel {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-muted);
+  line-height: var(--line-height-snug);
+}
+
 .cardClickable {
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
