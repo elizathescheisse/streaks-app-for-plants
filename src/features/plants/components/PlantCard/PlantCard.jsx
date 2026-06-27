@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock } from '@fortawesome/free-solid-svg-icons'
@@ -68,8 +68,14 @@ function titleCase(s) {
 export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickReading, onEditLog, chartWindow, cardView = 'chart' }) {
   const { emoji = '🌿', species, name } = plant
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [now, setNow] = useState(Date.now())
   const navigate = useNavigate()
   const isCompact = cardView === 'compact'
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
 
   const careProfile  = lookupPlant(species)
   const hasStats     = !!careProfile?.moistureRange
@@ -105,7 +111,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
 
   const status = wateredAfterReading
     ? (() => {
-        const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
+        const minsSince = (now - new Date(watering.timestamp)) / 60_000
         const minsLeft = Math.round(Math.max(0, 60 - minsSince))
         const label = minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now'
         return { label, cls: 'check', icon: faClock }
