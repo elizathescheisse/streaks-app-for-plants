@@ -15,8 +15,7 @@ export default function DashboardHero({ today, onAddPlant, plantCount }) {
     <header className={styles.hero}>
       <div className={styles.text}>
         <p className={styles.eyebrow}>{greeting} 🌿</p>
-        <p className={`font-display-date ${styles.date}`}>{formatDate(today)}</p>
-        <h1 className={`font-display ${styles.headline}`}>Your garden today</h1>
+        <h1 className={`font-display ${styles.headline}`}>{formatDate(today)} · Your garden today</h1>
         <p className={styles.subtitle}>
           Here&apos;s what&apos;s happening with {countPhrase} and what might need your attention.
         </p>
