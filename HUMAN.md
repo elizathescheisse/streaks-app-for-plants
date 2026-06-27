@@ -6,7 +6,7 @@
 
 ## Sticky notes
 
-- **Water the fiddle leaf fig and monsteras to drainage** — next time you water, go until water runs out the bottom and note: (1) how many cups it took, and (2) what moisture reading you get right after. This will give real data on what the post-watering max actually is for those specific pots, and help calibrate when the app is over-recommending water amounts.
+- **FLF field capacity is ~5–6, not 8** — resolved 2026-06-26. You've been watering to drainage and waiting an hour before reading. That's correct. The species database says the range tops at 8, but your specific pot/soil saturates around 5–6 — that's just field capacity for this pot. 93% in-range across all readings confirms the plant is healthy. No change needed to how you water it. Filed #152 to make the model learn per-plant peaks instead of trusting the species ceiling.
 
 ## Glossary (plain-English handles for terms that come up)
 
