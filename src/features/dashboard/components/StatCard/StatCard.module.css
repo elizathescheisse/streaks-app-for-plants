@@ -45,3 +45,28 @@
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
 }
+
+.cardClickable {
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+  width: 100%;
+}
+
+.cardClickable:hover {
+  border-color: var(--brand-primary);
+  background: var(--bg-surface-raised);
+}
+
+.cardClickable:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.arrow {
+  margin-left: auto;
+  font-size: 20px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  line-height: 1;
+}

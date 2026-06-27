@@ -88,6 +88,161 @@
   outline-offset: 2px;
 }
 
+/* ── Session tracker ─────────────────────────────────────────────── */
+
+.sessionTracker {
+  padding: var(--space-4) var(--dash-card-padding);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--dash-card-radius);
+}
+
+.sessionTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.sessionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sessionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sessionChip:hover {
+  border-color: var(--brand-primary);
+  background: var(--bg-surface-raised);
+}
+
+.sessionChip:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ── Garden health grid ──────────────────────────────────────────── */
+
+.healthGrid {
+  padding: var(--space-4) var(--dash-card-padding);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--dash-card-radius);
+}
+
+.healthGridTitle {
+  margin: 0 0 2px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.healthGridSub {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.healthCircles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Outer button: circle on top, name below */
+.healthPlantBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  transition: transform 0.15s;
+}
+
+.healthPlantBtn:hover {
+  transform: scale(1.06);
+}
+
+.healthPlantBtn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 3px;
+}
+
+/* Colored circle */
+.healthCircle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  gap: 2px;
+  transition: box-shadow 0.15s;
+}
+
+.healthPlantBtn:hover .healthCircle {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.healthPlantBtn_green .healthCircle {
+  background: var(--status-thriving-soft);
+  border-color: var(--status-thriving-border);
+}
+
+.healthPlantBtn_yellow .healthCircle {
+  background: var(--status-okay-soft);
+  border-color: var(--status-okay-border);
+}
+
+.healthPlantBtn_red .healthCircle {
+  background: var(--status-struggling-soft);
+  border-color: var(--status-struggling-border);
+}
+
+.healthCircleEmoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.healthCirclePct {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* Plant name below the circle */
+.healthCircleName {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  line-height: 1.2;
+  max-width: 68px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 960px) {
   .statsRow {
     grid-template-columns: repeat(2, 1fr);
