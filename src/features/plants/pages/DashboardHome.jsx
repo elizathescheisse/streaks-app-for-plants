@@ -11,6 +11,7 @@ import {
   getPrimaryNeedsAttentionPlant,
   getRecentActivities,
   getGardenHealthStats,
+  getWateringDueToday,
 } from '../../../utils/dashboardCare.js'
 import styles from './DashboardHome.module.css'
 
@@ -42,7 +43,8 @@ export default function DashboardHome({
   const attentionPlant = useMemo(() => getPrimaryNeedsAttentionPlant(plants), [plants])
   const healthyPlant = useMemo(() => getPrimaryHealthyPlant(plants), [plants])
   const activities   = useMemo(() => getRecentActivities(plants, 5), [plants])
-  const gardenHealth = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
+  const gardenHealth  = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
+  const wateringDue   = useMemo(() => getWateringDueToday(plants, today), [plants, today])
 
   // Show whenever any plant hasn't been read today — not just mid-session
   const showSessionTracker = gardenHealth.unreadToday.length > 0
@@ -121,6 +123,27 @@ export default function DashboardHome({
                   type="button"
                 >
                   {plant.emoji || '🌿'} {plantName(plant)}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {wateringDue.length > 0 && (
+          <section className={styles.sessionTracker} aria-label="Plants due for watering">
+            <p className={styles.sessionTitle}>
+              Which plants need water today · {wateringDue.length} {wateringDue.length === 1 ? 'plant' : 'plants'}
+            </p>
+            <div className={styles.sessionChips}>
+              {wateringDue.map(plant => (
+                <button
+                  key={plant.id}
+                  className={`${styles.sessionChip} ${styles.sessionChipWater}`}
+                  onClick={() => onQuickWater(plant)}
+                  title={`Water ${plantName(plant)}`}
+                  type="button"
+                >
+                  💧 {plantName(plant)}
                 </button>
               ))}
             </div>

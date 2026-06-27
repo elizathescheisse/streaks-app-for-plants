@@ -360,3 +360,21 @@ export function getCareTipSlide(index = 0) {
 export function getCareTip(index = 0) {
   return getCareTipSlide(index).text
 }
+
+// Plants that need water today: not yet watered today AND model says moisture
+// is at or below the healthy floor (priority ≤ 1 = "Water now" / "Water immediately").
+// Plants that were watered after their last reading are excluded — their model
+// is effectively paused and they don't need another watering.
+export function getWateringDueToday(plants, today = new Date()) {
+  return plants.filter(plant => {
+    // Already watered today — skip
+    const waterings = getEvents(plant, 'watering')
+    if (waterings.some(w => isSameLocalDay(w.timestamp, today))) return false
+
+    // No readings at all — no prediction basis, skip
+    if (!lastReading(plant)) return false
+
+    // Model says water now (priority 0 = struggling, priority 1 = water now)
+    return getPlantSortPriority(plant) <= 1
+  })
+}

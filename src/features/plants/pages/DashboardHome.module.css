@@ -134,6 +134,16 @@
   outline-offset: 2px;
 }
 
+.sessionChipWater {
+  border-color: var(--status-water-border);
+  color: var(--status-water);
+}
+
+.sessionChipWater:hover {
+  background: var(--status-water-soft);
+  border-color: var(--status-water);
+}
+
 /* ── Garden health grid ──────────────────────────────────────────── */
 
 .healthGrid {
