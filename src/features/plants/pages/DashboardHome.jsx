@@ -11,6 +11,7 @@ import {
   getPrimaryNeedsAttentionPlant,
   getRecentActivities,
   getGardenHealthStats,
+  getWateringDueToday,
 } from '../../../utils/dashboardCare.js'
 import styles from './DashboardHome.module.css'
 
@@ -37,12 +38,14 @@ export default function DashboardHome({
 
   const attentionRef = useRef(null)
   const sessionRef   = useRef(null)
+  const wateringDueRef = useRef(null)
 
   const metrics      = useMemo(() => getDashboardMetrics(plants, today), [plants, today])
   const attentionPlant = useMemo(() => getPrimaryNeedsAttentionPlant(plants), [plants])
   const healthyPlant = useMemo(() => getPrimaryHealthyPlant(plants), [plants])
   const activities   = useMemo(() => getRecentActivities(plants, 5), [plants])
-  const gardenHealth = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
+  const gardenHealth  = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
+  const wateringDue   = useMemo(() => getWateringDueToday(plants, today), [plants, today])
 
   // Show whenever any plant hasn't been read today — not just mid-session
   const showSessionTracker = gardenHealth.unreadToday.length > 0
@@ -60,6 +63,7 @@ export default function DashboardHome({
   const statCardActions = {
     needAttention: metrics.needAttention > 0 ? () => scrollTo(attentionRef) : undefined,
     measuredToday: showSessionTracker        ? () => scrollTo(sessionRef)   : undefined,
+    wateredToday:  wateringDue.length > 0    ? () => scrollTo(wateringDueRef) : undefined,
   }
 
   if (plants.length === 0) {
@@ -82,14 +86,23 @@ export default function DashboardHome({
     )
   }
 
+  const gardenHealthSublabel = gardenHealth.noReadingCount > 0
+    ? `${gardenHealth.noReadingCount} plant${gardenHealth.noReadingCount === 1 ? '' : 's'} without any readings`
+    : undefined
+
   return (
     <main className={styles.main}>
       <div className={styles.container}>
-        <DashboardHero today={today} onAddPlant={openAdd} />
+        <DashboardHero today={today} onAddPlant={openAdd} plantCount={plants.length} />
 
         <div className={styles.statsRow} role="list" aria-label="Garden summary">
+          <StatCard
+            icon="🌿"
+            value={gardenHealth.avgPct != null ? `${gardenHealth.avgPct}%` : '—'}
+            label="Garden Health"
+            sublabel={gardenHealthSublabel}
+          />
           {[
-            { key: 'total',        label: 'Total Plants',    icon: '🌿' },
             { key: 'needAttention', label: 'Needs Attention', icon: '👀' },
             { key: 'wateredToday', label: 'Watered Today',   icon: '💧' },
             { key: 'measuredToday', label: 'Measured Today', icon: '◎' },
@@ -121,6 +134,27 @@ export default function DashboardHome({
                   type="button"
                 >
                   {plant.emoji || '🌿'} {plantName(plant)}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {wateringDue.length > 0 && (
+          <section ref={wateringDueRef} className={styles.sessionTracker} aria-label="Plants due for watering">
+            <p className={styles.sessionTitle}>
+              Which plants need water today · {wateringDue.length} {wateringDue.length === 1 ? 'plant' : 'plants'}
+            </p>
+            <div className={styles.sessionChips}>
+              {wateringDue.map(plant => (
+                <button
+                  key={plant.id}
+                  className={`${styles.sessionChip} ${styles.sessionChipWater}`}
+                  onClick={() => onQuickWater(plant)}
+                  title={`Water ${plantName(plant)}`}
+                  type="button"
+                >
+                  💧 {plantName(plant)}
                 </button>
               ))}
             </div>

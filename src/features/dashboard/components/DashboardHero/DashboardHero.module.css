@@ -41,7 +41,7 @@
   font-weight: var(--font-weight-normal);
   color: var(--color-text-muted);
   line-height: var(--line-height-normal);
-  max-width: 36em;
+  max-width: none;
 }
 
 .addBtn {
