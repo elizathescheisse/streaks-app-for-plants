@@ -89,24 +89,21 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   const wateredAfterReading =
     watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
 
-  // Decide whether to show the model's predicted current moisture or the raw
-  // last reading. Rules:
-  //   • Always use integers (moisture meter readings are whole numbers).
-  //   • Only switch to predicted when the model is confident (≥3 data points)
-  //     AND the predicted value has drifted ≥1 whole unit from the raw reading.
-  //   • Below that threshold the raw value is still accurate enough and the
-  //     model output would just be noise.
-  const model      = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
-  const rec        = model ? getRecommendation(plant, model, careProfile) : null
+  const model       = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
+  const rec         = model ? getRecommendation(plant, model, careProfile) : null
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
   // When recent predictions have been unreliable, don't trust the extrapolated
   // value — fall back to the last real reading and prompt a fresh one (4a).
-  const shaky        = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
+  const shaky       = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
   const rawMoisture  = reading ? Math.round(Number(reading.moisture)) : null
   const predMoisture = isConfident ? Math.round(rec.predicted) : null
-  const drift        = (rawMoisture != null && predMoisture != null)
-    ? Math.abs(predMoisture - rawMoisture) : 0
-  const usePredicted = isConfident && drift >= 1 && !shaky
+  // Show the dashed "estimated" ring only when we're actually extrapolating —
+  // i.e. the last reading is older than 8 hours. Within 8 hours the reading
+  // still feels current; beyond that the model is meaningfully projecting
+  // forward and the ring communicates that honestly.
+  const FRESH_READING_MS = 8 * 60 * 60 * 1000
+  const readingIsFresh = reading ? (now - new Date(reading.timestamp).getTime()) < FRESH_READING_MS : false
+  const usePredicted  = isConfident && !shaky && !readingIsFresh
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
   const status = wateredAfterReading

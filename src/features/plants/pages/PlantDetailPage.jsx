@@ -114,13 +114,17 @@ export default function PlantDetailPage({
   // "est. now" number — defer to a fresh reading instead (Phase 4a).
   const shaky = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
 
-  // Show the "est. now" secondary line whenever the model's prediction
-  // would round to a different value than the raw reading. If they match,
-  // the line adds nothing — even at 5 days stale, "EST. 5 · now" next to
-  // "5 / 10 · 5d ago" is just repeating the same number. Suppressed when shaky.
-  const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1 && !shaky
-  const usePredicted = isConfident && drift >= 1 && !shaky
+  // Dashed ring: same 8-hour freshness rule as PlantCard — reading taken
+  // within the last 8 hours is real data, no ring needed.
+  const FRESH_READING_MS = 8 * 60 * 60 * 1000
+  const readingIsFresh = reading ? (Date.now() - new Date(reading.timestamp).getTime()) < FRESH_READING_MS : false
+  const usePredicted = isConfident && !shaky && !readingIsFresh
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
+
+  // "Est. now" text line: only show when the number actually changed — if
+  // the prediction rounds to the same value as the raw reading, the line
+  // adds nothing ("EST. 6 · now" next to "6 / 10 · 5d ago" is just noise).
+  const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1 && !shaky && !readingIsFresh
 
   const status = wateredAfterReading
     ? (() => {
