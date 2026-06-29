@@ -274,15 +274,11 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
                   strokeDasharray="3,3"
                   strokeLinecap="round"
                 />
-                {/* Hollow dot: filled with near-black so the dashes show clearly */}
+                {/* Solid dot — matches MoistureBar's estimated dot style */}
                 <circle
                   cx={estX} cy={estY}
                   r={isHovered ? 5.5 : 4}
-                  fill="rgba(13,23,10,0.85)"
-                  stroke={estColor}
-                  strokeWidth="1.5"
-                  strokeDasharray="3,2"
-                  opacity="0.9"
+                  fill={estColor}
                   style={{ cursor: 'pointer', transition: 'r 0.1s' }}
                   onMouseEnter={() => setTooltip({ kind: 'estimated', x: estX, y: estY })}
                   onMouseLeave={() => setTooltip(null)}
@@ -290,6 +286,16 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
                     e.stopPropagation()
                     setTooltip(t => t?.kind === 'estimated' ? null : { kind: 'estimated', x: estX, y: estY })
                   }}
+                />
+                {/* Dashed ring — same visual as MoistureBar's dotPredicted ::after */}
+                <circle
+                  cx={estX} cy={estY}
+                  r={isHovered ? 9 : 7.5}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.5)"
+                  strokeWidth="1.5"
+                  strokeDasharray="3,2.5"
+                  style={{ pointerEvents: 'none' }}
                 />
                 {/* "Today" date label — centered on the estimated dot */}
                 <text

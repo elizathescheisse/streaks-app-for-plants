@@ -81,7 +81,7 @@ export default function MoistureBar({ value, range, careProfile, isPredicted = f
         )}
         {/* Current value dot */}
         <div
-          className={`${styles.dot} ${dotClass}`}
+          className={`${styles.dot} ${dotClass} ${isPredicted ? styles.dotPredicted : ''}`}
           style={{ left: pct(value) }}
           onMouseEnter={() => setTooltip('dot')}
           onMouseLeave={() => setTooltip(null)}
