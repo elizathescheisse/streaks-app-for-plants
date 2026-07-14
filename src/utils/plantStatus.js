@@ -7,7 +7,7 @@
 
 import { lookupPlant } from './plantLookup.js'
 import { lastReading, lastWatering } from './plantSelectors.js'
-import { computeModel, getRecommendation } from './plantModel.js'
+import { computeModel, getRecommendation, getPredictionReliability } from './plantModel.js'
 
 function waterLabel(unit, amount) {
   if (!amount) return '—'
@@ -67,17 +67,37 @@ export function getPlantSortPriority(plant) {
   const wateredAfterReading =
     watering && new Date(watering.timestamp) > new Date(reading.timestamp)
 
-  if (wateredAfterReading) return STATUS_PRIORITY.check
+  if (wateredAfterReading) {
+    // Within the "check" bucket, rank by urgency: less settling time left
+    // sorts first, so "Check now" appears above "Check in 3m". minsLeft
+    // ranges 0–60; normalize to a fraction so this never crosses into the
+    // next priority tier (STATUS_PRIORITY.thriving = 3).
+    const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
+    const minsLeft  = Math.max(0, 60 - minsSince)
+    return STATUS_PRIORITY.check + minsLeft / 60
+  }
 
   if (!careProfile?.moistureRange) return NO_STATUS_PRIORITY
 
   const model       = computeModel(plant, careProfile)
   const rec         = getRecommendation(plant, model, careProfile)
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
+  const shaky       = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
   const rawMoisture = Math.round(Number(reading.moisture))
   const predMoisture = isConfident ? Math.round(rec.predicted) : null
-  const drift       = predMoisture != null ? Math.abs(predMoisture - rawMoisture) : 0
-  const badgeMoisture = (isConfident && drift >= 1) ? predMoisture : rawMoisture
+  // Same freshness rule as PlantCard/PlantDetailPage: a reading taken today,
+  // or a watering within the last 8 hours, is fresh — use the raw value, not
+  // the model's projection. Otherwise the sort priority can diverge from the
+  // badge actually shown (a stale-but-"thriving" prediction masking a fresh
+  // "water immediately" reading).
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
+  const readingIsToday = new Date(reading.timestamp) >= todayStart
+  const WATER_SETTLE_MS = 8 * 60 * 60 * 1000
+  const wateredVeryRecently = !readingIsToday && watering
+    ? (Date.now() - new Date(watering.timestamp).getTime()) < WATER_SETTLE_MS
+    : false
+  const usePredicted = isConfident && !shaky && !readingIsToday && !wateredVeryRecently
+  const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
   const { cls } = moistureStatus(badgeMoisture, careProfile, rec?.waterNeeded, rec?.dominantUnit)
   return STATUS_PRIORITY[cls] ?? NO_STATUS_PRIORITY
