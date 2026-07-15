@@ -1,15 +1,14 @@
 import { useEffect, useState, useCallback } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import {
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   View,
   Pressable,
   FlatList,
-  Platform,
 } from 'react-native'
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 
 import { loadPlants, savePlants } from './src/storage/plantStorage.js'
 import { currentHealth } from '@plant-streaks/core/plantSelectors.js'
@@ -30,6 +29,14 @@ function randomId() {
 }
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <PlantStreaksApp />
+    </SafeAreaProvider>
+  )
+}
+
+function PlantStreaksApp() {
   const [plants, setPlants] = useState(null) // null = still loading
   const [nameInput, setNameInput] = useState('')
   const [speciesInput, setSpeciesInput] = useState('')
@@ -111,7 +118,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0e1a0c',
-    paddingTop: Platform.OS === 'android' ? 24 : 0,
   },
   loading: {
     color: '#e5f2e0',
