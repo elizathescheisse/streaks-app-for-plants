@@ -1,0 +1,21 @@
+{
+  "name": "@plant-streaks/core",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    "./plantModel.js": "./src/plantModel.js",
+    "./plantSelectors.js": "./src/plantSelectors.js",
+    "./plantStatus.js": "./src/plantStatus.js",
+    "./dashboardCare.js": "./src/dashboardCare.js",
+    "./plantLookup.js": "./src/plantLookup.js",
+    "./plantInsights.js": "./src/plantInsights.js",
+    "./plantDatabase.js": "./src/plantDatabase.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.6"
+  }
+}
