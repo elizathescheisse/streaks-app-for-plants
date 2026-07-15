@@ -7,6 +7,7 @@ import { usePlants, getPlantById } from '../state/PlantsContext.js'
 import { useTheme } from '../theme/ThemeContext.js'
 import MoistureBar from '../components/MoistureBar.js'
 import QuickLogModal from '../components/QuickLogModal.js'
+import LogEntryModal from '../components/LogEntryModal.js'
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
 
@@ -34,6 +35,7 @@ export default function PlantDetailScreen({ route, navigation }) {
   const { colors } = useTheme()
   const { plants, deletePlant, addLogEntry } = usePlants()
   const [quickLog, setQuickLog] = useState(null) // 'water' | 'reading' | null
+  const [logOpen, setLogOpen] = useState(false)
 
   const plant = getPlantById(plants, plantId)
 
@@ -125,6 +127,10 @@ export default function PlantDetailScreen({ route, navigation }) {
             <Text style={[styles.actionText, { color: colors.text }]}>◎ Reading</Text>
           </Pressable>
         </View>
+
+        <Pressable style={[styles.logBtn, { backgroundColor: colors.primary }]} onPress={() => setLogOpen(true)}>
+          <Text style={[styles.logBtnText, { color: colors.onPrimary }]}>+ Full log entry</Text>
+        </Pressable>
       </ScrollView>
 
       <QuickLogModal
@@ -132,6 +138,13 @@ export default function PlantDetailScreen({ route, navigation }) {
         mode={quickLog}
         plantName={name}
         onClose={() => setQuickLog(null)}
+        onSubmit={(form) => addLogEntry(plant.id, form)}
+      />
+
+      <LogEntryModal
+        visible={logOpen}
+        plant={plant}
+        onClose={() => setLogOpen(false)}
         onSubmit={(form) => addLogEntry(plant.id, form)}
       />
     </SafeAreaView>
@@ -177,4 +190,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: 10 },
   actionBtn: { flex: 1, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   actionText: { fontSize: 15, fontWeight: '500' },
+  logBtn: { borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  logBtnText: { fontSize: 15, fontWeight: '700' },
 })

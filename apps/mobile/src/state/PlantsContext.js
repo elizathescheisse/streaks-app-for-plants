@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { loadPlants, savePlants } from '../storage/plantStorage.js'
 import { currentHealth, buildEventsFromForm } from '@plant-streaks/core/plantSelectors.js'
+import { scheduleReMeasureReminder } from '../notifications.js'
 
 // Owns the plants array + persistence + mutators — the RN equivalent of the
 // web App.jsx state owner. Screens consume it via usePlants() so navigation
@@ -49,9 +50,21 @@ export function PlantsProvider({ children }) {
   const addLogEntry = useCallback((plantId, form) => {
     const newEvents = buildEventsFromForm(form)
     if (newEvents.length === 0) return
-    setPlants(prev => (prev ?? []).map(p =>
-      p.id === plantId ? { ...p, events: [...(p.events ?? []), ...newEvents] } : p
-    ))
+
+    let wateredPlantName = null
+    setPlants(prev => (prev ?? []).map(p => {
+      if (p.id !== plantId) return p
+      if (newEvents.some(e => e.type === 'watering')) {
+        wateredPlantName = p.name || p.species
+      }
+      return { ...p, events: [...(p.events ?? []), ...newEvents] }
+    }))
+
+    // Fire-and-forget: if this log included a watering, schedule the
+    // "re-measure in an hour" reminder. Fails soft if permission is denied.
+    if (wateredPlantName) {
+      scheduleReMeasureReminder(wateredPlantName).catch(() => {})
+    }
   }, [])
 
   // Quick shortcuts used by the card action buttons.
