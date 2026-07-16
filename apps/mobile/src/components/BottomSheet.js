@@ -1,4 +1,4 @@
-import { Modal, KeyboardAvoidingView, Pressable, View, StyleSheet, Platform } from 'react-native'
+import { Modal, KeyboardAvoidingView, Pressable, View, Text, StyleSheet, Platform } from 'react-native'
 import { useTheme } from '../theme/ThemeContext.js'
 
 // Shared bottom-sheet shell for the app's modals. The key job is keyboard
@@ -7,6 +7,8 @@ import { useTheme } from '../theme/ThemeContext.js'
 // like it never appeared). Wrapping in KAV with justifyContent:flex-end lifts
 // the whole sheet above the keyboard. The scrim is an absolute fill behind the
 // sheet so tapping outside closes, while taps on the sheet itself don't.
+// An × button sits top-right — tall sheets (the full log form) leave almost
+// no visible scrim to tap, so tap-outside alone isn't a reliable way out.
 export default function BottomSheet({ visible, onClose, children }) {
   const { colors } = useTheme()
   return (
@@ -17,6 +19,15 @@ export default function BottomSheet({ visible, onClose, children }) {
       >
         <Pressable style={[styles.scrim, { backgroundColor: colors.overlayScrim }]} onPress={onClose} />
         <View style={[styles.sheet, { backgroundColor: colors.bgElevated }]}>
+          <Pressable
+            onPress={onClose}
+            hitSlop={12}
+            style={[styles.closeBtn, { backgroundColor: colors.surfaceMuted }]}
+            accessibilityLabel="Close"
+            accessibilityRole="button"
+          >
+            <Text style={[styles.closeText, { color: colors.textMuted }]}>×</Text>
+          </Pressable>
           {children}
         </View>
       </KeyboardAvoidingView>
@@ -33,5 +44,21 @@ const styles = StyleSheet.create({
     // Never taller than the space above the keyboard — tall content
     // (e.g. the full log form) scrolls internally instead of clipping.
     maxHeight: '88%',
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 16,
+    zIndex: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeText: {
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 22,
   },
 })
