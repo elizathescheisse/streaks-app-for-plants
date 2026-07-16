@@ -1,10 +1,12 @@
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { useTheme } from '../theme/ThemeContext.js'
 
-// Port of apps/web MoistureBar. Touch-first: drops the web hover tooltips
-// (Phase 3 can add a tap-to-reveal readout if wanted). Renders the ideal
-// range band (or a threshold tick for flood-and-dry plants) plus the
-// current-value dot, colored by how far the value sits from healthy.
+// Port of apps/web MoistureBar. Touch-first: the web's hover tooltips are
+// replaced by an always-visible numbers row below the track (current value
+// left, ideal range / dry threshold right) — no hover on a phone means
+// hidden numbers are just invisible. Renders the ideal range band (or a
+// threshold tick for flood-and-dry plants) plus the current-value dot,
+// colored by how far the value sits from healthy.
 export default function MoistureBar({ value, range, careProfile, isPredicted = false }) {
   const { colors } = useTheme()
   const [lo, hi] = range
@@ -95,6 +97,23 @@ export default function MoistureBar({ value, range, careProfile, isPredicted = f
             />
           )}
         </View>
+      </View>
+
+      {/* Numbers row — hover isn't a thing on touch, so the values the web
+          hides in tooltips are always visible here. "~" marks an estimate. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginTop: 5,
+        }}
+      >
+        <Text style={{ fontSize: 11, fontWeight: '600', color: dotColor }}>
+          {isPredicted ? '~' : ''}{value} / 10
+        </Text>
+        <Text style={{ fontSize: 11, color: colors.textMuted }}>
+          {isFloodAndDry ? `water at ${dryThreshold}` : `ideal ${lo}–${hi}`}
+        </Text>
       </View>
     </View>
   )
