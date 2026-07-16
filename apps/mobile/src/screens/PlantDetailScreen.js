@@ -3,11 +3,15 @@ import { View, Text, Pressable, ScrollView, Alert, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { derivePlantCardState } from '@plant-streaks/core/plantCardState.js'
+import { chartEvents } from '@plant-streaks/core/plantSelectors.js'
 import { usePlants, getPlantById } from '../state/PlantsContext.js'
 import { useTheme } from '../theme/ThemeContext.js'
 import MoistureBar from '../components/MoistureBar.js'
+import PlantHistoryChart from '../components/PlantHistoryChart.js'
 import QuickLogModal from '../components/QuickLogModal.js'
 import LogEntryModal from '../components/LogEntryModal.js'
+
+const CHART_WINDOWS = ['1W', '1M', '3M', 'all']
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
 
@@ -36,6 +40,7 @@ export default function PlantDetailScreen({ route, navigation }) {
   const { plants, deletePlant, addLogEntry } = usePlants()
   const [quickLog, setQuickLog] = useState(null) // 'water' | 'reading' | null
   const [logOpen, setLogOpen] = useState(false)
+  const [chartWindow, setChartWindow] = useState('1M')
 
   const plant = getPlantById(plants, plantId)
 
@@ -48,8 +53,9 @@ export default function PlantDetailScreen({ route, navigation }) {
     )
   }
 
-  const { careProfile, hasStats, badgeMoisture, usePredicted, status, health, reading, watering } =
+  const { careProfile, hasStats, badgeMoisture, usePredicted, status, health, reading, watering, rec } =
     derivePlantCardState(plant, Date.now())
+  const { readings, waterings } = chartEvents(plant)
 
   const name = plant.name || titleCase(plant.species)
 
@@ -118,6 +124,39 @@ export default function PlantDetailScreen({ route, navigation }) {
             />
           )}
         </View>
+
+        {/* ── Moisture history chart ── */}
+        {readings.length >= 2 && (
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.chartHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Moisture history</Text>
+              <View style={styles.windowToggle}>
+                {CHART_WINDOWS.map(w => (
+                  <Pressable
+                    key={w}
+                    onPress={() => setChartWindow(w)}
+                    hitSlop={6}
+                    style={[
+                      styles.windowBtn,
+                      chartWindow === w && { backgroundColor: colors.primarySoft },
+                    ]}
+                  >
+                    <Text style={[styles.windowText, { color: chartWindow === w ? colors.primary : colors.textMuted }]}>
+                      {w === 'all' ? 'All' : w}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+            <PlantHistoryChart
+              readings={readings}
+              waterings={waterings}
+              careProfile={careProfile}
+              window={chartWindow}
+              predictedMoisture={usePredicted ? rec.predicted : null}
+            />
+          </View>
+        )}
 
         <View style={styles.actions}>
           <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('water')}>
@@ -192,4 +231,16 @@ const styles = StyleSheet.create({
   actionText: { fontSize: 15, fontWeight: '500' },
   logBtn: { borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   logBtnText: { fontSize: 15, fontWeight: '700' },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  windowToggle: { flexDirection: 'row', gap: 2 },
+  windowBtn: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  windowText: { fontSize: 12, fontWeight: '600' },
 })

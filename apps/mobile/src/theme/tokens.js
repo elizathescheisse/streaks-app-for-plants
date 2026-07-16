@@ -112,6 +112,18 @@ const dark = {
   moistureTrack: 'rgba(255, 255, 255, 0.12)',
   moistureIdeal: 'rgba(56, 178, 71, 0.35)',
   moistureIdealBorder: 'rgba(56, 178, 71, 0.5)',
+
+  chartMoistureLine: 'rgba(140, 204, 235, 0.65)',
+  chartMoistureLineFaint: 'rgba(140, 204, 235, 0.35)',
+  chartMoistureLineMuted: 'rgba(140, 204, 235, 0.25)',
+  chartMoistureDotDefault: 'rgba(140, 204, 235, 0.9)',
+  chartIdealFill: 'rgba(56, 178, 71, 0.12)',
+  chartIdealLine: 'rgba(56, 178, 71, 0.35)',
+  chartWaterLine: 'rgba(245, 212, 0, 0.5)',
+  chartWaterLabel: 'rgba(140, 204, 235, 0.85)',
+  chartAxisLabel: 'rgba(150, 180, 150, 0.55)',
+  chartAxisLabelFaint: 'rgba(150, 180, 150, 0.4)',
+  chartEstimatedRing: 'rgba(255, 255, 255, 0.5)',
 }
 
 const light = {
@@ -179,6 +191,18 @@ const light = {
   moistureTrack: 'rgba(69, 112, 62, 0.12)',
   moistureIdeal: 'rgba(21, 153, 71, 0.22)',
   moistureIdealBorder: 'rgba(21, 153, 71, 0.35)',
+
+  chartMoistureLine: 'rgba(58, 149, 191, 0.75)',
+  chartMoistureLineFaint: 'rgba(58, 149, 191, 0.4)',
+  chartMoistureLineMuted: 'rgba(58, 149, 191, 0.28)',
+  chartMoistureDotDefault: 'rgba(58, 149, 191, 0.95)',
+  chartIdealFill: 'rgba(21, 153, 71, 0.12)',
+  chartIdealLine: 'rgba(21, 153, 71, 0.35)',
+  chartWaterLine: 'rgba(201, 147, 29, 0.55)',
+  chartWaterLabel: 'rgba(58, 149, 191, 0.9)',
+  chartAxisLabel: 'rgba(95, 114, 93, 0.85)',
+  chartAxisLabelFaint: 'rgba(95, 114, 93, 0.55)',
+  chartEstimatedRing: 'rgba(20, 32, 23, 0.45)',
 }
 
 export const palettes = { dark, light }
