@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native'
+import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native'
 import { useTheme } from '../theme/ThemeContext.js'
+import BottomSheet from './BottomSheet.js'
 
 const EMOJI_CHOICES = ['🌿', '🌱', '🪴', '🌵', '🌴', '🌳', '🌸', '🍃']
 
@@ -34,9 +35,8 @@ export default function AddPlantModal({ visible, onClose, onAdd }) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <Pressable style={[styles.scrim, { backgroundColor: colors.overlayScrim }]} onPress={handleClose}>
-        <Pressable style={[styles.sheet, { backgroundColor: colors.bgElevated }]} onPress={() => {}}>
+    <BottomSheet visible={visible} onClose={handleClose}>
+      <View style={styles.body}>
           <Text style={[styles.title, { color: colors.text }]}>Add a plant</Text>
 
           <Text style={[styles.label, { color: colors.textMuted }]}>Icon</Text>
@@ -87,17 +87,13 @@ export default function AddPlantModal({ visible, onClose, onAdd }) {
               <Text style={[styles.btnText, { color: canSave ? colors.onPrimary : colors.textMuted }]}>Add Plant</Text>
             </Pressable>
           </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  scrim: { flex: 1, justifyContent: 'flex-end' },
-  sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+  body: {
     padding: 20,
     paddingBottom: 36,
     gap: 8,
