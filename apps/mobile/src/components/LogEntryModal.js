@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
-  Modal, View, Text, TextInput, Pressable, ScrollView, StyleSheet, KeyboardAvoidingView, Platform,
+  View, Text, TextInput, Pressable, ScrollView, StyleSheet,
 } from 'react-native'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import { isSignificantWatering, isSuspiciousReading } from '@plant-streaks/core/plantSelectors.js'
 import { useTheme } from '../theme/ThemeContext.js'
+import BottomSheet from './BottomSheet.js'
 
 const HEALTH_OPTIONS = [
   { value: 'no_change', label: 'No change' },
@@ -55,10 +56,8 @@ export default function LogEntryModal({ visible, plant, onClose, onSubmit }) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={[styles.scrim, { backgroundColor: colors.overlayScrim }]} onPress={onClose}>
-          <Pressable style={[styles.sheet, { backgroundColor: colors.bgElevated }]} onPress={() => {}}>
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={styles.body}>
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text style={[styles.title, { color: colors.text }]}>Log entry</Text>
               <Text style={[styles.sub, { color: colors.textMuted }]}>
@@ -181,21 +180,16 @@ export default function LogEntryModal({ visible, plant, onClose, onSubmit }) {
                 </Pressable>
               </View>
             </ScrollView>
-          </Pressable>
-        </Pressable>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  scrim: { flex: 1, justifyContent: 'flex-end' },
-  sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+  body: {
     padding: 20,
     paddingBottom: 28,
-    maxHeight: '88%',
+    flexShrink: 1,
   },
   title: { fontSize: 20, fontWeight: '700' },
   sub: { fontSize: 14, marginBottom: 8 },
