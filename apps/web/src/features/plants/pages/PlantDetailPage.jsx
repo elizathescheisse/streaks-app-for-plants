@@ -12,7 +12,7 @@ import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents, typicalWaterAmount
 } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
-import { moistureStatus } from '@plant-streaks/core/plantStatus.js'
+import { moistureStatus, wateringCheckStatus } from '@plant-streaks/core/plantStatus.js'
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
 
@@ -131,13 +131,9 @@ export default function PlantDetailPage({
   // "Est. now" text line: only show when the number actually changed.
   const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1 && !shaky && !readingIsToday && !wateredVeryRecently
 
-  const status = wateredAfterReading
-    ? (() => {
-        const minsSince = (Date.now() - new Date(watering.timestamp)) / 60_000
-        const minsLeft = Math.round(Math.max(0, 60 - minsSince))
-        const label = minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now'
-        return { label, cls: 'check', icon: faClock }
-      })()
+  const checkStatus = wateringCheckStatus(watering, reading, Date.now())
+  const status = checkStatus
+    ? { ...checkStatus, icon: faClock }
     : (hasStats && badgeMoisture != null)
     ? moistureStatus(badgeMoisture, careProfile, rec?.waterNeeded, rec?.dominantUnit)
     : null

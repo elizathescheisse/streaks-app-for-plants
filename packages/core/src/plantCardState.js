@@ -10,7 +10,7 @@
 import { lookupPlant } from './plantLookup.js'
 import { lastReading, lastWatering, currentHealth } from './plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from './plantModel.js'
-import { moistureStatus } from './plantStatus.js'
+import { moistureStatus, wateringCheckStatus } from './plantStatus.js'
 
 const WATER_SETTLE_MS = 8 * 60 * 60 * 1000
 
@@ -52,12 +52,10 @@ export function derivePlantCardState(plant, now = Date.now()) {
   const usePredicted = Boolean(isConfident && !shaky && !readingIsToday && !wateredVeryRecently)
   const badgeMoisture = usePredicted ? predMoisture : rawMoisture
 
-  let status = null
-  if (wateredAfterReading) {
-    const minsSince = (now - new Date(watering.timestamp)) / 60_000
-    const minsLeft = Math.round(Math.max(0, 60 - minsSince))
-    status = { label: minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now', cls: 'check' }
-  } else if (hasStats && badgeMoisture != null) {
+  // The settle timer also covers plants watered before their first-ever
+  // reading — previously it required a prior reading to compare against.
+  let status = wateringCheckStatus(watering, reading, now)
+  if (!status && hasStats && badgeMoisture != null) {
     status = moistureStatus(badgeMoisture, careProfile, rec?.waterNeeded, rec?.dominantUnit)
   }
 
