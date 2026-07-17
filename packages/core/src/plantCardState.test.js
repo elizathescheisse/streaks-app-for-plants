@@ -47,6 +47,18 @@ describe('derivePlantCardState', () => {
     expect(s.status.label).toMatch(/Check in \d+m/)
   })
 
+  it('shows the check timer for a plant watered before its first-ever reading', () => {
+    // Watered 10 min ago, no readings logged yet → still show the settle
+    // timer so the user knows to come back (and log that first reading).
+    const s = derivePlantCardState(
+      plant([watering(2, iso(NOW - 10 * 60 * 1000))]),
+      NOW,
+    )
+    expect(s.reading).toBeNull()
+    expect(s.status.cls).toBe('check')
+    expect(s.status.label).toMatch(/Check in \d+m/)
+  })
+
   it('does not estimate when watered within the last 8 hours (still equilibrating)', () => {
     // Reading yesterday, watered 4h ago (no reading since) → wateredAfterReading
     // path actually applies here, so status is the check badge, not an estimate.

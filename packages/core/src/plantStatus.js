@@ -46,6 +46,28 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
   return                              { label: '⚠️ Overwatered',               cls: 'okay'       }
 }
 
+// Post-watering "settling" badge — the moisture number is unknown until the
+// water soaks in, so show a check-back timer instead of a (stale) status.
+// Returns { label, cls: 'check' } or null when the badge shouldn't show.
+//
+// Two cases share this window:
+//  - watered after the last reading → the old reading is stale; keep showing
+//    "Check now" until a fresh reading is logged, however long that takes.
+//  - watered with no readings ever (issue #173) → same timer, but drop the
+//    badge once the settle window (8h) has long passed — a plant that never
+//    gets readings shouldn't nag "Check now" forever.
+const CHECK_SETTLE_MINS = 60
+const CHECK_EXPIRY_MINS = 8 * 60
+
+export function wateringCheckStatus(watering, reading, now = Date.now()) {
+  if (!watering) return null
+  if (reading && new Date(reading.timestamp) >= new Date(watering.timestamp)) return null
+  const minsSince = (now - new Date(watering.timestamp)) / 60_000
+  if (!reading && minsSince > CHECK_EXPIRY_MINS) return null
+  const minsLeft = Math.round(Math.max(0, CHECK_SETTLE_MINS - minsSince))
+  return { label: minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now', cls: 'check' }
+}
+
 // Priority order for sorting — lower number = shown first.
 const STATUS_PRIORITY = {
   struggling: 0,  // Water immediately
@@ -62,12 +84,7 @@ export function getPlantSortPriority(plant) {
   const reading     = lastReading(plant)
   const watering    = lastWatering(plant)
 
-  if (!reading) return NO_STATUS_PRIORITY
-
-  const wateredAfterReading =
-    watering && new Date(watering.timestamp) > new Date(reading.timestamp)
-
-  if (wateredAfterReading) {
+  if (wateringCheckStatus(watering, reading)) {
     // Within the "check" bucket, rank by urgency: less settling time left
     // sorts first, so "Check now" appears above "Check in 3m". minsLeft
     // ranges 0–60; normalize to a fraction so this never crosses into the
@@ -76,6 +93,8 @@ export function getPlantSortPriority(plant) {
     const minsLeft  = Math.max(0, 60 - minsSince)
     return STATUS_PRIORITY.check + minsLeft / 60
   }
+
+  if (!reading) return NO_STATUS_PRIORITY
 
   if (!careProfile?.moistureRange) return NO_STATUS_PRIORITY
 
