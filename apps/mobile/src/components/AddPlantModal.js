@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native'
 import { useTheme } from '../theme/ThemeContext.js'
 import BottomSheet from './BottomSheet.js'
+import SpeciesInput from './SpeciesInput.js'
 
 const EMOJI_CHOICES = ['🌿', '🌱', '🪴', '🌵', '🌴', '🌳', '🌸', '🍃']
 
@@ -57,13 +58,10 @@ export default function AddPlantModal({ visible, onClose, onAdd }) {
           </View>
 
           <Text style={[styles.label, { color: colors.textMuted }]}>Species</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surfaceInset, borderColor: colors.border, color: colors.text }]}
-            placeholder="e.g. pothos"
-            placeholderTextColor={colors.textSoft}
-            autoCapitalize="none"
+          <SpeciesInput
             value={species}
-            onChangeText={setSpecies}
+            onChange={setSpecies}
+            inputStyle={[styles.input, { backgroundColor: colors.surfaceInset, borderColor: colors.border, color: colors.text }]}
           />
 
           <Text style={[styles.label, { color: colors.textMuted }]}>Nickname (optional)</Text>
