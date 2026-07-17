@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView, Alert, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { derivePlantCardState } from '@plant-streaks/core/plantCardState.js'
-import { chartEvents } from '@plant-streaks/core/plantSelectors.js'
+import { chartEvents, logBundles } from '@plant-streaks/core/plantSelectors.js'
 import { usePlants, getPlantById } from '../state/PlantsContext.js'
 import { useTheme } from '../theme/ThemeContext.js'
 import MoistureBar from '../components/MoistureBar.js'
@@ -34,6 +34,24 @@ function waterLabel(unit, amount) {
   return String(amount)
 }
 
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+// Maps a health_change value to its themed badge foreground + soft background.
+function healthBadgeColors(health, colors) {
+  switch (health) {
+    case 'thriving':   return { fg: colors.statusThriving, bg: colors.statusThrivingSoft }
+    case 'good':       return { fg: colors.statusGood, bg: colors.statusGoodSoft }
+    case 'okay':       return { fg: colors.statusOkay, bg: colors.statusOkaySoft }
+    case 'struggling': return { fg: colors.statusStruggling, bg: colors.statusStrugglingSoft }
+    default:           return { fg: colors.textMuted, bg: colors.surfaceInset }
+  }
+}
+
 export default function PlantDetailScreen({ route, navigation }) {
   const { plantId } = route.params
   const { colors } = useTheme()
@@ -56,6 +74,7 @@ export default function PlantDetailScreen({ route, navigation }) {
   const { careProfile, hasStats, badgeMoisture, usePredicted, status, health, reading, watering, rec } =
     derivePlantCardState(plant, Date.now())
   const { readings, waterings } = chartEvents(plant)
+  const bundles = logBundles(plant)
 
   const name = plant.name || titleCase(plant.species)
 
@@ -96,6 +115,19 @@ export default function PlantDetailScreen({ route, navigation }) {
             <Text style={[styles.statusText, { color: colors.text }]}>{status.label}</Text>
           </View>
         )}
+
+        <View style={styles.actions}>
+          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('water')}>
+            <Text style={[styles.actionText, { color: colors.text }]}>💧 Water</Text>
+          </Pressable>
+          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('reading')}>
+            <Text style={[styles.actionText, { color: colors.text }]}>◎ Reading</Text>
+          </Pressable>
+        </View>
+
+        <Pressable style={[styles.logBtn, { backgroundColor: colors.primary }]} onPress={() => setLogOpen(true)}>
+          <Text style={[styles.logBtnText, { color: colors.onPrimary }]}>+ Full log entry</Text>
+        </Pressable>
 
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Current status</Text>
@@ -158,18 +190,56 @@ export default function PlantDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        <View style={styles.actions}>
-          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('water')}>
-            <Text style={[styles.actionText, { color: colors.text }]}>💧 Water</Text>
-          </Pressable>
-          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('reading')}>
-            <Text style={[styles.actionText, { color: colors.text }]}>◎ Reading</Text>
-          </Pressable>
-        </View>
+        {/* ── Log history (read-only; edit/delete tracked in #167) ── */}
+        {bundles.length > 0 && (
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.chartHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Log history</Text>
+              <Text style={[styles.historyCount, { color: colors.textMuted }]}>
+                {bundles.length} {bundles.length === 1 ? 'entry' : 'entries'}
+              </Text>
+            </View>
+            <View>
+            {bundles.map((bundle, i) => {
+              const ts       = bundle[0].timestamp
+              const reading  = bundle.find(e => e.type === 'reading')
+              const watering = bundle.find(e => e.type === 'watering')
+              const healthEv = bundle.find(e => e.type === 'health_change')
+              const note     = bundle.find(e => e.type === 'note')
+              const badge    = healthEv ? healthBadgeColors(healthEv.health, colors) : null
+              return (
+                <View
+                  key={bundle[0].bundleId}
+                  style={[
+                    styles.historyEntry,
+                    i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+                  ]}
+                >
+                  <View style={styles.historyTop}>
+                    <Text style={[styles.historyDate, { color: colors.text }]}>{fmtDate(ts)}</Text>
+                    <Text style={[styles.historyTime, { color: colors.textMuted }]}>{fmtTime(ts)}</Text>
+                  </View>
+                  <View style={styles.historyMeta}>
+                    {reading && (
+                      <Text style={[styles.historyChip, { color: colors.text }]}>◎ {reading.moisture} / 10</Text>
+                    )}
+                    {watering && (
+                      <Text style={[styles.historyChip, { color: colors.dataWater }]}>💧 {waterLabel(watering.unit, watering.amount)}</Text>
+                    )}
+                    {healthEv && (
+                      <Text style={[styles.historyBadge, { color: badge.fg, backgroundColor: badge.bg }]}>
+                        {HEALTH_LABELS[healthEv.health] ?? healthEv.health}
+                      </Text>
+                    )}
+                  </View>
+                  {note && <Text style={[styles.historyNote, { color: colors.textMuted }]}>{note.text}</Text>}
+                </View>
+              )
+            })}
+            </View>
+          </View>
+        )}
 
-        <Pressable style={[styles.logBtn, { backgroundColor: colors.primary }]} onPress={() => setLogOpen(true)}>
-          <Text style={[styles.logBtnText, { color: colors.onPrimary }]}>+ Full log entry</Text>
-        </Pressable>
       </ScrollView>
 
       <QuickLogModal
@@ -243,4 +313,20 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   windowText: { fontSize: 12, fontWeight: '600' },
+  historyCount: { fontSize: 13 },
+  historyEntry: { paddingVertical: 12, gap: 6 },
+  historyTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  historyDate: { fontSize: 14, fontWeight: '600' },
+  historyTime: { fontSize: 12 },
+  historyMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 },
+  historyChip: { fontSize: 14, fontWeight: '500' },
+  historyBadge: {
+    fontSize: 12,
+    fontWeight: '600',
+    borderRadius: 8,
+    overflow: 'hidden',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  historyNote: { fontSize: 13, lineHeight: 18 },
 })
