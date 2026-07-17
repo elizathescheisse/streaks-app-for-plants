@@ -116,6 +116,19 @@ export default function PlantDetailScreen({ route, navigation }) {
           </View>
         )}
 
+        <View style={styles.actions}>
+          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('water')}>
+            <Text style={[styles.actionText, { color: colors.text }]}>💧 Water</Text>
+          </Pressable>
+          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('reading')}>
+            <Text style={[styles.actionText, { color: colors.text }]}>◎ Reading</Text>
+          </Pressable>
+        </View>
+
+        <Pressable style={[styles.logBtn, { backgroundColor: colors.primary }]} onPress={() => setLogOpen(true)}>
+          <Text style={[styles.logBtnText, { color: colors.onPrimary }]}>+ Full log entry</Text>
+        </Pressable>
+
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Current status</Text>
           <View style={styles.statRow}>
@@ -227,18 +240,6 @@ export default function PlantDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        <View style={styles.actions}>
-          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('water')}>
-            <Text style={[styles.actionText, { color: colors.text }]}>💧 Water</Text>
-          </Pressable>
-          <Pressable style={[styles.actionBtn, { backgroundColor: colors.surfaceMuted }]} onPress={() => setQuickLog('reading')}>
-            <Text style={[styles.actionText, { color: colors.text }]}>◎ Reading</Text>
-          </Pressable>
-        </View>
-
-        <Pressable style={[styles.logBtn, { backgroundColor: colors.primary }]} onPress={() => setLogOpen(true)}>
-          <Text style={[styles.logBtnText, { color: colors.onPrimary }]}>+ Full log entry</Text>
-        </Pressable>
       </ScrollView>
 
       <QuickLogModal
