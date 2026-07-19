@@ -15,6 +15,8 @@
 - **α (alpha)** — how much one cup of water raises the moisture reading. (Math/stats, not engineering.)
 - **β (beta)** — how fast the soil dries, in moisture points per day.
 - **regression / regression line** — drawing the single best straight line through scattered dots to find the underlying trend; its steepness is the "slope."
+- **smoothing / filtering** — working out what the *true* value probably was, by combining what you know about how the thing behaves with your noisy measurements of it. Different from regression: regression fits one line through everything; smoothing tracks a value that genuinely changes over time. (Math/stats, not engineering.)
+- **state-space model / Kalman filter** — the formal name for that combining trick: treat the real value as hidden and evolving predictably, treat each measurement as a noisy glimpse, and blend the two. Like phone GPS in a tunnel — it keeps you moving smoothly along the road because "cars follow roads" outweighs the garbage signal.
 - **slope** — how steep the line is; here, the drying speed.
 - **residual** — the gap between what the model predicted and what you actually measured (predicted 3, measured 5 → residual +2).
 - **EMA (exponential moving average)** — a running average that weights recent readings more than old ones, so it adapts to change instead of being anchored to stale data.

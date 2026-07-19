@@ -12,7 +12,7 @@ Scale: **1** brand new · **2** beginner · **3** comfortable · **4** strong ·
 
 | Skill | Level | Most recent evidence | Next milestone |
 |---|---|---|---|
-| Systems / product reasoning | **4** | Proposed regression to de-noise the slope; designed the watering feedback-loop in plain language; caught bandaid-vs-root-cause; made scope/sequencing calls. | Keep applying it to new problem types. |
+| Systems / product reasoning | **4** | Independently described a filtering/state-space approach (2026-07-19): treat readings as noisy evidence, reset the curve at each watering, but don't fully trust the anchor reading either — that last caveat is the genuinely subtle part. Earlier: proposed regression to de-noise the slope; designed the watering feedback-loop; caught bandaid-vs-root-cause. | Keep applying it to new problem types. |
 | Software / product vocabulary | **3** | Knows `idempotent`, PRs, branches, localStorage; product-fluent. | Bank a few architecture terms (component, state, prop, selector). |
 | Math / stats vocabulary | **2 ↑** | Learned α/β, regression, slope, residual, EMA, R², bias-vs-noise this session. | Recognize these without a reminder when they come up. |
 | Code reading (what a snippet does) | *not yet measured* | Follows plain-English line-walkthroughs well. | Read 2–3 real lines per PR and predict what they do before I explain. |
