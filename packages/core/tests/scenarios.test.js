@@ -9,6 +9,7 @@ import { dirname, join } from 'node:path'
 
 import { smoothedCurrentMoisture } from '../src/plantSelectors.js'
 import { computeModel, getRecommendation } from '../src/plantModel.js'
+import { fitMoistureSeries, fittedLevelAt } from '../src/plantCurve.js'
 import { lookupPlant } from '../src/plantLookup.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -146,5 +147,56 @@ describe('Chronically under-watered — amount loop climbs the recommendation (P
     expect(rec.amountSource).toBe('outcome')           // the loop is driving the amount
     expect(rec.waterNeeded).toBeGreaterThan(1)         // climbed above the poured 1 cup
     expect(rec.waterNeeded).toBeLessThanOrEqual(2.5)   // but bounded — no runaway
+  })
+})
+
+// ────────────────────────────────────────────────────────────────────────
+// big-monstera-2026-05-28-noisy-dip — issue #172 (fitted true-moisture line)
+// Real mid-cycle probe dip: readings went 5 → 2 → 4 across May 27–30 with no
+// watering between. The plant was almost certainly ~4–5 the whole time; the 2
+// hit a dry pocket. The raw chart polyline draws a hard V down to 2. The
+// fitted line should stay near the neighbor consensus, pulled down only
+// slightly by the outlier — the exact user-observable win the feature exists
+// for. Shipped in PR for #172 after the leave-one-out validation gate
+// (fitted+bw pooled MAE 0.73 vs raw interpolation 1.16 on the 2026-07-14
+// export).
+// ────────────────────────────────────────────────────────────────────────
+describe('Big Monstera — fitted line rides through a noisy mid-cycle dip (#172)', () => {
+  const plant = loadFixture('big-monstera-2026-05-28-noisy-dip.json')
+  const careProfile = lookupPlant(plant.species)
+  const DIP_TS = new Date('2026-05-28T21:34:47.623Z').getTime()
+
+  const FIXTURE_NOW = new Date('2026-06-10T00:00:00.000Z')
+  beforeAll(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(FIXTURE_NOW)
+  })
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
+  it('is confident enough to draw the line for this history', () => {
+    const result = fitMoistureSeries(plant, careProfile)
+    expect(result.confident).toBe(true)
+  })
+
+  it('stays near the neighbor consensus at the dip, not the outlier', () => {
+    const { segments } = fitMoistureSeries(plant, careProfile)
+    const atDip = fittedLevelAt(segments, DIP_TS)
+    // Neighbors read 5 (May 27) and 4 (May 30); the meter said 2. The line
+    // should sit within ~1 point of the neighbors, far above the outlier.
+    expect(atDip).toBeGreaterThan(3.4)
+    expect(atDip).toBeLessThan(5)
+  })
+
+  it('is still informed by the outlier — removing it raises the line', () => {
+    const withoutDip = {
+      ...plant,
+      events: plant.events.filter(e => new Date(e.timestamp).getTime() !== DIP_TS),
+    }
+    const full = fitMoistureSeries(plant, careProfile)
+    const clean = fitMoistureSeries(withoutDip, careProfile)
+    expect(fittedLevelAt(full.segments, DIP_TS))
+      .toBeLessThan(fittedLevelAt(clean.segments, DIP_TS))
   })
 })

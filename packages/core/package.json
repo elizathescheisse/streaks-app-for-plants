@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./plantModel.js": "./src/plantModel.js",
+    "./plantCurve.js": "./src/plantCurve.js",
     "./plantSelectors.js": "./src/plantSelectors.js",
     "./plantStatus.js": "./src/plantStatus.js",
     "./plantCardState.js": "./src/plantCardState.js",
@@ -14,7 +15,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "validate:curve": "node scripts/validate-fitted-curve.mjs"
   },
   "devDependencies": {
     "vitest": "^4.1.6"
