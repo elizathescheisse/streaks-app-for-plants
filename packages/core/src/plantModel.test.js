@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability, learnedWaterAmount } from './plantModel.js'
+import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability, learnedWaterAmount, linearFit, weightedLinearFit, segmentCycles } from './plantModel.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -522,5 +522,59 @@ describe('learnedWaterAmount', () => {
     ])
     const t = learnedWaterAmount(p, CARE)
     expect(t.amount).toBeLessThanOrEqual(1 * 2.5)   // ceiling = max(seed, maxObserved) * 2.5
+  })
+})
+
+// ── weightedLinearFit (added for the fitted-curve feature, #172) ───────────
+
+describe('weightedLinearFit', () => {
+  it('matches linearFit when all weights are 1', () => {
+    const pts = [{ x: 0, y: 6 }, { x: 1, y: 5 }, { x: 2, y: 4 }]
+    const plain = linearFit(pts)
+    const weighted = weightedLinearFit(pts, [1, 1, 1])
+    expect(weighted.slope).toBeCloseTo(plain.slope)
+    expect(weighted.intercept).toBeCloseTo(plain.intercept)
+  })
+
+  it('down-weighted outliers pull the line less', () => {
+    const pts = [{ x: 0, y: 4 }, { x: 1, y: 1 }, { x: 2, y: 4 }]
+    const full = weightedLinearFit(pts, [1, 1, 1])
+    const damped = weightedLinearFit(pts, [1, 0.2, 1])
+    // With the outlier's vote shrunk, the fitted level at x=1 rises toward 4.
+    const levelFull = full.intercept + full.slope * 1
+    const levelDamped = damped.intercept + damped.slope * 1
+    expect(levelDamped).toBeGreaterThan(levelFull)
+  })
+
+  it('returns null for <2 points, zero total weight, or vertical data', () => {
+    expect(weightedLinearFit([{ x: 0, y: 1 }], [1])).toBeNull()
+    expect(weightedLinearFit([{ x: 0, y: 1 }, { x: 1, y: 2 }], [0, 0])).toBeNull()
+    expect(weightedLinearFit([{ x: 1, y: 1 }, { x: 1, y: 2 }], [1, 1])).toBeNull()
+  })
+})
+
+// ── segmentCycles (extracted from computeModel, shared with plantCurve) ────
+
+describe('segmentCycles', () => {
+  it('groups readings into cycles opened by waterings, with preReading', () => {
+    const p = plant([
+      reading(5, 10), reading(4, 9),
+      watering(2, 8),
+      reading(7, 7),
+      watering(1, 6),
+      reading(6, 5),
+    ])
+    const cycles = segmentCycles(p)
+    expect(cycles).toHaveLength(3)
+    expect(cycles[0].watering).toBeNull()
+    expect(cycles[0].readings).toHaveLength(2)
+    expect(cycles[1].watering.amount).toBe('2')
+    expect(cycles[1].preReading.moisture).toBe(4)   // last reading before that watering
+    expect(cycles[2].preReading.moisture).toBe(7)
+  })
+
+  it('handles empty plants and non-reading events', () => {
+    expect(segmentCycles(plant([]))).toHaveLength(1)
+    expect(segmentCycles({ id: 'x' })).toHaveLength(1)
   })
 })

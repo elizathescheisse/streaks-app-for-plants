@@ -42,3 +42,4 @@ e.g. `alocasia-2026-05-20-probe-variance.json`.
 | File | Issue | Notes |
 |------|-------|-------|
 | `alocasia-2026-05-20-probe-variance.json` | #101 | Reading 3 → water 2c → reading 2 (dry-pocket probe) → reading 6 (good probe). Should not recommend re-watering. |
+| `big-monstera-2026-05-28-noisy-dip.json` | #172 | Mid-cycle readings 5 → 2 → 4 with no watering between (probe dip). Fitted line stays near the neighbor consensus, only slightly pulled down. |

@@ -15,8 +15,10 @@
 
 import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture, typicalWaterAmount } from './plantSelectors.js'
 
-const DEFAULT_ALPHA = 1.5   // moisture points per cup (generic prior)
-const DEFAULT_BETA  = 0.5   // moisture points per day (generic prior)
+// Exported so plantCurve.js (the fitted-line estimator) shares the exact same
+// priors and ceiling — redeclaring them there would let the two silently drift.
+export const DEFAULT_ALPHA = 1.5   // moisture points per cup (generic prior)
+export const DEFAULT_BETA  = 0.5   // moisture points per day (generic prior)
 const GAMMA         = 0.25  // EMA smoothing factor: recent obs weighted more
 const BETA_WINDOW   = 6     // only use the N most recent β observations
 const ALPHA_WINDOW  = 4     // only use the N most recent α observations
@@ -27,7 +29,7 @@ const MIN_SPAN_DAYS = 0.167  // 4h
 // Hard ceiling on the learned drying rate. Most indoor plants dry at
 // 0.1–0.4 points/day; nothing realistic exceeds this. Stops a single noisy
 // cycle from pushing β into runaway territory.
-const BETA_CEILING  = 0.7
+export const BETA_CEILING  = 0.7
 
 // ─────────────────────────────────────────────────────────
 // computeModel
@@ -50,7 +52,7 @@ const BETA_CEILING  = 0.7
 // Parse a user-entered water amount string to a number.
 // Handles decimals ('1.5'), integers ('2'), and fractions ('3/4', '1/3').
 // Returns null if the value is empty or unparseable.
-function parseAmount(s) {
+export function parseAmount(s) {
   if (!s) return null
   const str = String(s).trim()
   if (str.includes('/')) {
@@ -64,7 +66,7 @@ function parseAmount(s) {
 // Ordinary least-squares fit of y = intercept + slope·x.
 // Returns { slope, intercept, r2, n } or null when it can't fit — fewer than
 // two points, or every point shares the same x (vertical, no slope defined).
-function linearFit(points) {
+export function linearFit(points) {
   const n = points.length
   if (n < 2) return null
   let sx = 0, sy = 0
@@ -84,16 +86,49 @@ function linearFit(points) {
   return { slope, intercept, r2, n }
 }
 
-export function computeModel(plant, careProfile) {
+// Weighted least-squares: same fit as linearFit, but each point's pull on the
+// line is scaled by its weight (0..1). Used by plantCurve.js so an off-trend
+// reading still informs the fit a little instead of dominating it.
+// `weights` is parallel to `points`. Same null conditions as linearFit, plus
+// all-zero weights.
+export function weightedLinearFit(points, weights) {
+  const n = points.length
+  if (n < 2) return null
+  let sw = 0, sx = 0, sy = 0
+  for (let i = 0; i < n; i++) {
+    const w = weights[i]
+    sw += w; sx += w * points[i].x; sy += w * points[i].y
+  }
+  if (sw === 0) return null
+  const mx = sx / sw, my = sy / sw
+  let sxx = 0, sxy = 0, syy = 0
+  for (let i = 0; i < n; i++) {
+    const w = weights[i]
+    const dx = points[i].x - mx, dy = points[i].y - my
+    sxx += w * dx * dx; sxy += w * dx * dy; syy += w * dy * dy
+  }
+  if (sxx === 0) return null
+  const slope = sxy / sxx
+  const intercept = my - slope * mx
+  const r2 = syy === 0 ? 1 : (sxy * sxy) / (sxx * syy)
+  return { slope, intercept, r2, n }
+}
+
+// ─────────────────────────────────────────────────────────
+// segmentCycles
+// Splits a plant's event timeline into drying cycles. A cycle is opened by a
+// watering (or the start of history) and holds every reading until the next
+// watering. `preReading` is the reading immediately before the cycle's
+// watering — the baseline that watering lifted moisture from.
+// Shared by computeModel, learnedWaterAmount, and plantCurve.js so the three
+// can never disagree about where a cycle starts and ends.
+// Returns [{ watering|null, preReading|null, readings: [] }] in time order.
+// ─────────────────────────────────────────────────────────
+export function segmentCycles(plant) {
   const timeline = (plant.events ?? [])
     .filter(e => e.type === 'reading' || e.type === 'watering')
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
-  // ── Segment into drying cycles ────────────────────────────────────────
-  // A cycle is opened by a watering (or the start of history) and holds every
-  // reading until the next watering. `preReading` is the reading immediately
-  // before the cycle's watering — the baseline the watering lifted moisture
-  // from, used to derive α.
   const cycles = []
   let cur = { watering: null, preReading: null, readings: [] }
   for (const e of timeline) {
@@ -108,6 +143,11 @@ export function computeModel(plant, careProfile) {
     }
   }
   cycles.push(cur)
+  return cycles
+}
+
+export function computeModel(plant, careProfile) {
+  const cycles = segmentCycles(plant)
 
   const betaObs  = []   // one drying slope per qualifying cycle
   const alphaObs = []   // one rise-per-water per qualifying cycle
@@ -513,16 +553,7 @@ export function learnedWaterAmount(plant, careProfile) {
   const beta = computeModel(plant, careProfile).beta ?? DEFAULT_BETA
 
   // Segment into cycles (watering → its readings until the next watering).
-  const timeline = (plant.events ?? [])
-    .filter(e => e.type === 'reading' || e.type === 'watering')
-    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-  const cycles = []
-  let cur = { watering: null, readings: [] }
-  for (const e of timeline) {
-    if (e.type === 'reading') cur.readings.push(e)
-    else { cycles.push(cur); cur = { watering: e, readings: [] } }
-  }
-  cycles.push(cur)
+  const cycles = segmentCycles(plant)
 
   let amount = seed.amount
   let maxObserved = seed.amount
