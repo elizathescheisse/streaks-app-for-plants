@@ -59,7 +59,10 @@ function clipSegment(seg, rangeMin, rangeMax) {
 // `fittedSegments` (from fitMoistureSeries, passed only when the model is
 // confident) replaces the connect-the-dots trend line with the model's best
 // guess of true moisture — dashed, because it's estimated, not measured.
-export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M', predictedMoisture = null, fittedSegments = null }) {
+// `windowOffset` pans the visible window into the past: 0 = the window ending
+// now (the default everywhere), 1 = the window before that, and so on. Only
+// the detail screen exposes controls for it; cards stay pinned to the present.
+export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M', predictedMoisture = null, fittedSegments = null, windowOffset = 0 }) {
   const { colors } = useTheme()
   const [svgWidth, setSvgWidth] = useState(0)
   // tooltip: { kind: 'reading' | 'watering' | 'estimated', event?, x, y } | null
@@ -83,16 +86,34 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     return colors.statusStruggling
   }
 
-  // Filter by window
+  // Filter by window. 'All' spans everything and can't be panned; the sized
+  // windows slide `windowOffset` window-lengths into the past, so offset 0 is
+  // "the last N days" (unchanged behaviour) and offset 1 is the N days before
+  // that. Panned windows are bounded at BOTH ends; the current window keeps its
+  // open right edge so a fresh reading always lands at the axis end.
+  const nowTs = Date.now()
   const windowDays = WINDOWS.find(w => w.key === win)?.days ?? Infinity
-  const cutoff = windowDays === Infinity ? null : new Date(Date.now() - windowDays * 86_400_000)
+  const canPan = windowDays !== Infinity
+  const offset = canPan ? Math.max(0, windowOffset) : 0
+  const isCurrentWindow = offset === 0
+  const winMs = windowDays * 86_400_000
+  const windowEndTs = canPan ? nowTs - offset * winMs : null
+  const cutoff = canPan ? new Date(windowEndTs - winMs) : null
+  const endCutoff = canPan && !isCurrentWindow ? new Date(windowEndTs) : null
+
+  const inWindow = (ts) => {
+    const t = +new Date(ts)
+    if (cutoff && t < +cutoff) return false
+    if (endCutoff && t > +endCutoff) return false
+    return true
+  }
 
   const visibleReadings = (readings ?? [])
-    .filter(r => !cutoff || new Date(r.timestamp) >= cutoff)
+    .filter(r => inWindow(r.timestamp))
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
   const visibleWaterings = (waterings ?? [])
-    .filter(w => !cutoff || new Date(w.timestamp) >= cutoff)
+    .filter(w => inWindow(w.timestamp))
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
   const n = visibleReadings.length
@@ -104,11 +125,15 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     ...visibleReadings.map(r => +new Date(r.timestamp)),
     ...visibleWaterings.map(w => +new Date(w.timestamp)),
   ]
-  const nowTs = Date.now()
   const windowStart = cutoff ? +cutoff : (allTimestamps.length ? Math.min(...allTimestamps) : 0)
   const tMin = allTimestamps.length ? Math.min(windowStart, Math.min(...allTimestamps)) : windowStart
   const tMax = allTimestamps.length ? Math.max(...allTimestamps) : 1
-  const tMaxFull = predictedMoisture != null ? Math.max(tMax, nowTs) : tMax
+  // The "now" projection only makes sense in the window that contains now;
+  // panned windows anchor to their own end so consecutive windows line up.
+  const showEstimate = predictedMoisture != null && isCurrentWindow
+  const tMaxFull = showEstimate ? Math.max(tMax, nowTs)
+    : !isCurrentWindow ? Math.max(tMax, windowEndTs)
+    : tMax
   const tSpan = tMaxFull - tMin || 1
 
   function xAt(ts) {
@@ -292,7 +317,7 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
             })}
 
             {/* Estimated "now" projection */}
-            {predictedMoisture != null && visibleReadings.length >= 1 && (() => {
+            {showEstimate && visibleReadings.length >= 1 && (() => {
               const lastR = visibleReadings[visibleReadings.length - 1]
               const estX = xAt(nowTs)
               const estY = mToY(Math.min(10, Math.max(0, predictedMoisture)))
