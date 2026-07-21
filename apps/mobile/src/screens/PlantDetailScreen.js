@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { derivePlantCardState } from '@plant-streaks/core/plantCardState.js'
 import { chartEvents, logBundles } from '@plant-streaks/core/plantSelectors.js'
+import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
 import { usePlants, getPlantById } from '../state/PlantsContext.js'
 import { useTheme } from '../theme/ThemeContext.js'
 import MoistureBar from '../components/MoistureBar.js'
@@ -75,6 +76,9 @@ export default function PlantDetailScreen({ route, navigation }) {
     derivePlantCardState(plant, Date.now())
   const { readings, waterings } = chartEvents(plant)
   const bundles = logBundles(plant)
+  // Fitted true-moisture line for the chart (#172). No memo needed: this
+  // screen renders one plant and has no ticking re-render.
+  const curve = fitMoistureSeries(plant, careProfile)
 
   const name = plant.name || titleCase(plant.species)
 
@@ -186,6 +190,7 @@ export default function PlantDetailScreen({ route, navigation }) {
               careProfile={careProfile}
               window={chartWindow}
               predictedMoisture={usePredicted ? rec.predicted : null}
+              fittedSegments={curve?.confident ? curve.segments : null}
             />
           </View>
         )}

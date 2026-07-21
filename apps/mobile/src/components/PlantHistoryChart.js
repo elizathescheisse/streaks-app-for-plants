@@ -43,7 +43,23 @@ function waterAbbr(unit, amount) {
   return String(amount).slice(0, 6)
 }
 
-export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M', predictedMoisture = null }) {
+// Clip a fitted segment ({ startTs, endTs, startLevel, endLevel }) to the
+// visible time range, interpolating the levels at the clamped ends. Same as
+// web: the fit runs over full history once, so the line stays identical
+// across 1W/1M/3M/All — only the visible slice changes.
+function clipSegment(seg, rangeMin, rangeMax) {
+  const start = Math.max(seg.startTs, rangeMin)
+  const end = Math.min(seg.endTs, rangeMax)
+  if (start >= end) return null
+  const levelAt = (t) =>
+    seg.startLevel + (seg.endLevel - seg.startLevel) * (t - seg.startTs) / (seg.endTs - seg.startTs)
+  return { startTs: start, endTs: end, startLevel: levelAt(start), endLevel: levelAt(end) }
+}
+
+// `fittedSegments` (from fitMoistureSeries, passed only when the model is
+// confident) replaces the connect-the-dots trend line with the model's best
+// guess of true moisture — dashed, because it's estimated, not measured.
+export default function PlantHistoryChart({ readings, waterings, careProfile, window: win = '1M', predictedMoisture = null, fittedSegments = null }) {
   const { colors } = useTheme()
   const [svgWidth, setSvgWidth] = useState(0)
   // tooltip: { kind: 'reading' | 'watering' | 'estimated', event?, x, y } | null
@@ -150,6 +166,12 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
     .map(r => `${xAt(r.timestamp)},${mToY(r.moisture)}`)
     .join(' ')
 
+  // Fitted-line segments clipped to the visible window. One dashed polyline
+  // per drying cycle; the gap at each watering's vertical IS the jump.
+  const visibleFitted = (fittedSegments ?? [])
+    .map(s => clipSegment(s, tMin, tMaxFull))
+    .filter(Boolean)
+
   const toggleTooltip = (next) => {
     setTooltip(t => {
       if (!t) return next
@@ -220,15 +242,31 @@ export default function PlantHistoryChart({ readings, waterings, careProfile, wi
               </G>
             )}
 
-            {/* Moisture trend line */}
-            <Polyline
-              points={polyPoints}
-              fill="none"
-              stroke={colors.chartMoistureLine}
-              strokeWidth={1.5}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
+            {/* Moisture trend line: fitted true-moisture estimate (dashed —
+                the model's belief, not a measurement) when confident, else
+                the raw connect-the-dots polyline. */}
+            {visibleFitted.length > 0 ? (
+              visibleFitted.map((s, i) => (
+                <Polyline
+                  key={`fit-${i}`}
+                  points={`${xAt(s.startTs)},${mToY(s.startLevel)} ${xAt(s.endTs)},${mToY(s.endLevel)}`}
+                  fill="none"
+                  stroke={colors.chartMoistureLine}
+                  strokeWidth={1.5}
+                  strokeDasharray="3,3"
+                  strokeLinecap="round"
+                />
+              ))
+            ) : (
+              <Polyline
+                points={polyPoints}
+                fill="none"
+                stroke={colors.chartMoistureLine}
+                strokeWidth={1.5}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            )}
 
             {/* Reading dots — tap to toggle tooltip */}
             {visibleReadings.map(r => {
