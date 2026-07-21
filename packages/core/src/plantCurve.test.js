@@ -159,6 +159,26 @@ describe('fitMoistureSeries', () => {
     expect(fitMoistureSeries(plant(events)).confident).toBe(false)
   })
 
+  // The gate asks "does the drying model describe this plant?" (betaR2), NOT
+  // "have recent forecasts been accurate?" A plant whose readings scatter
+  // wildly within each cycle has no coherent decay story — no line. See
+  // MIN_FIT_QUALITY for why this is deliberately not gated on 'shaky'.
+  it('reports confident: false when readings scatter with no coherent decay', () => {
+    const events = []
+    let t = 0
+    for (let i = 0; i < 6; i++) {
+      events.push(watering(2, t))
+      // zig-zag readings within the cycle — no straight-line decay to find
+      events.push(reading(7, t + 0.5))
+      events.push(reading(2, t + 1.5))
+      events.push(reading(8, t + 2.5))
+      events.push(reading(3, t + 3.5))
+      t += 6
+    }
+    const result = fitMoistureSeries(plant(events))
+    expect(result.confident).toBe(false)
+  })
+
   it('reports confident: true for a plant with rich, consistent history', () => {
     const events = []
     let t = 0

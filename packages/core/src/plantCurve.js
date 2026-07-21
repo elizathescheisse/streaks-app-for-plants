@@ -22,7 +22,7 @@
 import { getEvents, typicalWaterAmount } from './plantSelectors.js'
 import {
   computeModel, segmentCycles, linearFit, weightedLinearFit, parseAmount,
-  getPredictionReliability, DEFAULT_ALPHA, DEFAULT_BETA, BETA_CEILING,
+  DEFAULT_ALPHA, DEFAULT_BETA, BETA_CEILING,
 } from './plantModel.js'
 
 // How fast an off-trend reading loses its vote: a reading 1.5 pts off the
@@ -43,6 +43,20 @@ const LEVEL_PRIOR_W = 2
 const BACKWARD_W = 1
 // Same confidence floor as getRecommendation's 'low' tier.
 const MIN_SAMPLES = 3
+// Minimum goodness-of-fit before we'll draw the line: does the straight-line
+// decay story actually describe this plant's readings at all?
+//
+// Deliberately NOT gated on getPredictionReliability's 'shaky' — that measures
+// whether recent *forecasts* missed, which is a different job. A plant with a
+// noisy probe produces bad forecasts precisely because its readings scatter,
+// and scattered readings are exactly what this curve exists to smooth. Gating
+// on 'shaky' switched the line off on the plants that needed it most (#172
+// discussion: Alocasia, fitted MAE 0.91 vs 1.22 for raw interpolation, was
+// hidden). betaR2 asks the question that actually matters here — and it cleanly
+// separates the one plant where the fit loses (pothos, betaR2 0.06) from the
+// seven where it wins (0.52–0.95). Same 0.4 threshold getRecommendation
+// already uses to knock confidence down a tier.
+const MIN_FIT_QUALITY = 0.4
 
 const DAY_MS = 86_400_000
 
@@ -61,10 +75,9 @@ const tsOf = (e) => new Date(e.timestamp).getTime()
 //     The series never extends past the last reading: the existing
 //     "estimated now" projection owns the last-reading → now stretch.
 //
-//   confident: whether the model has earned the right to draw this line
-//     (same signals that gate the estimated-now dot, minus its recency
-//     conditions — recency matters for a *now* estimate, not history).
-//     Callers show the fitted line only when true.
+//   confident: whether the model has earned the right to draw this line —
+//     enough observations, and the drying model actually fits this plant
+//     (see MIN_FIT_QUALITY). Callers show the fitted line only when true.
 // ─────────────────────────────────────────────────────────
 export function fitMoistureSeries(plant, careProfile, { backward = true } = {}) {
   const allReadings = getEvents(plant, 'reading')
@@ -208,7 +221,7 @@ export function fitMoistureSeries(plant, careProfile, { backward = true } = {}) 
   const confident =
     model.beta != null &&
     model.betaSamples + model.alphaSamples >= MIN_SAMPLES &&
-    getPredictionReliability(plant, careProfile) !== 'shaky'
+    (model.betaR2 ?? 0) >= MIN_FIT_QUALITY
 
   return { confident, segments }
 }
