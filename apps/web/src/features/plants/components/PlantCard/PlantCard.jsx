@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock } from '@fortawesome/free-solid-svg-icons'
@@ -9,6 +9,7 @@ import PlantIcon, { hasIcon } from '../plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
+import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
 import { moistureStatus, wateringCheckStatus } from '@plant-streaks/core/plantStatus.js'
 import PlantPrediction from '../../../care/components/PlantPrediction'
 
@@ -95,6 +96,9 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   // When recent predictions have been unreliable, don't trust the extrapolated
   // value — fall back to the last real reading and prompt a fresh one (4a).
   const shaky       = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
+  // Fitted true-moisture line for the chart (#172) — memoized because it
+  // refits the whole history, and the card re-renders on its ticking clock.
+  const curve       = useMemo(() => fitMoistureSeries(plant, careProfile), [plant, careProfile])
   const rawMoisture  = reading ? Math.round(Number(reading.moisture)) : null
   const predMoisture = isConfident ? Math.round(rec.predicted) : null
   // Show the dashed "estimated" ring only when we're genuinely extrapolating:
@@ -182,6 +186,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
 
                   window={chartWindow}
                   predictedMoisture={usePredicted ? rec.predicted : null}
+                  fittedSegments={curve?.confident ? curve.segments : null}
                 />
               </div>
             )}

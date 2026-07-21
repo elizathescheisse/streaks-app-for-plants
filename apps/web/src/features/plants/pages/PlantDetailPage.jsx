@@ -12,6 +12,7 @@ import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents, typicalWaterAmount
 } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
+import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
 import { moistureStatus, wateringCheckStatus } from '@plant-streaks/core/plantStatus.js'
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
@@ -113,6 +114,10 @@ export default function PlantDetailPage({
   // When recent predictions have been unreliable, don't assert a confident
   // "est. now" number — defer to a fresh reading instead (Phase 4a).
   const shaky = model ? getPredictionReliability(plant, careProfile) === 'shaky' : false
+
+  // Fitted true-moisture line for the chart (#172). No memo: this page renders
+  // a single plant and doesn't re-render on a ticking clock like PlantCard.
+  const curve = fitMoistureSeries(plant, careProfile)
 
   // Dashed ring + "est. now" text: same two-step rule as PlantCard.
   // 1. Reading taken today → fresh data, no ring.
@@ -274,6 +279,7 @@ export default function PlantDetailPage({
                 careProfile={careProfile}
                 window={chartWindow}
                 predictedMoisture={usePredicted ? rec.predicted : null}
+                fittedSegments={curve?.confident ? curve.segments : null}
               />
             </div>
           </section>
