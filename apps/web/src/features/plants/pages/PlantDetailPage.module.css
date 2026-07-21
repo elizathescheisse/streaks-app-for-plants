@@ -443,6 +443,41 @@
   color: var(--text-primary);
 }
 
+/* ── Chart time-window panning ── */
+.panRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.panBtn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+.panBtn:hover:not(:disabled) { background: var(--bg-surface); color: var(--text-primary); }
+.panBtn:disabled { opacity: 0.3; cursor: default; }
+
+.panLabel {
+  min-width: 130px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Care guide (sidebar) ── */
 .careList {
   display: flex;
