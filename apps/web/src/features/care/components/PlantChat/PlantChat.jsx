@@ -97,12 +97,35 @@ function textOf(content) {
   return ''
 }
 
+// iPhones save photos as HEIC by default. Only Safari can decode HEIC in an
+// <img>/canvas — Chrome, Firefox, and Edge cannot, so the resize step below
+// would silently fail on a HEIC file in any of those. File.type is also
+// unreliable for HEIC (often blank, especially outside Safari), so check the
+// extension too.
+function isHeic(file) {
+  return file.type === 'image/heic' || file.type === 'image/heif' || /\.hei[cf]$/i.test(file.name)
+}
+
+// Converts HEIC/HEIF to JPEG before the normal resize pipeline runs. Loaded
+// on demand (not at import time) since it's a WASM decoder — no reason to
+// ship that to everyone who never attaches a HEIC photo.
+async function convertHeicToJpeg(file) {
+  try {
+    const heic2any = (await import('heic2any')).default
+    const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: JPEG_QUALITY })
+    return Array.isArray(result) ? result[0] : result   // some HEIC files contain multiple images (e.g. Live Photos); use the first
+  } catch {
+    throw new Error(`Could not convert "${file.name}" — try exporting it as JPEG first.`)
+  }
+}
+
 // Resizes+re-encodes an image file client-side before it ever leaves the
 // browser — phone photos are routinely several MB, and Vercel's serverless
 // functions reject request bodies over ~4.5MB. Shrinking to MAX_IMAGE_DIM
 // keeps a handful of photos comfortably under that, and cuts image-token
 // cost on the OpenAI side too.
-function resizeImageFile(file) {
+async function resizeImageFile(file) {
+  const source = isHeic(file) ? await convertHeicToJpeg(file) : file
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onerror = () => reject(new Error('Could not read that image.'))
@@ -124,7 +147,7 @@ function resizeImageFile(file) {
       }
       img.src = reader.result
     }
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(source)
   })
 }
 
@@ -187,7 +210,10 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
   }
 
   async function addFiles(fileList) {
-    const files = [...fileList].filter(f => f.type.startsWith('image/'))
+    // HEIC files often report a blank or non-standard `type` outside Safari,
+    // so the image/* check alone would silently drop them — isHeic() also
+    // checks the file extension as a fallback.
+    const files = [...fileList].filter(f => f.type.startsWith('image/') || isHeic(f))
     if (!files.length) return
     const room = MAX_IMAGES_PER_MESSAGE - attachments.length
     if (room <= 0) {
@@ -321,7 +347,7 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           multiple
           className={styles.hiddenFileInput}
           onChange={e => { addFiles(e.target.files); e.target.value = '' }}

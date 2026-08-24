@@ -42,20 +42,22 @@
   white-space: pre-wrap;
 }
 
-/* Soft tinted fill + colored border, not the solid brand-primary green —
-   that's also the color of real action buttons ("+ Log", etc.), so a solid
-   bubble in the same green made a passive chat message look like a CTA. */
+/* Neutral gray family, not green — the rest of this screen (the "+ Log"
+   button, badges, care-guide card) is heavily green, so a green-tinted
+   bubble (even a soft one) still blended into everything else instead of
+   reading as its own distinct "chat" surface. User vs. assistant stays
+   distinguishable by shade (user a touch brighter) plus alignment. */
 .bubbleUser {
   align-self: flex-end;
-  background: rgba(56, 178, 71, 0.14);
-  border: 1px solid rgba(56, 178, 71, 0.4);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   color: var(--text-primary);
 }
 
 .bubbleAssistant {
   align-self: flex-start;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-primary);
 }
 
