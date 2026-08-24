@@ -82,7 +82,7 @@ function buildSystemPrompt(plant) {
   if (plant.lastWatered) lines.push(`Last watered: ${plant.lastWatered}.`)
   if (plant.recommendation) lines.push(`The app's own model currently estimates: ${plant.recommendation}.`)
   if (plant.recentHistory?.length) {
-    lines.push('Recent log history (newest first):')
+    lines.push('Full log history, newest first (use this for any question about past dates, not just recent status):')
     for (const line of plant.recentHistory) lines.push(`- ${line}`)
   }
   lines.push('', 'Answer using this real data when relevant.')

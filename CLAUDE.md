@@ -71,6 +71,14 @@ Before making any change — code, config, or documentation — pause and ask in
 
 A change that's technically correct but premature, unnecessary, or too granular is still a bad change. This is not a question to ask Eliza — it's a check to run silently before acting.
 
+## Flag arbitrary judgment calls
+
+When picking a value that's a reasonable guess rather than something derived from real data, testing, or an explicit requirement — a constant, threshold, cap, default, model parameter, UI cutoff — say so plainly when you introduce it. Don't let an arbitrary choice read as a settled, considered decision. State that it's a starting point Eliza may want to weigh in on, not something validated.
+
+This is different from choices that ARE grounded (e.g. the moisture model's thresholds, tuned against real logged data) — those don't need the caveat. It's specifically for "I just picked something reasonable-sounding."
+
+Example: "I set HISTORY_CAP to 500 — that's an arbitrary safety backstop, not something tested against real usage, unlike the moisture model's thresholds."
+
 ## Before building anything new
 
 Always check whether what's being asked for already exists, partially or fully, before writing any code. Search the codebase for related components, utilities, or patterns first. The plant detail modal existing while I assumed it didn't is a concrete example of why this matters — building on top of what's there is almost always better than duplicating it.

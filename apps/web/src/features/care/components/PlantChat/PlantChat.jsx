@@ -2,9 +2,16 @@ import { useState, useRef, useEffect } from 'react'
 import styles from './PlantChat.module.css'
 import { logBundles } from '@plant-streaks/core/plantSelectors.js'
 
-// How many recent log entries to summarize into the AI's context — enough
-// for a trend, small enough to keep the request cheap and fast.
-const HISTORY_ENTRIES = 6
+// Send the plant's WHOLE log history, not just a recent slice — so
+// questions about the past ("how was it doing in June?") are already
+// answerable without any extra machinery. This is safe because even a
+// heavily-logged plant is only a few hundred words of one-line summaries,
+// trivial for the AI to read. HISTORY_CAP is just a sane backstop against
+// a truly pathological case (years of twice-daily logging); if a plant
+// ever actually hits it, that's the signal to build on-demand fetching
+// (the AI asking for a specific date range mid-conversation) instead of
+// raising this number further.
+const HISTORY_CAP = 500
 
 function fmtShortDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -22,7 +29,7 @@ function waterLabel(unit, amount) {
 // (not on the server) because the page already has all of this computed.
 function buildPlantContext({ plant, careProfile, health, reading, watering, rec, usePredicted }) {
   const recentHistory = logBundles(plant)
-    .slice(0, HISTORY_ENTRIES)
+    .slice(0, HISTORY_CAP)
     .map(bundle => {
       const r = bundle.find(e => e.type === 'reading')
       const w = bundle.find(e => e.type === 'watering')
