@@ -7,7 +7,7 @@ export const PLANT_DB = {
     commonNames: ['Swiss Cheese Plant', 'Monstera'],
     moistureRange: [2, 8],
     wateringStyle: 'flood-and-dry',
-    dryThreshold:   2,
+    dryThreshold:   3,
     minWaterAmount: { cups: 2, liters: 0.5 },
     wateringFrequency: 'every 1–2 weeks',
     wateringNote: 'Water thoroughly until it drains from the bottom, then let the soil dry out almost completely before watering again — typically every 1–2 weeks.',
