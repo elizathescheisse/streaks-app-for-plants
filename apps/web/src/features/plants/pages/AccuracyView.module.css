@@ -4,7 +4,7 @@
 }
 
 .container {
-  max-width: 760px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-6) var(--dash-page-x) 56px;
   display: flex;
