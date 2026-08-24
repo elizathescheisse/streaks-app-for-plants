@@ -31,6 +31,21 @@ const JPEG_QUALITY = 0.82            // re-encode quality after resizing
 const SpeechRecognitionCtor =
   typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
 
+// Simple outline mic glyph — no icon library ships an outline (regular)
+// style here (this project only has FontAwesome's solid set installed),
+// so a one-off dependency for a single icon wasn't worth it. Stroke-only,
+// inherits color from the button via currentColor.
+function MicIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="2" width="6" height="12" rx="3" />
+      <path d="M5 10a7 7 0 0 0 14 0" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+    </svg>
+  )
+}
+
 function fmtShortDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
@@ -337,7 +352,7 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
             disabled={sending}
             aria-label={listening ? 'Stop dictating' : 'Dictate your question'}
             title={listening ? 'Stop dictating' : 'Dictate your question'}
-          >🎤</button>
+          ><MicIcon /></button>
         )}
         <button
           className={styles.sendBtn}

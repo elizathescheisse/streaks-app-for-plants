@@ -145,25 +145,31 @@
   height: 38px;
   width: 38px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  font-size: 16px;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
 }
 .micBtn:hover:not(:disabled) { background: var(--bg-surface-raised); }
 .micBtn:disabled { opacity: 0.4; cursor: default; }
 
+/* Listening state — blue (the app's existing "water" blue), not red, since
+   red reads as an error/warning here rather than "actively recording." */
 .micBtnActive {
-  border-color: var(--status-struggling);
-  background: rgba(229, 97, 71, 0.14);
+  border-color: var(--data-water);
+  color: var(--data-water);
+  background: rgba(140, 204, 235, 0.14);
   animation: micPulse 1.4s ease-in-out infinite;
 }
 
 @keyframes micPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 97, 71, 0.35); }
-  50%      { box-shadow: 0 0 0 5px rgba(229, 97, 71, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(140, 204, 235, 0.35); }
+  50%      { box-shadow: 0 0 0 5px rgba(140, 204, 235, 0); }
 }
 
 .inputRow {
