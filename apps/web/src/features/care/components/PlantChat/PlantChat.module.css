@@ -42,10 +42,14 @@
   white-space: pre-wrap;
 }
 
+/* Soft tinted fill + colored border, not the solid brand-primary green —
+   that's also the color of real action buttons ("+ Log", etc.), so a solid
+   bubble in the same green made a passive chat message look like a CTA. */
 .bubbleUser {
   align-self: flex-end;
-  background: var(--brand-primary);
-  color: #05170a;
+  background: rgba(56, 178, 71, 0.14);
+  border: 1px solid rgba(56, 178, 71, 0.4);
+  color: var(--text-primary);
 }
 
 .bubbleAssistant {
