@@ -6,6 +6,7 @@ import styles from './PlantDetailPage.module.css'
 import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
 import PlantInsightsSection from '../../care/components/PlantInsightsSection/PlantInsightsSection.jsx'
+import PlantChat from '../../care/components/PlantChat/PlantChat.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import {
@@ -255,6 +256,19 @@ export default function PlantDetailPage({
 
         {/* ── Insights ── */}
         <PlantInsightsSection plant={plant} model={model} rec={rec} careProfile={careProfile} />
+
+        {/* ── Ask AI ── */}
+        <section className={styles.section}>
+          <PlantChat
+            plant={plant}
+            careProfile={careProfile}
+            health={health}
+            reading={reading}
+            watering={watering}
+            rec={rec}
+            usePredicted={usePredicted}
+          />
+        </section>
 
         {/* ── History chart ── */}
         {readings.length >= 2 && (
