@@ -75,6 +75,18 @@
   line-height: 1.5;
 }
 
+/* Recolor the native resize-handle corner to match the textarea instead of
+   the browser's default grey square (#187). WebKit/Blink only — the grip
+   lines themselves are drawn by the browser and can't be recolored, but a
+   matching background makes them read as part of the field, not a stray
+   system control. Firefox doesn't expose an equivalent hook; no fallback
+   needed since its default handle is a plain corner triangle, not a jarring
+   grey box. */
+.textarea::-webkit-resizer {
+  background: var(--bg-surface);
+  border: none;
+}
+
 .input::placeholder { color: var(--text-placeholder); }
 
 /* "When?" row — datetime input + Now reset button */
