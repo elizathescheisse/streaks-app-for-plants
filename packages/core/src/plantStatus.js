@@ -30,10 +30,14 @@ export function moistureStatus(moisture, careProfile, waterNeeded, waterUnit) {
 
   if (careProfile?.wateringStyle === 'flood-and-dry') {
     const dry = careProfile.dryThreshold ?? min
-    // Badge fires strictly below the dry threshold — anywhere in [dry, max+1] is normal cycle
-    if (val < dry)          return { label: `💧 Water${water}`,  cls: 'water'    }
-    if (val <= max + 1)     return { label: '🌿 Drying out',     cls: 'thriving' }
-    return                         { label: '⚠️ Overwatered',    cls: 'okay'     }
+    // Fires AT and below the dry threshold — inclusive, matching what
+    // MoistureBar already tells the user ("Water now — at dry threshold").
+    // Was previously strictly-below (< dry), which meant the badge and the
+    // moisture bar disagreed right at the threshold value itself: the bar
+    // said "water now" a full point before the card's badge caught up.
+    if (val <= dry)          return { label: `💧 Water${water}`,  cls: 'water'    }
+    if (val <= max + 1)      return { label: '🌿 Drying out',     cls: 'thriving' }
+    return                          { label: '⚠️ Overwatered',    cls: 'okay'     }
   }
 
   const w         = max - min

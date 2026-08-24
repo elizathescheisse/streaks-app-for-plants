@@ -438,7 +438,7 @@ export const PLANT_DB = {
     commonNames: ['Chinese Money Plant', 'UFO Plant', 'Pancake Plant'],
     moistureRange: [2, 7],
     wateringStyle: 'flood-and-dry',
-    dryThreshold:   2,
+    dryThreshold:   3,
     minWaterAmount: { cups: 1, liters: 0.25 },
     wateringFrequency: 'when the top inch dries out',
     wateringNote: 'Water when the top inch is dry, then water thoroughly. Avoid soggy soil.',

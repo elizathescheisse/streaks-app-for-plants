@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { wateringCheckStatus } from './plantStatus.js'
+import { wateringCheckStatus, moistureStatus } from './plantStatus.js'
+
+const FLOOD_AND_DRY = { wateringStyle: 'flood-and-dry', moistureRange: [3, 7], dryThreshold: 3 }
+const CONSISTENT     = { wateringStyle: 'consistent',    moistureRange: [4, 7] }
 
 const NOW = new Date('2026-07-15T12:00:00').getTime()
 const iso = (ms) => new Date(ms).toISOString()
@@ -63,5 +66,37 @@ describe('wateringCheckStatus', () => {
 
   it('drops the badge after 8h for a no-readings plant (no permanent nag)', () => {
     expect(wateringCheckStatus(watering(iso(NOW - hours(9))), null, NOW)).toBeNull()
+  })
+})
+
+// The flood-and-dry branch's dry-threshold comparison is inclusive (<=), not
+// strictly-below (<) — matching what MoistureBar already tells the user
+// ("Water now — at dry threshold"). Before this fix the badge and the bar
+// disagreed right at the threshold value: the bar said "water now" a full
+// point before the card's badge caught up. This is exactly the kind of
+// boundary decision that regresses silently if untested.
+describe('moistureStatus — flood-and-dry dry-threshold boundary', () => {
+  it('fires "Water" exactly AT the dry threshold, not just below it', () => {
+    expect(moistureStatus(3, FLOOD_AND_DRY).cls).toBe('water')
+  })
+  it('still fires "Water" below the threshold', () => {
+    expect(moistureStatus(2, FLOOD_AND_DRY).cls).toBe('water')
+  })
+  it('does not fire "Water" one point above the threshold', () => {
+    const s = moistureStatus(4, FLOOD_AND_DRY)
+    expect(s.cls).not.toBe('water')
+    expect(s.cls).toBe('thriving')   // "Drying out" — normal cycle
+  })
+  it('flags overwatered above range + 1', () => {
+    expect(moistureStatus(9, FLOOD_AND_DRY).cls).toBe('okay')
+  })
+})
+
+describe('moistureStatus — consistent-moisture style (unaffected by the boundary fix)', () => {
+  it('fires "Water" below the range minimum', () => {
+    expect(moistureStatus(3, CONSISTENT).cls).toBe('water')
+  })
+  it('is "Watered" inside the ideal range', () => {
+    expect(moistureStatus(5, CONSISTENT).cls).toBe('thriving')
   })
 })
