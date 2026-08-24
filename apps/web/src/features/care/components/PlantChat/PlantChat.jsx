@@ -57,11 +57,11 @@ export function buildPlantContext({ plant, careProfile, health, reading, waterin
 // Chat about one plant, grounded in its real logged data. Thin wrapper
 // around the shared AiChat shell (message list, photo attach, dictation) —
 // this file's only job is building the plant-scoped context object.
-export default function PlantChat({ plant, careProfile, health, reading, watering, rec, usePredicted }) {
+export default function PlantChat({ plant, careProfile, health, reading, watering, rec, usePredicted, hideTitle = false }) {
   const context = buildPlantContext({ plant, careProfile, health, reading, watering, rec, usePredicted })
   return (
     <AiChat
-      title={`Ask about ${plant.name || plant.species}`}
+      title={hideTitle ? null : `Ask about ${plant.name || plant.species}`}
       placeholder={`Ask about this ${plant.species}, or paste/drop a photo…`}
       context={context}
     />

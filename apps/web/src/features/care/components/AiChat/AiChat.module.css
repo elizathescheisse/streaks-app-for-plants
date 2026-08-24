@@ -180,12 +180,14 @@
 
 .inputRow {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: flex-end;
 }
 
 .input {
-  flex: 1;
+  flex: 1 1 120px;
+  min-width: 120px;
   resize: none;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);

@@ -255,7 +255,7 @@ export default function AiChat({ title, placeholder, context }) {
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
     >
-      <h2 className={styles.title}>{title}</h2>
+      {title && <h2 className={styles.title}>{title}</h2>}
 
       {messages.length > 0 && (
         <div className={styles.list} ref={listRef}>
