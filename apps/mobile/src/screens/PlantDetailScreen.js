@@ -13,6 +13,23 @@ import QuickLogModal from '../components/QuickLogModal.js'
 import LogEntryModal from '../components/LogEntryModal.js'
 
 const CHART_WINDOWS = ['1W', '1M', '3M', 'all']
+const WINDOW_DAYS = { '1W': 7, '1M': 30, '3M': 90 }
+
+// Label + bounds for a panned chart window, e.g. "Jun 21 – Jul 21".
+// Mirrors windowRange() in the web PlantDetailPage.
+function windowRange(windowKey, offset, oldestTs, now = Date.now()) {
+  const days = WINDOW_DAYS[windowKey]
+  if (!days) return { label: '', canPanBack: false }
+  const ms = days * 86_400_000
+  const end = now - offset * ms
+  const start = end - ms
+  const fmt = ts => new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return {
+    label: `${fmt(start)} – ${fmt(end)}`,
+    // Only offer "earlier" while there's still logged history further back.
+    canPanBack: oldestTs != null && start > oldestTs,
+  }
+}
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
 
@@ -60,6 +77,8 @@ export default function PlantDetailScreen({ route, navigation }) {
   const [quickLog, setQuickLog] = useState(null) // 'water' | 'reading' | null
   const [logOpen, setLogOpen] = useState(false)
   const [chartWindow, setChartWindow] = useState('1M')
+  // How many window-lengths back the chart is panned. 0 = the window ending now.
+  const [windowOffset, setWindowOffset] = useState(0)
 
   const plant = getPlantById(plants, plantId)
 
@@ -79,6 +98,12 @@ export default function PlantDetailScreen({ route, navigation }) {
   // Fitted true-moisture line for the chart (#172). No memo needed: this
   // screen renders one plant and has no ticking re-render.
   const curve = fitMoistureSeries(plant, careProfile)
+
+  // Chart panning bounds/label — oldest logged event caps how far back you can go.
+  const oldestEventTs = [...readings, ...waterings]
+    .reduce((min, e) => Math.min(min, +new Date(e.timestamp)), Infinity)
+  const { label: windowRangeLabel, canPanBack } =
+    windowRange(chartWindow, windowOffset, Number.isFinite(oldestEventTs) ? oldestEventTs : null)
 
   const name = plant.name || titleCase(plant.species)
 
@@ -170,7 +195,7 @@ export default function PlantDetailScreen({ route, navigation }) {
                 {CHART_WINDOWS.map(w => (
                   <Pressable
                     key={w}
-                    onPress={() => setChartWindow(w)}
+                    onPress={() => { setChartWindow(w); setWindowOffset(0) }}
                     hitSlop={6}
                     style={[
                       styles.windowBtn,
@@ -191,7 +216,35 @@ export default function PlantDetailScreen({ route, navigation }) {
               window={chartWindow}
               predictedMoisture={usePredicted ? rec.predicted : null}
               fittedSegments={curve?.confident ? curve.segments : null}
+              windowOffset={windowOffset}
             />
+            {chartWindow !== 'all' && (
+              <View style={styles.panRow}>
+                <Pressable
+                  onPress={() => setWindowOffset(o => o + 1)}
+                  disabled={!canPanBack}
+                  hitSlop={10}
+                  style={[styles.panBtn, { borderColor: colors.border }, !canPanBack && styles.panBtnDisabled]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Earlier period"
+                >
+                  <Text style={[styles.panBtnText, { color: colors.text }]}>‹</Text>
+                </Pressable>
+                <Text style={[styles.panLabel, { color: colors.textMuted }]}>
+                  {windowOffset === 0 ? 'Now' : windowRangeLabel}
+                </Text>
+                <Pressable
+                  onPress={() => setWindowOffset(o => Math.max(0, o - 1))}
+                  disabled={windowOffset === 0}
+                  hitSlop={10}
+                  style={[styles.panBtn, { borderColor: colors.border }, windowOffset === 0 && styles.panBtnDisabled]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Later period"
+                >
+                  <Text style={[styles.panBtnText, { color: colors.text }]}>›</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         )}
 
@@ -318,6 +371,24 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   windowText: { fontSize: 12, fontWeight: '600' },
+  panRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 2,
+  },
+  panBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  panBtnDisabled: { opacity: 0.3 },
+  panBtnText: { fontSize: 16, lineHeight: 18, fontWeight: '600' },
+  panLabel: { fontSize: 12, minWidth: 128, textAlign: 'center' },
   historyCount: { fontSize: 13 },
   historyEntry: { paddingVertical: 12, gap: 6 },
   historyTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },

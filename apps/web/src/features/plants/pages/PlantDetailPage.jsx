@@ -70,6 +70,22 @@ function relTime(ts) {
 }
 
 const CHART_WINDOWS = ['1W', '1M', '3M', 'all']
+const WINDOW_DAYS = { '1W': 7, '1M': 30, '3M': 90 }
+
+// Label for a panned window, e.g. "Jun 21 – Jul 21".
+function windowRange(windowKey, offset, oldestTs, now = Date.now()) {
+  const days = WINDOW_DAYS[windowKey]
+  if (!days) return { label: '', canPanBack: false }
+  const ms = days * 86_400_000
+  const end = now - offset * ms
+  const start = end - ms
+  const fmt = ts => new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return {
+    label: `${fmt(start)} – ${fmt(end)}`,
+    // Only offer "earlier" while there's still logged history further back.
+    canPanBack: oldestTs != null && start > oldestTs,
+  }
+}
 
 export default function PlantDetailPage({
   plants, onEdit, onLog, onQuickWater, onQuickReading, onEditLog
@@ -77,6 +93,8 @@ export default function PlantDetailPage({
   const { id } = useParams()
   const navigate = useNavigate()
   const [chartWindow, setChartWindow] = useState('1W')
+  // How many window-lengths back the chart is panned. 0 = the window ending now.
+  const [windowOffset, setWindowOffset] = useState(0)
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
@@ -118,6 +136,12 @@ export default function PlantDetailPage({
   // Fitted true-moisture line for the chart (#172). No memo: this page renders
   // a single plant and doesn't re-render on a ticking clock like PlantCard.
   const curve = fitMoistureSeries(plant, careProfile)
+
+  // Chart panning bounds/label — oldest logged event caps how far back you can go.
+  const oldestEventTs = [...readings, ...waterings]
+    .reduce((min, e) => Math.min(min, +new Date(e.timestamp)), Infinity)
+  const { label: windowRangeLabel, canPanBack } =
+    windowRange(chartWindow, windowOffset, Number.isFinite(oldestEventTs) ? oldestEventTs : null)
 
   // Dashed ring + "est. now" text: same two-step rule as PlantCard.
   // 1. Reading taken today → fresh data, no ring.
@@ -266,7 +290,7 @@ export default function PlantDetailPage({
                   <button
                     key={key}
                     className={`${styles.windowBtn} ${chartWindow === key ? styles.windowBtnActive : ''}`}
-                    onClick={() => setChartWindow(key)}
+                    onClick={() => { setChartWindow(key); setWindowOffset(0) }}
                     type="button"
                   >{key === 'all' ? 'All' : key}</button>
                 ))}
@@ -280,8 +304,30 @@ export default function PlantDetailPage({
                 window={chartWindow}
                 predictedMoisture={usePredicted ? rec.predicted : null}
                 fittedSegments={curve?.confident ? curve.segments : null}
+                windowOffset={windowOffset}
               />
             </div>
+            {chartWindow !== 'all' && (
+              <div className={styles.panRow}>
+                <button
+                  className={styles.panBtn}
+                  onClick={() => setWindowOffset(o => o + 1)}
+                  disabled={!canPanBack}
+                  type="button"
+                  aria-label="Earlier period"
+                >‹</button>
+                <span className={styles.panLabel}>
+                  {windowOffset === 0 ? 'Now' : windowRangeLabel}
+                </span>
+                <button
+                  className={styles.panBtn}
+                  onClick={() => setWindowOffset(o => Math.max(0, o - 1))}
+                  disabled={windowOffset === 0}
+                  type="button"
+                  aria-label="Later period"
+                >›</button>
+              </div>
+            )}
           </section>
         )}
 
