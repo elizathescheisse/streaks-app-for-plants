@@ -131,12 +131,40 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 }
 .attachBtn:hover:not(:disabled) { background: var(--bg-surface-raised); }
 .attachBtn:disabled { opacity: 0.4; cursor: default; }
+
+.micBtn {
+  height: 38px;
+  width: 38px;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.micBtn:hover:not(:disabled) { background: var(--bg-surface-raised); }
+.micBtn:disabled { opacity: 0.4; cursor: default; }
+
+.micBtnActive {
+  border-color: var(--status-struggling);
+  background: rgba(229, 97, 71, 0.14);
+  animation: micPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 97, 71, 0.35); }
+  50%      { box-shadow: 0 0 0 5px rgba(229, 97, 71, 0); }
+}
 
 .inputRow {
   display: flex;

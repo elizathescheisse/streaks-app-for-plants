@@ -19,6 +19,18 @@ const MAX_IMAGES_PER_MESSAGE = 4     // arbitrary cap, just to stop one message 
 const MAX_IMAGE_DIM = 1280           // longest side, px — resized before sending
 const JPEG_QUALITY = 0.82            // re-encode quality after resizing
 
+// Voice dictation via the browser's own speech recognition — no server
+// round-trip, no OpenAI cost, works today in Chrome/Edge. Safari's support
+// is unreliable (partial/experimental depending on version), so the mic
+// button simply doesn't render there rather than showing something broken.
+// Judgment call, not an obviously-right pick: the alternative (record audio,
+// send it to OpenAI's transcription API) would work consistently across all
+// browsers but adds a new backend endpoint, mic-recording UI, and per-use
+// cost — not worth it for a first cut when the free browser-native option
+// covers the browsers this app is actually used in day to day.
+const SpeechRecognitionCtor =
+  typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
+
 function fmtShortDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
@@ -111,12 +123,53 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)
   const [dragOver, setDragOver] = useState(false)
+  const [listening, setListening] = useState(false)
   const listRef = useRef(null)
   const fileInputRef = useRef(null)
+  const recognitionRef = useRef(null)
+  const dictationBaseRef = useRef('')   // draft text at the moment dictation started
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, sending])
+
+  // Stop listening if the component unmounts mid-dictation (e.g. navigating away).
+  useEffect(() => () => recognitionRef.current?.stop(), [])
+
+  function toggleListening() {
+    if (!SpeechRecognitionCtor) return
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+    dictationBaseRef.current = draft
+    const recognition = new SpeechRecognitionCtor()
+    recognition.lang = 'en-US'   // no locale detection — reasonable default, not tested with accents/other languages
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.onresult = (e) => {
+      // Rebuild from the full results list each time so earlier words don't
+      // get lost as later phrases finalize — SpeechRecognition keeps every
+      // segment (final and interim) in e.results for the whole session.
+      let sessionText = ''
+      for (let i = 0; i < e.results.length; i++) sessionText += e.results[i][0].transcript
+      const base = dictationBaseRef.current
+      setDraft(base + (base && sessionText ? ' ' : '') + sessionText)
+    }
+    recognition.onerror = (e) => {
+      setListening(false)
+      // "no-speech" / "aborted" are routine (mic opened, nothing said yet,
+      // or the user stopped it themselves) — not worth alarming the user.
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        setError('Could not hear you — check microphone permissions and try again.')
+      }
+    }
+    recognition.onend = () => setListening(false)
+    recognitionRef.current = recognition
+    setError(null)
+    setListening(true)
+    recognition.start()
+  }
 
   async function addFiles(fileList) {
     const files = [...fileList].filter(f => f.type.startsWith('image/'))
@@ -265,7 +318,7 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
           disabled={sending}
           aria-label="Attach a photo"
           title="Attach a photo"
-        >📷</button>
+        >+</button>
         <textarea
           className={styles.input}
           value={draft}
@@ -276,6 +329,16 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
           rows={1}
           disabled={sending}
         />
+        {SpeechRecognitionCtor && (
+          <button
+            type="button"
+            className={`${styles.micBtn} ${listening ? styles.micBtnActive : ''}`}
+            onClick={toggleListening}
+            disabled={sending}
+            aria-label={listening ? 'Stop dictating' : 'Dictate your question'}
+            title={listening ? 'Stop dictating' : 'Dictate your question'}
+          >🎤</button>
+        )}
         <button
           className={styles.sendBtn}
           onClick={send}
