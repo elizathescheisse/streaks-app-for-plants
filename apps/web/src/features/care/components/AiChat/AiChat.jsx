@@ -293,23 +293,7 @@ export default function AiChat({ title, placeholder, context }) {
         </div>
       )}
 
-      <div className={styles.inputRow}>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,.heic,.heif"
-          multiple
-          className={styles.hiddenFileInput}
-          onChange={e => { addFiles(e.target.files); e.target.value = '' }}
-        />
-        <button
-          type="button"
-          className={styles.attachBtn}
-          onClick={() => fileInputRef.current?.click()}
-          disabled={sending}
-          aria-label="Attach a photo"
-          title="Attach a photo"
-        >+</button>
+      <div className={styles.inputArea}>
         <textarea
           className={styles.input}
           value={draft}
@@ -320,22 +304,42 @@ export default function AiChat({ title, placeholder, context }) {
           rows={1}
           disabled={sending}
         />
-        {SpeechRecognitionCtor && (
+        <div className={styles.actionsRow}>
+          <div className={styles.actionsLeft}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.heic,.heif"
+              multiple
+              className={styles.hiddenFileInput}
+              onChange={e => { addFiles(e.target.files); e.target.value = '' }}
+            />
+            <button
+              type="button"
+              className={styles.attachBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={sending}
+              aria-label="Attach a photo"
+              title="Attach a photo"
+            >+</button>
+            {SpeechRecognitionCtor && (
+              <button
+                type="button"
+                className={`${styles.micBtn} ${listening ? styles.micBtnActive : ''}`}
+                onClick={toggleListening}
+                disabled={sending}
+                aria-label={listening ? 'Stop dictating' : 'Dictate your question'}
+                title={listening ? 'Stop dictating' : 'Dictate your question'}
+              ><MicIcon /></button>
+            )}
+          </div>
           <button
+            className={styles.sendBtn}
+            onClick={send}
+            disabled={sending || (!draft.trim() && attachments.length === 0)}
             type="button"
-            className={`${styles.micBtn} ${listening ? styles.micBtnActive : ''}`}
-            onClick={toggleListening}
-            disabled={sending}
-            aria-label={listening ? 'Stop dictating' : 'Dictate your question'}
-            title={listening ? 'Stop dictating' : 'Dictate your question'}
-          ><MicIcon /></button>
-        )}
-        <button
-          className={styles.sendBtn}
-          onClick={send}
-          disabled={sending || (!draft.trim() && attachments.length === 0)}
-          type="button"
-        >Send</button>
+          >Send</button>
+        </div>
       </div>
     </section>
   )
