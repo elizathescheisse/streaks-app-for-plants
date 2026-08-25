@@ -111,6 +111,20 @@
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
+/* Static per-species care note (from Care guide, #201) — same box
+   treatment as .insightText but a neutral border, not italic, so it
+   reads as a standing reference note rather than a computed insight. */
+.careNote {
+  margin: var(--space-3) 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface-raised, rgba(255,255,255,0.04));
+  border-left: 2px solid var(--border-default);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
 @media (max-width: 640px) {
   .statRow {
     flex-direction: column;
