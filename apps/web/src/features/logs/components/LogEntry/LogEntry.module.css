@@ -82,14 +82,20 @@
    system control. Firefox doesn't expose an equivalent hook; no fallback
    needed since its default handle is a plain corner triangle, not a jarring
    grey box.
-   Deliberately background/border only — an earlier attempt at also adding
-   border-radius here (#196) made the native grip glyph disappear entirely
-   in real-browser testing, even though the background still painted.
-   ::-webkit-resizer only reliably supports background/border; anything
-   more and some WebKit/Blink versions silently stop drawing the grip. */
+   An earlier attempt at also adding border-radius here (#196) made the
+   native grip glyph disappear entirely in real-browser testing, even
+   though the background still painted — ::-webkit-resizer's CSS support
+   is narrow and not well documented, so anything past background/border
+   is a genuine gamble.
+   The border below is a second attempt, at Eliza's request, to pull the
+   grip a few px in from the field's edges — same-color border eating into
+   the resizer's fixed-size box rather than an actual margin (margin itself
+   is not expected to move it). UNVERIFIED in a real browser as of this
+   commit — needs a check before relying on it; revert to `border: none`
+   if it turns out to hide the grip the same way border-radius did. */
 .textarea::-webkit-resizer {
   background: var(--bg-surface);
-  border: none;
+  border: 3px solid var(--bg-surface);
 }
 
 .input::placeholder { color: var(--text-placeholder); }
