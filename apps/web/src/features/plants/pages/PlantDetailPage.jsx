@@ -10,29 +10,13 @@ import PlantChat from '../../care/components/PlantChat/PlantChat.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import {
-  lastReading, lastWatering, currentHealth, logBundles, chartEvents, typicalWaterAmount
+  lastReading, lastWatering, currentHealth, logBundles, chartEvents
 } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
 import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
 import { moistureStatus, wateringCheckStatus } from '@plant-streaks/core/plantStatus.js'
 
 const HEALTH_LABELS = { thriving: 'Thriving', good: 'Healthy', okay: 'Okay', struggling: 'Struggling' }
-
-const LIGHT_LABELS = {
-  'direct':          '☀️ Direct sun',
-  'bright-indirect': '🌤 Bright indirect',
-  'low-indirect':    '🌥 Low indirect',
-  'low':             '🌑 Low light',
-}
-const HUMIDITY_LABELS = {
-  'high':   '💧 High humidity',
-  'medium': '🌢 Medium humidity',
-  'low':    '🏜 Low humidity',
-}
-const WATERING_STYLE_LABELS = {
-  'flood-and-dry': '🌊 Flood & dry out',
-  'consistent':    '🪣 Consistent moisture',
-}
 
 function titleCase(s) {
   if (!s) return s
@@ -96,7 +80,6 @@ export default function PlantDetailPage({
   const [chartWindow, setChartWindow] = useState('1W')
   // How many window-lengths back the chart is panned. 0 = the window ending now.
   const [windowOffset, setWindowOffset] = useState(0)
-  const [sidebarTab, setSidebarTab] = useState('care') // 'care' | 'chat'
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
@@ -385,112 +368,26 @@ export default function PlantDetailPage({
 
         </div>{/* /mainCol */}
 
-        {/* ── Sidebar: stacked care cards, styled like the dashboard Care Tip ── */}
+        {/* ── Sidebar: AI chat, grounded in this plant's data (#201) ──
+            Used to be a tabbed Care guide / AI Chat card; Care guide's
+            content moved into the Insights section on the left (most of
+            it either duplicated computed insights or was static reference
+            info that fits better alongside the plant's other stats), so
+            the sidebar is chat-only now. */}
         {careProfile && (
           <aside className={styles.sidebar}>
             <div className={styles.sidebarStack}>
-              {careProfile && (
-                <section className={`${styles.careCard} ${sidebarTab === 'chat' ? styles.careCard_chat : ''}`}>
-                  <div className={styles.careTabs} role="tablist" aria-label="Care guide or AI chat">
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={sidebarTab === 'care'}
-                      className={`${styles.careTab} ${sidebarTab === 'care' ? styles.careTabActive : ''}`}
-                      onClick={() => setSidebarTab('care')}
-                    >
-                      Care guide
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={sidebarTab === 'chat'}
-                      className={`${styles.careTab} ${sidebarTab === 'chat' ? styles.careTabActive : ''}`}
-                      onClick={() => setSidebarTab('chat')}
-                    >
-                      AI Chat
-                    </button>
-                  </div>
-
-                  {sidebarTab === 'chat' ? (
-                    <PlantChat
-                      plant={plant}
-                      careProfile={careProfile}
-                      health={health}
-                      reading={reading}
-                      watering={watering}
-                      rec={rec}
-                      usePredicted={usePredicted}
-                      hideTitle
-                    />
-                  ) : (
-                  <>
-                  <div className={styles.cardDecor} aria-hidden="true">
-                    <div className={styles.cardDecorGlow} />
-                    <span className={styles.cardDecorEmoji} role="img" aria-label="">🌿</span>
-                  </div>
-                  <div className={styles.careList}>
-                    {careProfile.wateringStyle && (
-                      <div className={styles.careItem}>
-                        <span className={styles.careLabel}>Watering style</span>
-                        <span className={styles.careValue}>{WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}</span>
-                        {careProfile.wateringFrequency && (
-                          <span className={styles.careSubvalue}>{careProfile.wateringFrequency}</span>
-                        )}
-                      </div>
-                    )}
-                    {careProfile.moistureRange && (
-                      <div className={styles.careItem}>
-                        <span className={styles.careLabel}>Ideal moisture</span>
-                        <span className={styles.careValue}>{careProfile.moistureRange[0]}–{careProfile.moistureRange[1]} / 10</span>
-                      </div>
-                    )}
-                    {careProfile.light && (
-                      <div className={styles.careItem}>
-                        <span className={styles.careLabel}>Light</span>
-                        <span className={styles.careValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
-                      </div>
-                    )}
-                    {careProfile.humidity && (
-                      <div className={styles.careItem}>
-                        <span className={styles.careLabel}>Humidity</span>
-                        <span className={styles.careValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
-                      </div>
-                    )}
-                    {(() => {
-                      // "Typical watering" — style-aware (#119). Flood-and-dry
-                      // plants have no meaningful fixed amount until we've
-                      // actually learned one (override / history); until then
-                      // the honest instruction is to soak until it drains.
-                      const typical = typicalWaterAmount(plant, careProfile)
-                      const isFloodAndDry = careProfile.wateringStyle === 'flood-and-dry'
-                      const soakText = isFloodAndDry && (!typical || typical.source === 'species')
-                      if (!typical && !isFloodAndDry) return null
-                      const amountLabel = typical
-                        ? (typical.unit === 'liters'
-                            ? `~${typical.amount} L`
-                            : `~${typical.amount} cup${typical.amount === 1 ? '' : 's'}`)
-                        : null
-                      return (
-                        <div className={styles.careItem}>
-                          <span className={styles.careLabel}>Typical watering</span>
-                          <span className={styles.careValue}>
-                            {soakText ? 'Soak until water drains out' : amountLabel}
-                          </span>
-                          {typical?.source === 'history' && (
-                            <span className={styles.careSubvalue}>learned from your waterings</span>
-                          )}
-                        </div>
-                      )
-                    })()}
-                  </div>
-                  {careProfile.notes && (
-                    <p className={styles.careNotes}>{careProfile.notes}</p>
-                  )}
-                  </>
-                  )}
-                </section>
-              )}
+              <section className={styles.careCard}>
+                <PlantChat
+                  plant={plant}
+                  careProfile={careProfile}
+                  health={health}
+                  reading={reading}
+                  watering={watering}
+                  rec={rec}
+                  usePredicted={usePredicted}
+                />
+              </section>
             </div>
           </aside>
         )}
