@@ -523,6 +523,48 @@ describe('learnedWaterAmount', () => {
     const t = learnedWaterAmount(p, CARE)
     expect(t.amount).toBeLessThanOrEqual(1 * 2.5)   // ceiling = max(seed, maxObserved) * 2.5
   })
+
+  // Regression coverage for #101/#207: a single gradeable cycle used to be
+  // enough to start nudging the amount away from the seed, which let one
+  // noisy first watering distort the very next recommendation. Now it takes
+  // 3 gradeable cycles (MIN_OUTCOMES_TO_LEARN), matching the "not enough
+  // data yet" threshold used everywhere else in the app (typicalWaterAmount's
+  // history tier, PlantInsightsSection's computed rows). CARE_WITH_DEFAULT
+  // gives a species-default seed independent of watering count, so these
+  // tests can isolate "seed exists, but too few outcomes to trust adjusting
+  // it" from "no seed at all" (already covered above).
+  const CARE_WITH_DEFAULT = { moistureRange: [4, 7], minWaterAmount: { cups: 1, liters: 0.25 } }
+
+  it('does not adjust the amount with only 1 gradeable outcome — returns the flat seed', () => {
+    // 1 cup lands at 4 (well under the [4,7] band's top) → would grade 'under'
+    // and previously would have already pushed the amount up from the seed.
+    const p = plant([watering(1, 3), reading(4, 2)])
+    const t = learnedWaterAmount(p, CARE_WITH_DEFAULT)
+    expect(t.source).toBe('species')  // the seed's own source, not 'outcome'
+    expect(t.amount).toBe(1)          // unchanged from the seed — no drift yet
+  })
+
+  it('does not adjust with only 2 gradeable outcomes either', () => {
+    const p = plant([
+      watering(1, 8), reading(4, 7),
+      watering(1, 3), reading(4, 2),
+    ])
+    const t = learnedWaterAmount(p, CARE_WITH_DEFAULT)
+    expect(t.source).toBe('species')
+    expect(t.amount).toBe(1)
+  })
+
+  it('starts adjusting once the 3rd gradeable outcome arrives', () => {
+    const p = plant([
+      watering(1, 20), reading(4, 19),
+      watering(1, 14), reading(4, 13),
+      watering(1, 8),  reading(4, 7),
+    ])
+    const t = learnedWaterAmount(p, CARE_WITH_DEFAULT)
+    expect(t.source).toBe('outcome')
+    expect(t.confidence).toBe('learned')
+    expect(t.amount).toBeGreaterThan(1)
+  })
 })
 
 // ── weightedLinearFit (added for the fitted-curve feature, #172) ───────────

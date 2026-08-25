@@ -343,7 +343,7 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
     waterNeeded = learnedAmt.amount
     dominantUnit = learnedAmt.unit
     amountSource = learnedAmt.source          // 'override' | 'outcome' | 'history' | 'species'
-    amountConfidence = learnedAmt.confidence  // 'set' | 'dialing-in' | 'learned' | 'default'
+    amountConfidence = learnedAmt.confidence  // 'set' | 'learned' | 'default'
   } else {
     waterNeeded = modelWaterNeeded
     dominantUnit = model.dominantUnit
@@ -375,7 +375,7 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
     usingDefaults: model.beta == null,
     usingWaterOverride,
     amountSource,        // where the recommended amount came from
-    amountConfidence,    // 'set'|'dialing-in'|'learned'|'default'|null
+    amountConfidence,    // 'set'|'learned'|'default'|null
     totalSamples,
   }
 }
@@ -528,7 +528,7 @@ export function getPredictionReliability(plant, careProfile) {
 // is an EMA over recent S's, clamped to a sane range.
 //
 // Returns { amount, unit, confidence, source, outcomes, lastOutcome } or null.
-//   confidence: 'set'|'default'|'learned'|'dialing-in'   source: 'override'|'outcome'|'history'|'species'
+//   confidence: 'set'|'default'|'learned'   source: 'override'|'outcome'|'history'|'species'
 // ─────────────────────────────────────────────────────────
 const AMOUNT_STEP        = 0.18  // ±18% nudge per under/over cycle
 const AMOUNT_SMOOTH      = 0.45  // EMA weight on each cycle's suggestion
@@ -536,6 +536,13 @@ const PEAK_FRESH_MS      = 2 * 86_400_000  // a reading within 2 days = the post
 const UNDER_TOL          = 1.0   // peak this far below target ⇒ under-watered
 const OVER_BUFFER        = 1.5   // peak this far above range top ⇒ waterlogged (consistent)
 const DRYDOWN_FAST_FRAC  = 0.5   // dried in < half the expected time ⇒ under-watered
+// Same "not enough data yet" threshold used everywhere else in this app
+// (typicalWaterAmount's history tier, PlantInsightsSection's computed rows).
+// A single graded cycle is thin, easily-noisy evidence (e.g. #101's
+// probe-variance bug) — nudging the recommendation off it, rather than
+// waiting for a real pattern, is exactly what let a first watering distort
+// the very next recommendation.
+const MIN_OUTCOMES_TO_LEARN = 3
 
 export function learnedWaterAmount(plant, careProfile) {
   const seed = typicalWaterAmount(plant, careProfile)
@@ -611,13 +618,15 @@ export function learnedWaterAmount(plant, careProfile) {
   amount = Math.min(ceiling, Math.max(0.1, amount))
   amount = Math.round(amount * 10) / 10
 
-  if (outcomes === 0) {
-    // No gradeable cycles yet — just the seed (history median or species default).
-    return { amount, unit, confidence: seed.confidence, source: seed.source, outcomes: 0, lastOutcome: null }
+  if (outcomes < MIN_OUTCOMES_TO_LEARN) {
+    // Not enough gradeable cycles yet — just the seed (history median or
+    // species default), unadjusted. A cycle or two of thin evidence isn't
+    // enough to trust nudging the number away from it (#101).
+    return { amount: seed.amount, unit, confidence: seed.confidence, source: seed.source, outcomes, lastOutcome: null }
   }
   return {
     amount, unit,
-    confidence: outcomes < 2 ? 'dialing-in' : 'learned',
+    confidence: 'learned',
     source: 'outcome',
     outcomes,
     lastOutcome,
