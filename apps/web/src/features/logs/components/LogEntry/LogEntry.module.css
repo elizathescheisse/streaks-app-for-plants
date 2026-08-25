@@ -81,10 +81,15 @@
    matching background makes them read as part of the field, not a stray
    system control. Firefox doesn't expose an equivalent hook; no fallback
    needed since its default handle is a plain corner triangle, not a jarring
-   grey box. */
+   grey box.
+   The corner-radius here is a slightly tighter curve than the field's own
+   var(--radius-md) (12px) — the resizer box is small, so matching the full
+   radius exactly over-rounded it; this was eyeballed to nest inside the
+   field's corner rather than measured/derived. */
 .textarea::-webkit-resizer {
   background: var(--bg-surface);
   border: none;
+  border-radius: 0 0 8px 0;
 }
 
 .input::placeholder { color: var(--text-placeholder); }
