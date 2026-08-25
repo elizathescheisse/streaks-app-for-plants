@@ -2,7 +2,7 @@
    the .main width/padding pattern in PlantListView so tabs line up with
    the content column beneath them. */
 .tabBarWrap {
-  max-width: 860px;
+  max-width: 1035px;
   width: 100%;
   margin: 0 auto;
   padding: 28px 48px 0;
