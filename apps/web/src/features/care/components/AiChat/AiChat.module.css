@@ -201,6 +201,7 @@
 }
 .input:focus { outline: none; border-color: var(--border-focus); }
 .input:disabled { opacity: 0.6; }
+.input::placeholder { color: var(--text-placeholder); }
 
 .actionsRow {
   display: flex;
