@@ -62,7 +62,7 @@ export default function PlantChat({ plant, careProfile, health, reading, waterin
   return (
     <AiChat
       title={`Ask about ${plant.name || plant.species}`}
-      placeholder={`Ask about this ${plant.species}, or paste/drop a photo…`}
+      placeholder="Ask about this plant, or paste/drop a photo…"
       context={context}
     />
   )
