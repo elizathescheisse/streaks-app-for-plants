@@ -5,6 +5,7 @@ import StatCard from '../../dashboard/components/StatCard'
 import DashboardPlantSpotlight from '../../dashboard/components/DashboardPlantSpotlight'
 import RecentActivityCard from '../../dashboard/components/RecentActivityCard'
 import CareTipCard from '../../dashboard/components/CareTipCard'
+import GardenChat from '../../care/components/GardenChat/GardenChat.jsx'
 import {
   getDashboardMetrics,
   getPrimaryHealthyPlant,
@@ -210,6 +211,8 @@ export default function DashboardHome({
           <RecentActivityCard activities={activities} />
           <CareTipCard />
         </div>
+
+        <GardenChat plants={plants} />
       </div>
     </main>
   )

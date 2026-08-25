@@ -42,16 +42,22 @@
   white-space: pre-wrap;
 }
 
+/* Neutral gray family, not green — the rest of this screen (the "+ Log"
+   button, badges, care-guide card) is heavily green, so a green-tinted
+   bubble (even a soft one) still blended into everything else instead of
+   reading as its own distinct "chat" surface. User vs. assistant stays
+   distinguishable by shade (user a touch brighter) plus alignment. */
 .bubbleUser {
   align-self: flex-end;
-  background: var(--brand-primary);
-  color: #05170a;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--text-primary);
 }
 
 .bubbleAssistant {
   align-self: flex-start;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-primary);
 }
 
@@ -174,12 +180,14 @@
 
 .inputRow {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: flex-end;
 }
 
 .input {
-  flex: 1;
+  flex: 1 1 120px;
+  min-width: 120px;
   resize: none;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);

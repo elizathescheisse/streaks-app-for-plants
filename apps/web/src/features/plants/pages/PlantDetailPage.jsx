@@ -96,6 +96,7 @@ export default function PlantDetailPage({
   const [chartWindow, setChartWindow] = useState('1W')
   // How many window-lengths back the chart is panned. 0 = the window ending now.
   const [windowOffset, setWindowOffset] = useState(0)
+  const [sidebarTab, setSidebarTab] = useState('care') // 'care' | 'chat'
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
 
@@ -281,19 +282,6 @@ export default function PlantDetailPage({
         {/* ── Insights ── */}
         <PlantInsightsSection plant={plant} model={model} rec={rec} careProfile={careProfile} />
 
-        {/* ── Ask AI ── */}
-        <section className={styles.section}>
-          <PlantChat
-            plant={plant}
-            careProfile={careProfile}
-            health={health}
-            reading={reading}
-            watering={watering}
-            rec={rec}
-            usePredicted={usePredicted}
-          />
-        </section>
-
         {/* ── History chart ── */}
         {readings.length >= 2 && (
           <section className={styles.section}>
@@ -402,8 +390,41 @@ export default function PlantDetailPage({
           <aside className={styles.sidebar}>
             <div className={styles.sidebarStack}>
               {careProfile && (
-                <section className={styles.careCard}>
-                  <h2 className={styles.careCardTitle}>Care guide</h2>
+                <section className={`${styles.careCard} ${sidebarTab === 'chat' ? styles.careCard_chat : ''}`}>
+                  <div className={styles.careTabs} role="tablist" aria-label="Care guide or AI chat">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={sidebarTab === 'care'}
+                      className={`${styles.careTab} ${sidebarTab === 'care' ? styles.careTabActive : ''}`}
+                      onClick={() => setSidebarTab('care')}
+                    >
+                      Care guide
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={sidebarTab === 'chat'}
+                      className={`${styles.careTab} ${sidebarTab === 'chat' ? styles.careTabActive : ''}`}
+                      onClick={() => setSidebarTab('chat')}
+                    >
+                      AI Chat
+                    </button>
+                  </div>
+
+                  {sidebarTab === 'chat' ? (
+                    <PlantChat
+                      plant={plant}
+                      careProfile={careProfile}
+                      health={health}
+                      reading={reading}
+                      watering={watering}
+                      rec={rec}
+                      usePredicted={usePredicted}
+                      hideTitle
+                    />
+                  ) : (
+                  <>
                   <div className={styles.cardDecor} aria-hidden="true">
                     <div className={styles.cardDecorGlow} />
                     <span className={styles.cardDecorEmoji} role="img" aria-label="">🌿</span>
@@ -465,6 +486,8 @@ export default function PlantDetailPage({
                   </div>
                   {careProfile.notes && (
                     <p className={styles.careNotes}>{careProfile.notes}</p>
+                  )}
+                  </>
                   )}
                 </section>
               )}

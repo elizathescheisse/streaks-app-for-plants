@@ -212,6 +212,42 @@
   letter-spacing: -0.015em;
 }
 
+/* ── Care guide / AI Chat tabs ── */
+.careTabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.careTab {
+  padding: 8px 4px 10px;
+  margin-right: 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.careTab:hover { color: var(--text-secondary); }
+
+.careTabActive {
+  color: var(--color-text);
+  border-bottom-color: var(--brand-primary);
+}
+
+/* When the AI Chat tab is active, the chat needs the card's full width
+   and no decorative glow competing with it — care-guide-only rules. */
+.careCard_chat .cardDecor { display: none; }
+.careCard_chat .careCardBody,
+.careCard_chat .careList { max-width: 100%; }
+
 /* Constrain text content to the left half so the decorative emoji on
    the right has room to breathe. PlantPrediction sizes its children
    in em from a 10px base; bumping font-size here scales it up. */
