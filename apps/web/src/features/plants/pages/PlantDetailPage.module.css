@@ -151,11 +151,17 @@
 .badge_struggling{ color: var(--status-struggling); background: rgba(229,97,71,0.14);   border-color: rgba(229,97,71,0.55);  }
 .badge_check     { color: #18A4E8;                  background: rgba(24,164,232,0.12);  border-color: rgba(24,164,232,0.45);}
 
-/* ── Scrollable content area ── */
+/* ── Scrollable content area ─────────────────────────────────────────
+   Deliberately NOT matching the shared 1035px width used by the single-
+   column tab pages (Focus/Timeline/Dashboard/Accuracy) — this is a
+   two-column layout reached by drilling into a plant, not one of those
+   sibling tabs, so it doesn't get the same benefit from width-matching
+   them. Sized independently so both the main column and the sidebar have
+   room to breathe. */
 .content {
   flex: 1;
   width: 100%;
-  max-width: 1035px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 0 48px;
   display: grid;
