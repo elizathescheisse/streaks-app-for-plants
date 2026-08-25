@@ -6,6 +6,7 @@ import {
   idealWateringInterval,
   avgPourAmount,
   predictedLandingMoisture,
+  typicalWaterAmount,
   getEvents,
 } from '@plant-streaks/core/plantSelectors.js'
 
@@ -20,6 +21,12 @@ import {
 // via generateInsight()'s case 4 ("your typical pour... lands just short of
 // its healthy floor"), which uses this same avgPourAmount/predictedLanding
 // data, so no signal was actually lost.
+//
+// Brought "Recommended pour" back in a narrower form for a brand-new plant
+// (#206): it now only shows in the window before Typical Pour has enough
+// data to compute (species default, learned override, etc.), and
+// disappears the moment Typical Pour takes over — so the two can never be
+// visible at once, which is what made them redundant before.
 const LIGHT_LABELS = {
   'direct':          '☀️ Direct sun',
   'bright-indirect': '🌤 Bright indirect',
@@ -74,8 +81,22 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
     showRunway = daysUntilDry != null && daysUntilDry > 0
   }
 
+  const showTypicalPour = landing != null && !!pour
+
+  // Bridge to Typical Pour — same override → learned-history → species-
+  // default chain as before, but only surfaced while Typical Pour can't
+  // compute yet (no watering history logged).
+  const recommended = (!showTypicalPour && careProfile) ? typicalWaterAmount(plant, careProfile) : null
+  const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
+  const soakText = !showTypicalPour && isFloodAndDry && (!recommended || recommended.source === 'species')
+  const recommendedLabel = recommended
+    ? (recommended.unit === 'liters'
+        ? `~${recommended.amount} L`
+        : `~${recommended.amount} cup${recommended.amount === 1 ? '' : 's'}`)
+    : null
+
   const hasCareFacts = !!careProfile && (
-    careProfile.wateringStyle || careProfile.light || careProfile.humidity
+    careProfile.wateringStyle || careProfile.light || careProfile.humidity || recommended || soakText
   )
 
   if (!hasComputedInsights && !hasCareFacts && !careProfile?.notes) return null
@@ -110,7 +131,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
               </div>
             )}
 
-            {landing != null && pour && (
+            {showTypicalPour && (
               <div className={styles.statRow}>
                 <span className={styles.statLabel}>Typical pour</span>
                 <span className={styles.statValue}>
@@ -162,6 +183,21 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
             <div className={styles.statRow}>
               <span className={styles.statLabel}>Humidity</span>
               <span className={styles.statValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
+            </div>
+          )}
+
+          {(recommended || soakText) && (
+            <div className={styles.statRow}>
+              <span className={styles.statLabel}>Recommended pour</span>
+              <span className={styles.statValue}>
+                {soakText ? 'Soak until water drains out' : recommendedLabel}
+                {recommended?.source === 'history' && (
+                  <>
+                    <span className={styles.statSep}>·</span>
+                    learned from your waterings
+                  </>
+                )}
+              </span>
             </div>
           )}
         </div>
