@@ -6,16 +6,20 @@ import {
   idealWateringInterval,
   avgPourAmount,
   predictedLandingMoisture,
-  typicalWaterAmount,
   getEvents,
 } from '@plant-streaks/core/plantSelectors.js'
 
-// Consolidated in from the old sidebar Care guide card (#201) — most of
-// that card either duplicated what's computed below (ideal moisture range
-// is already visible as the colored zone on the moisture bar above; typical
-// watering amount overlapped with "Typical pour") or was static per-species
-// reference info that reads better as another row here than as its own
-// tabbed card competing with the AI chat for space.
+// Watering style/light/humidity consolidated in from the old sidebar Care
+// guide card (#201) — static per-species reference info that reads better
+// as rows here than as its own tabbed card competing with the AI chat for
+// space. The card's "Recommended pour" row was dropped again shortly after
+// (#205): once real watering history exists, it was near-duplicate of
+// "Typical pour" below (median-of-significant-waterings vs. average of all
+// waterings — usually close enough to read as the same fact stated twice).
+// A pour that's too small to reach the healthy range is still surfaced —
+// via generateInsight()'s case 4 ("your typical pour... lands just short of
+// its healthy floor"), which uses this same avgPourAmount/predictedLanding
+// data, so no signal was actually lost.
 const LIGHT_LABELS = {
   'direct':          '☀️ Direct sun',
   'bright-indirect': '🌤 Bright indirect',
@@ -47,10 +51,10 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   const readings = getEvents(plant, 'reading')
 
   // The computed/personalized rows below need real logged history; the
-  // static care-facts rows further down don't (typicalWaterAmount has a
-  // species-default fallback, so it — and the plain species facts — should
-  // still show for a brand-new plant with no readings yet, unlike before
-  // when nothing in this section would render until 3+ readings existed.
+  // static care-facts rows further down (watering style/light/humidity)
+  // don't — they should still show for a brand-new plant with no readings
+  // yet, unlike before when nothing in this section would render until
+  // 3+ readings existed.
   const hasComputedInsights = !!range && readings.length >= 3
 
   let pct, avgInterval, idealInterval, pour, landing, insight
@@ -70,22 +74,8 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
     showRunway = daysUntilDry != null && daysUntilDry > 0
   }
 
-  // "Recommended pour" — style-aware (#119), species-default-aware (#201).
-  // Distinct from "Typical pour" above: that's the actual average of what
-  // you've poured; this is the recommended amount (explicit override →
-  // learned from history → species default), so the two numbers can
-  // legitimately differ rather than being redundant.
-  const recommended = careProfile ? typicalWaterAmount(plant, careProfile) : null
-  const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
-  const soakText = isFloodAndDry && (!recommended || recommended.source === 'species')
-  const recommendedLabel = recommended
-    ? (recommended.unit === 'liters'
-        ? `~${recommended.amount} L`
-        : `~${recommended.amount} cup${recommended.amount === 1 ? '' : 's'}`)
-    : null
-
   const hasCareFacts = !!careProfile && (
-    careProfile.wateringStyle || careProfile.light || careProfile.humidity || recommended || soakText
+    careProfile.wateringStyle || careProfile.light || careProfile.humidity
   )
 
   if (!hasComputedInsights && !hasCareFacts && !careProfile?.notes) return null
@@ -172,21 +162,6 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
             <div className={styles.statRow}>
               <span className={styles.statLabel}>Humidity</span>
               <span className={styles.statValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
-            </div>
-          )}
-
-          {(recommended || soakText) && (
-            <div className={styles.statRow}>
-              <span className={styles.statLabel}>Recommended pour</span>
-              <span className={styles.statValue}>
-                {soakText ? 'Soak until water drains out' : recommendedLabel}
-                {recommended?.source === 'history' && (
-                  <>
-                    <span className={styles.statSep}>·</span>
-                    learned from your waterings
-                  </>
-                )}
-              </span>
             </div>
           )}
         </div>
