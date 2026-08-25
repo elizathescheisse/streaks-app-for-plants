@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import styles from './LogEntry.module.css'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import { isSignificantWatering, isSuspiciousReading } from '@plant-streaks/core/plantSelectors.js'
@@ -60,6 +60,20 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
   const moistureInt = form.moisture === '' ? null : Number(form.moisture)
   const summary = describePending(form)
   const hasSomething = summary !== 'Nothing to save yet'
+
+  // Auto-grow the notes textarea instead of a manual resize handle — the
+  // native ::-webkit-resizer control turned out to render as an invisible,
+  // corner-breaking box in real testing (#187/#188/#196), with no reliable
+  // CSS fix. Re-measuring on every value change also covers the field being
+  // reset externally (e.g. switching which log entry is being edited), not
+  // just the user typing.
+  const notesRef = useRef(null)
+  useEffect(() => {
+    const el = notesRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [form.notes])
 
   return (
     <div className={styles.panel}>
@@ -177,6 +191,7 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
       <div className={styles.field}>
         <label className={styles.label}>Any observations?</label>
         <textarea
+          ref={notesRef}
           className={`${styles.input} ${styles.textarea}`}
           placeholder="e.g. brown spots on lower leaf, leaning toward window…"
           value={form.notes}
