@@ -110,7 +110,7 @@
   color: var(--text-secondary);
   font-style: italic;
   padding: var(--space-3) var(--space-4);
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
 }
 
