@@ -66,8 +66,8 @@ function waterOutcome(actual, careProfile) {
   const inRange = isInHealthyRange(actual, careProfile)
   if (inRange == null) return null
   return inRange
-    ? 'Reached its healthy range anyway.'
-    : "Didn't reach its healthy range."
+    ? '👍 Reached its healthy range anyway.'
+    : "👎 Didn't reach its healthy range."
 }
 
 function PlantReport({ plant }) {
