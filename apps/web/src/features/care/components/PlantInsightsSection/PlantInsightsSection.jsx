@@ -138,7 +138,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
             )}
           </div>
 
-          <p className={styles.insightText}>{insight}</p>
+          {insight && <p className={styles.insightText}>{insight}</p>}
         </>
       )}
 

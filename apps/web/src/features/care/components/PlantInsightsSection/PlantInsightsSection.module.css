@@ -1,5 +1,5 @@
 .sectionNoBorder {
-  padding: var(--space-5) 0;
+  padding: var(--space-5) 0 var(--space-3);
 }
 
 /* ── Stat rows ── */
@@ -58,7 +58,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
-  margin-top: var(--space-2);
+  margin-top: var(--space-4);
 }
 
 .factCol {
@@ -104,12 +104,14 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.55;
-  color: var(--text-secondary);
+  /* Fixed white card regardless of theme (per request) — text color is the
+     app's own light-theme text-primary, so it stays legible on white in
+     both dark and light mode. */
+  color: #142017;
   font-style: italic;
   padding: var(--space-3) var(--space-4);
-  background: var(--bg-surface-raised, rgba(255,255,255,0.04));
-  border-left: 2px solid var(--brand-primary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: #ffffff;
+  border-radius: var(--radius-md);
 }
 
 /* Static per-species care note (from Care guide, #201) — same box
