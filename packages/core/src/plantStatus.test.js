@@ -41,12 +41,17 @@ describe('wateringCheckStatus', () => {
     const s = wateringCheckStatus(w, r, NOW)
     expect(s.cls).toBe('check')
     expect(s.label).toBe('Check in 40m')
+    expect(s.ready).toBe(false)
+    expect(s.minsLeft).toBe(40)
   })
 
   it('shows "Check now" after the settle hour, indefinitely, when a stale reading exists', () => {
     const r = reading(iso(NOW - hours(50)))
     // 2 hours after watering
-    expect(wateringCheckStatus(watering(iso(NOW - hours(2))), r, NOW).label).toBe('Check now')
+    const s2h = wateringCheckStatus(watering(iso(NOW - hours(2))), r, NOW)
+    expect(s2h.label).toBe('Check now')
+    expect(s2h.ready).toBe(true)
+    expect(s2h.minsLeft).toBe(0)
     // 2 days after watering — still nagging until a fresh reading replaces it
     expect(wateringCheckStatus(watering(iso(NOW - hours(48))), r, NOW).label).toBe('Check now')
   })

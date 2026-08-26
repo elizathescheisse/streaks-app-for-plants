@@ -14,6 +14,7 @@ import {
   getRecentActivities,
   getGardenHealthStats,
   getWateringDueToday,
+  getWateringCheckQueue,
 } from '@plant-streaks/core/dashboardCare.js'
 import styles from './DashboardHome.module.css'
 
@@ -42,6 +43,7 @@ export default function DashboardHome({
   const activities   = useMemo(() => getRecentActivities(plants, 5), [plants])
   const gardenHealth  = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
   const wateringDue   = useMemo(() => getWateringDueToday(plants, today), [plants, today])
+  const checkQueue    = useMemo(() => getWateringCheckQueue(plants, today), [plants, today])
 
   // Show whenever any plant hasn't been read today — not just mid-session
   const showSessionTracker = gardenHealth.unreadToday.length > 0
@@ -55,11 +57,13 @@ export default function DashboardHome({
     onLog:     () => openLog(plant),
   })
 
+  const hasWateringSection = wateringDue.length > 0 || checkQueue.ready.length > 0 || checkQueue.waiting.length > 0
+
   // Which stat cards get click handlers
   const statCardActions = {
     needAttention: metrics.needAttention > 0 ? () => scrollTo(attentionRef) : undefined,
     measuredToday: showSessionTracker        ? () => scrollTo(sessionRef)   : undefined,
-    wateredToday:  wateringDue.length > 0    ? () => scrollTo(wateringDueRef) : undefined,
+    wateredToday:  hasWateringSection        ? () => scrollTo(wateringDueRef) : undefined,
   }
 
   if (plants.length === 0) {
@@ -136,24 +140,68 @@ export default function DashboardHome({
           </section>
         )}
 
-        {wateringDue.length > 0 && (
-          <section ref={wateringDueRef} className={styles.sessionTracker} aria-label="Plants due for watering">
-            <p className={styles.sessionTitle}>
-              Which plants need water today · {wateringDue.length} {wateringDue.length === 1 ? 'plant' : 'plants'}
-            </p>
-            <div className={styles.sessionChips}>
-              {wateringDue.map(plant => (
-                <button
-                  key={plant.id}
-                  className={`${styles.sessionChip} ${styles.sessionChipWater}`}
-                  onClick={() => onQuickWater(plant)}
-                  title={`Water ${plantName(plant)}`}
-                  type="button"
-                >
-                  💧 {plantName(plant)}
-                </button>
-              ))}
-            </div>
+        {hasWateringSection && (
+          <section ref={wateringDueRef} className={styles.sessionTracker} aria-label="Watering and post-watering checks">
+            {wateringDue.length > 0 && (
+              <div className={styles.sessionGroup}>
+                <p className={styles.sessionSubtitle}>
+                  Need water · {wateringDue.length} {wateringDue.length === 1 ? 'plant' : 'plants'}
+                </p>
+                <div className={styles.sessionChips}>
+                  {wateringDue.map(plant => (
+                    <button
+                      key={plant.id}
+                      className={`${styles.sessionChip} ${styles.sessionChipWater}`}
+                      onClick={() => onQuickWater(plant)}
+                      title={`Water ${plantName(plant)}`}
+                      type="button"
+                    >
+                      💧 {plantName(plant)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {checkQueue.ready.length > 0 && (
+              <div className={styles.sessionGroup}>
+                <p className={styles.sessionSubtitle}>
+                  Ready to check · {checkQueue.ready.length} {checkQueue.ready.length === 1 ? 'plant' : 'plants'}
+                </p>
+                <div className={styles.sessionChips}>
+                  {checkQueue.ready.map(plant => (
+                    <button
+                      key={plant.id}
+                      className={`${styles.sessionChip} ${styles.sessionChipCheck}`}
+                      onClick={() => onQuickReading(plant)}
+                      title={`Log reading for ${plantName(plant)}`}
+                      type="button"
+                    >
+                      ◎ {plantName(plant)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {checkQueue.waiting.length > 0 && (
+              <div className={styles.sessionGroup}>
+                <p className={styles.sessionSubtitle}>
+                  Still settling · {checkQueue.waiting.length} {checkQueue.waiting.length === 1 ? 'plant' : 'plants'}
+                </p>
+                <div className={styles.sessionChips}>
+                  {checkQueue.waiting.map(({ plant, minsLeft }) => (
+                    <span
+                      key={plant.id}
+                      className={`${styles.sessionChip} ${styles.sessionChipSettling}`}
+                      title={`${plantName(plant)} — check in ${minsLeft}m`}
+                    >
+                      {plantName(plant)} · {minsLeft}m
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
