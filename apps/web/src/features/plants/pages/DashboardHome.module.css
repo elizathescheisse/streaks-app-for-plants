@@ -119,6 +119,12 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
   font-size: var(--font-size-sm);
+  /* Fixed, not "normal" — "normal" is font-metric-dependent, and chips mix
+     color-emoji glyphs (🌸/🌿) with plain-text symbols (◎), which render
+     through different fonts with different line-height metrics. Left as
+     "normal" the two chip types come out a couple pixels different in
+     height even though every other style matches. */
+  line-height: 1.2;
   color: var(--text-primary);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
