@@ -175,30 +175,33 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
 
       {hasCareFacts && (
         <div className={styles.statGrid}>
-          {careProfile.wateringStyle && (
-            <div className={styles.statRow}>
-              <span className={styles.statLabel}>Watering style</span>
-              <span className={styles.statValue}>
-                {WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}
-              </span>
-            </div>
-          )}
+          {(careProfile.wateringStyle || careProfile.light || careProfile.humidity) && (
+            <div className={styles.factsGrid}>
+              {careProfile.wateringStyle && (
+                <div className={styles.factCol}>
+                  <span className={styles.factLabel}>Watering style</span>
+                  <span className={styles.factValue}>
+                    {WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}
+                  </span>
+                  {careProfile.wateringFrequency && (
+                    <span className={styles.factSubline}>{careProfile.wateringFrequency}</span>
+                  )}
+                </div>
+              )}
 
-          {careProfile.wateringStyle && careProfile.wateringFrequency && (
-            <div className={styles.statSubline}>{careProfile.wateringFrequency}</div>
-          )}
+              {careProfile.light && (
+                <div className={styles.factCol}>
+                  <span className={styles.factLabel}>Light</span>
+                  <span className={styles.factValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
+                </div>
+              )}
 
-          {careProfile.light && (
-            <div className={styles.statRow}>
-              <span className={styles.statLabel}>Light</span>
-              <span className={styles.statValue}>{LIGHT_LABELS[careProfile.light] ?? careProfile.light}</span>
-            </div>
-          )}
-
-          {careProfile.humidity && (
-            <div className={styles.statRow}>
-              <span className={styles.statLabel}>Humidity</span>
-              <span className={styles.statValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
+              {careProfile.humidity && (
+                <div className={styles.factCol}>
+                  <span className={styles.factLabel}>Humidity</span>
+                  <span className={styles.factValue}>{HUMIDITY_LABELS[careProfile.humidity] ?? careProfile.humidity}</span>
+                </div>
+              )}
             </div>
           )}
 
