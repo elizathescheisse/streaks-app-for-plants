@@ -162,14 +162,12 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
               <span className={styles.statLabel}>Watering style</span>
               <span className={styles.statValue}>
                 {WATERING_STYLE_LABELS[careProfile.wateringStyle] ?? careProfile.wateringStyle}
-                {careProfile.wateringFrequency && (
-                  <>
-                    <span className={styles.statSep}>·</span>
-                    {careProfile.wateringFrequency}
-                  </>
-                )}
               </span>
             </div>
+          )}
+
+          {careProfile.wateringStyle && careProfile.wateringFrequency && (
+            <div className={styles.statSubline}>{careProfile.wateringFrequency}</div>
           )}
 
           {careProfile.light && (
