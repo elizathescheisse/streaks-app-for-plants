@@ -370,3 +370,29 @@ export function typicalWaterAmount(plant, careProfile) {
 
   return null
 }
+
+// Species-seeded cold-start drying rate (β, moisture points/day) — #209.
+// Before this, every species used the exact same generic DEFAULT_BETA
+// (0.5/day) until a plant had enough of its own logged history to fit a
+// real one — a cactus and a fern got an identical assumption on day one.
+//
+// careProfile.typicalDryDownDays is a per-species estimate ("about how many
+// days does this plant take to go from freshly watered to needing water
+// again"), matched to each species' own wateringFrequency text. Combined
+// with the plant's moisture range (and dryThreshold for flood-and-dry
+// species, since that's the real "needs water" target, not the range
+// floor), it gives a species-flavored β: (top of range − target) / days.
+//
+// Returns null if the species has no typicalDryDownDays set, or the inputs
+// don't make sense (non-positive span or days) — callers should fall back
+// to DEFAULT_BETA in that case, same as before.
+export function speciesDefaultBeta(careProfile) {
+  const range = careProfile?.moistureRange
+  const days = careProfile?.typicalDryDownDays
+  if (!range || !days || days <= 0) return null
+  const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
+  const target = isFloodAndDry ? (careProfile.dryThreshold ?? range[0]) : range[0]
+  const span = range[1] - target
+  if (span <= 0) return null
+  return span / days
+}
