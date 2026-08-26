@@ -69,7 +69,8 @@ export function wateringCheckStatus(watering, reading, now = Date.now()) {
   const minsSince = (now - new Date(watering.timestamp)) / 60_000
   if (!reading && minsSince > CHECK_EXPIRY_MINS) return null
   const minsLeft = Math.round(Math.max(0, CHECK_SETTLE_MINS - minsSince))
-  return { label: minsLeft > 0 ? `Check in ${minsLeft}m` : 'Check now', cls: 'check' }
+  const ready = minsLeft <= 0
+  return { label: ready ? 'Check now' : `Check in ${minsLeft}m`, cls: 'check', ready, minsLeft }
 }
 
 // Priority order for sorting — lower number = shown first.

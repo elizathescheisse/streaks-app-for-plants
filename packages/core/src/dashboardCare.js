@@ -4,7 +4,7 @@
  */
 
 import { currentHealth, lastReading, lastWatering, logBundles, pctTimeInRange, getEvents } from './plantSelectors.js'
-import { getPlantSortPriority } from './plantStatus.js'
+import { getPlantSortPriority, wateringCheckStatus } from './plantStatus.js'
 import { lookupPlant } from './plantLookup.js'
 
 const HEALTH_LABELS = {
@@ -385,4 +385,25 @@ export function getWateringDueToday(plants, today = new Date()) {
     // Model says water now (priority 0 = struggling, priority 1 = water now)
     return getPlantSortPriority(plant) <= 1
   })
+}
+
+// Plants recently watered and still in the post-watering settle window —
+// the dashboard counterpart to the "Check in Xm" / "Check now" badge already
+// shown per-plant on cards. Split into two buckets so the dashboard can show
+// them as separate, differently-styled groups: plants actually ready to
+// measure now (actionable) vs. plants still settling (informational only,
+// nothing useful to log yet).
+//   ready:   [plant, ...]
+//   waiting: [{ plant, minsLeft }, ...] sorted soonest-ready first
+export function getWateringCheckQueue(plants, now = new Date()) {
+  const ready = []
+  const waiting = []
+  for (const plant of plants) {
+    const status = wateringCheckStatus(lastWatering(plant), lastReading(plant), +now)
+    if (!status) continue
+    if (status.ready) ready.push(plant)
+    else waiting.push({ plant, minsLeft: status.minsLeft })
+  }
+  waiting.sort((a, b) => a.minsLeft - b.minsLeft)
+  return { ready, waiting }
 }

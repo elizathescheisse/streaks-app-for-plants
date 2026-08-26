@@ -144,6 +144,30 @@
   border-color: var(--status-water);
 }
 
+/* Sub-groups within the merged watering/check section (need water / ready to
+   check / still settling) — each gets its own label above its chip row. */
+.sessionGroup + .sessionGroup {
+  margin-top: var(--space-4);
+}
+
+.sessionSubtitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Still-settling chips are informational only — nothing to log yet, so no
+   hover/click affordance, just a muted countdown. */
+.sessionChipSettling {
+  cursor: default;
+  color: var(--text-muted);
+  background: transparent;
+  border-style: dashed;
+}
+
 /* ── Garden health grid ──────────────────────────────────────────── */
 
 .healthGrid {

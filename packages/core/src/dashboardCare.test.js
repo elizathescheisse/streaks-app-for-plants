@@ -12,6 +12,7 @@ import {
   getGreeting,
   getGardenHealthStats,
   getWateringDueToday,
+  getWateringCheckQueue,
 } from './dashboardCare.js'
 
 const plant = (overrides = {}) => ({
@@ -242,5 +243,51 @@ describe('getWateringDueToday', () => {
     const result = getWateringDueToday([wateredToday, noReading], today)
     // Neither should appear: one watered today, one has no reading
     expect(result).toHaveLength(0)
+  })
+})
+
+describe('getWateringCheckQueue', () => {
+  const NOW = new Date('2026-06-27T12:00:00')
+
+  function wateredPlant(id, minsAgo, reading = null) {
+    const wateredTs = new Date(NOW.getTime() - minsAgo * 60_000).toISOString()
+    const events = [{ type: 'watering', bundleId: 'w', amount: '1', unit: 'cups', timestamp: wateredTs }]
+    if (reading) events.unshift({ type: 'reading', bundleId: 'r', moisture: reading, timestamp: '2026-06-25T10:00:00' })
+    return { id, emoji: '🌿', species: 'pothos', name: id, events }
+  }
+
+  it('returns empty buckets for an empty garden', () => {
+    expect(getWateringCheckQueue([], NOW)).toEqual({ ready: [], waiting: [] })
+  })
+
+  it('puts a plant watered less than an hour ago in "waiting"', () => {
+    const p = wateredPlant('p1', 20)
+    const result = getWateringCheckQueue([p], NOW)
+    expect(result.ready).toHaveLength(0)
+    expect(result.waiting).toHaveLength(1)
+    expect(result.waiting[0].plant.id).toBe('p1')
+    expect(result.waiting[0].minsLeft).toBe(40)
+  })
+
+  it('puts a plant watered over an hour ago in "ready"', () => {
+    const p = wateredPlant('p2', 90)
+    const result = getWateringCheckQueue([p], NOW)
+    expect(result.waiting).toHaveLength(0)
+    expect(result.ready.map(pl => pl.id)).toEqual(['p2'])
+  })
+
+  it('excludes a plant with a fresh reading logged after watering', () => {
+    const p = wateredPlant('p3', 20)
+    p.events.push({ type: 'reading', bundleId: 'r2', moisture: 5, timestamp: NOW.toISOString() })
+    const result = getWateringCheckQueue([p], NOW)
+    expect(result.ready).toHaveLength(0)
+    expect(result.waiting).toHaveLength(0)
+  })
+
+  it('sorts "waiting" soonest-ready first', () => {
+    const p1 = wateredPlant('slow', 5)   // 55 mins left
+    const p2 = wateredPlant('fast', 50)  // 10 mins left
+    const result = getWateringCheckQueue([p1, p2], NOW)
+    expect(result.waiting.map(w => w.plant.id)).toEqual(['fast', 'slow'])
   })
 })
