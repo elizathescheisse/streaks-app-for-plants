@@ -2,6 +2,7 @@ import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
 import { lastWatering, isSignificantWatering, isSuspiciousReading, typicalWaterAmount } from '@plant-streaks/core/plantSelectors.js'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { computeModel, getRecommendation } from '@plant-streaks/core/plantModel.js'
 
 function titleCase(s) {
   if (!s) return s
@@ -22,8 +23,15 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
   const [unit,   setUnit]   = useState(defaultUnit)
 
   // ── Reading defaults ─────────────────────────────────────
+  // Pre-fill with what the model currently predicts the plant's moisture to
+  // be, so a confirming reading is a single tap. Falls back to the ideal
+  // range's midpoint when there's no model yet (brand-new plant).
   const [min, max] = careProfile?.moistureRange ?? [3, 7]
-  const defaultMoisture = Math.round((min + max) / 2)
+  const model      = computeModel(plant, careProfile)
+  const rec        = getRecommendation(plant, model, careProfile)
+  const defaultMoisture = rec
+    ? Math.min(10, Math.max(0, Math.round(rec.predicted)))
+    : Math.round((min + max) / 2)
   const [moisture, setMoisture] = useState(defaultMoisture)
 
   const plantLabel = plant?.name || titleCase(plant?.species) || 'plant'
