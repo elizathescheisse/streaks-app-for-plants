@@ -53,8 +53,8 @@ function residualClass(residual) {
 function waterVerdict(given, recommended) {
   if (given == null || recommended == null) return null
   const diff = Math.round((given - recommended) * 10) / 10
-  if (diff > 0.5)  return { label: `more than suggested · +${diff}`,  cls: styles.chipWarn }
-  if (diff < -0.5) return { label: `less than suggested · ${diff}`,   cls: styles.chipWarn }
+  if (diff > 0.5)  return { label: `more than suggested +${diff}`, cls: styles.chipWarn }
+  if (diff < -0.5) return { label: `less than suggested ${diff}`,  cls: styles.chipWarn }
   return { label: 'about right', cls: styles.chipGood }
 }
 
@@ -126,15 +126,16 @@ function PlantReport({ plant }) {
                   </span>
                   {(() => {
                     const v = waterVerdict(e.givenWater, e.recommendedWater)
-                    return v ? <span className={`${styles.chip} ${v.cls}`}>{v.label}</span> : null
-                  })()}
-                  {(() => {
+                    if (!v) return null
                     // Only worth a note when the amount actually deviated —
                     // an "about right" pour reaching its range isn't a surprise.
-                    const v = waterVerdict(e.givenWater, e.recommendedWater)
-                    if (!v || v.cls !== styles.chipWarn) return null
-                    const outcome = waterOutcome(e.actual, careProfile)
-                    return outcome ? <span className={styles.entryOutcome}>{outcome}</span> : null
+                    const outcome = v.cls === styles.chipWarn ? waterOutcome(e.actual, careProfile) : null
+                    return (
+                      <span className={styles.verdictCol}>
+                        <span className={`${styles.chip} ${v.cls}`}>{v.label}</span>
+                        {outcome && <span className={styles.entryOutcome}>{outcome}</span>}
+                      </span>
+                    )
                   })()}
                 </>
               )}
