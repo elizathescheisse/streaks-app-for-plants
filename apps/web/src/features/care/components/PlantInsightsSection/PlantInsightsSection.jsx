@@ -53,8 +53,16 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   // when nothing in this section would render until 3+ readings existed.
   const hasComputedInsights = !!range && readings.length >= 3
 
+  // rec (and rec.daysUntilDry) only needs a single logged reading to exist —
+  // computed upstream in PlantDetailPage.jsx as soon as lastReading(plant) is
+  // non-null. Kept outside the hasComputedInsights gate below so a plant
+  // with 1-2 readings still gets a "water needed in ~Xd" estimate instead of
+  // waiting for the 3-reading threshold the other rows genuinely need.
+  const daysUntilDry = rec?.daysUntilDry
+  const showRunway = daysUntilDry != null && daysUntilDry > 0
+
   let pct, avgInterval, idealInterval, pour, landing, insight
-  let intervalLong, pourShort, daysUntilDry, showRunway
+  let intervalLong, pourShort
   if (hasComputedInsights) {
     pct = pctTimeInRange(plant, careProfile)
     avgInterval = avgWateringInterval(plant)
@@ -65,9 +73,6 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
 
     intervalLong = avgInterval != null && idealInterval != null && avgInterval > idealInterval * 1.3
     pourShort = landing != null && range && landing < range[0]
-
-    daysUntilDry = rec?.daysUntilDry
-    showRunway = daysUntilDry != null && daysUntilDry > 0
   }
 
   // "Recommended pour" — style-aware (#119), species-default-aware (#201).
@@ -88,7 +93,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
     careProfile.wateringStyle || careProfile.light || careProfile.humidity || recommended || soakText
   )
 
-  if (!hasComputedInsights && !hasCareFacts && !careProfile?.notes) return null
+  if (!hasComputedInsights && !hasCareFacts && !careProfile?.notes && !showRunway) return null
 
   return (
     <section className={styles.section}>
@@ -142,6 +147,19 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
 
           <p className={styles.insightText}>{insight}</p>
         </>
+      )}
+
+      {/* Same "water needed in" row as above, for a plant that has a reading
+          (so rec exists) but not yet the 3 readings the rest of this section
+          needs — otherwise this estimate would be silently withheld for two
+          full readings after it's already computable. */}
+      {!hasComputedInsights && showRunway && (
+        <div className={styles.statGrid}>
+          <div className={styles.statRow}>
+            <span className={styles.statLabel}>Water needed in</span>
+            <span className={styles.statValue}>~{roundDays(daysUntilDry)} day{daysUntilDry >= 1.5 ? 's' : ''}</span>
+          </div>
+        </div>
       )}
 
       {hasCareFacts && (
