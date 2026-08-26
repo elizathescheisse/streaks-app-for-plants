@@ -30,6 +30,7 @@ export const PLANT_DB = {
     wateringStyle: 'consistent',
     wateringFrequency: 'when the top inch dries out',
     wateringNote: 'Water when the top 1–2 inches of soil are dry. It tolerates some neglect but prefers not to stay bone-dry for long.',
+    recommendedPour: { cups: 1, liters: 0.25 },
     light: 'low-indirect',
     lightNote: 'One of the most adaptable plants — tolerates low light but grows faster in bright indirect light. Avoid prolonged direct sun.',
     humidity: 'medium',

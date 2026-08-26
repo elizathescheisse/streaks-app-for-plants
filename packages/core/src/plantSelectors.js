@@ -355,10 +355,17 @@ export function typicalWaterAmount(plant, careProfile) {
     }
   }
 
-  // 3. Species default
-  const min = careProfile?.minWaterAmount
-  if (min && min.cups != null) {
-    return { amount: min.cups, unit: 'cups', confidence: 'default', source: 'species' }
+  // 3. Species default — flood-and-dry species use minWaterAmount (their
+  // soak threshold doubles as a sensible default amount); consistent-
+  // moisture species use recommendedPour instead. They're kept as separate
+  // fields because minWaterAmount also gates isSignificantWatering() (which
+  // waterings count toward the alpha model and the "learned" tier above)
+  // and a small-top-off warning in the log form — behavior that's specific
+  // to the flood-and-dry watering style and shouldn't switch on for a
+  // consistent-moisture plant just because it got a default pour amount.
+  const speciesDefault = careProfile?.minWaterAmount ?? careProfile?.recommendedPour
+  if (speciesDefault && speciesDefault.cups != null) {
+    return { amount: speciesDefault.cups, unit: 'cups', confidence: 'default', source: 'species' }
   }
 
   return null

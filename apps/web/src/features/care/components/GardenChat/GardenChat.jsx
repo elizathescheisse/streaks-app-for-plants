@@ -44,7 +44,7 @@ export default function GardenChat({ plants }) {
   return (
     <AiChat
       title="Ask about your garden"
-      placeholder="Ask about your whole garden, or paste/drop a photo…"
+      placeholder="Ask about your whole garden, or paste/drop a photo"
       context={context}
     />
   )
