@@ -2,7 +2,7 @@ import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
 import { lastWatering, isSignificantWatering, isSuspiciousReading, typicalWaterAmount } from '@plant-streaks/core/plantSelectors.js'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
-import { computeModel, getRecommendation } from '@plant-streaks/core/plantModel.js'
+import { computeModel, getRecommendation, parseAmount } from '@plant-streaks/core/plantModel.js'
 
 function titleCase(s) {
   if (!s) return s
@@ -16,9 +16,14 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
   // ── Water defaults ───────────────────────────────────────
   // Pre-fill the plant's typical amount (override → learned → species default)
   // so the common case is a single tap; fall back to the last watering.
+  // Rounded to a whole number — the field stays editable to 0.25 steps if a
+  // precise amount matters, but the default itself shouldn't show a decimal.
   const typical       = typicalWaterAmount(plant, careProfile)
   const defaultUnit   = typical?.unit ?? lastWater?.unit ?? 'cups'
-  const defaultAmount = typical ? String(typical.amount) : (lastWater?.amount ?? '')
+  const lastWaterAmt  = parseAmount(lastWater?.amount)
+  const defaultAmount = typical
+    ? String(Math.max(1, Math.round(typical.amount)))
+    : (lastWaterAmt ? String(Math.max(1, Math.round(lastWaterAmt))) : '')
   const [amount, setAmount] = useState(defaultAmount)
   const [unit,   setUnit]   = useState(defaultUnit)
 
