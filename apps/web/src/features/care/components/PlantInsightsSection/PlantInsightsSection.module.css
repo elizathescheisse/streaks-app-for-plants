@@ -12,41 +12,6 @@
   margin: 0 0 var(--space-4);
 }
 
-/* ── In-range bar ── */
-
-.inRangeRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.barTrack {
-  flex: 1;
-  height: 8px;
-  background: var(--bg-surface-raised, rgba(255,255,255,0.06));
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  border: 1px solid var(--border-default);
-}
-
-.barFill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  transition: width 0.4s ease;
-}
-
-.barGreen  { background: var(--status-thriving); }
-.barYellow { background: var(--status-okay); }
-.barRed    { background: var(--status-struggling); }
-
-.barLabel {
-  font-size: 13px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 /* ── Stat rows ── */
 
 .statGrid {
@@ -184,10 +149,6 @@
 
   .statSubline {
     text-align: left;
-  }
-
-  .barLabel {
-    white-space: normal;
   }
 
   .factsGrid {

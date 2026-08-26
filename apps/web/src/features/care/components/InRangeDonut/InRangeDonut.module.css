@@ -1,0 +1,22 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.track {
+  stroke: var(--bg-surface-raised, rgba(255, 255, 255, 0.08));
+}
+
+.ringGreen  { stroke: var(--status-thriving); }
+.ringYellow { stroke: var(--status-okay); }
+.ringRed    { stroke: var(--status-struggling); }
+
+.pctLabel {
+  position: absolute;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}

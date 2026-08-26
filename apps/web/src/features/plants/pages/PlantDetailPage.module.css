@@ -300,6 +300,11 @@
   flex: 1;
 }
 
+.statItemDonut {
+  align-items: center;
+  gap: 6px;
+}
+
 .statLabel {
   font-size: 11px;
   color: var(--text-muted);

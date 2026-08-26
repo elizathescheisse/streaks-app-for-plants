@@ -7,10 +7,11 @@ import MoistureBar from '../../care/components/MoistureBar'
 import PlantHistoryChart from '../../care/components/PlantHistoryChart'
 import PlantInsightsSection from '../../care/components/PlantInsightsSection/PlantInsightsSection.jsx'
 import PlantChat from '../../care/components/PlantChat/PlantChat.jsx'
+import InRangeDonut from '../../care/components/InRangeDonut/InRangeDonut.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import {
-  lastReading, lastWatering, currentHealth, logBundles, chartEvents
+  lastReading, lastWatering, currentHealth, logBundles, chartEvents, pctTimeInRange
 } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
 import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
@@ -145,6 +146,10 @@ export default function PlantDetailPage({
   // "Est. now" text line: only show when the number actually changed.
   const showEstimate = predMoisture != null && !wateredAfterReading && drift >= 1 && !shaky && !readingIsToday && !wateredVeryRecently
 
+  // Same 3-reading gate PlantInsightsSection used to apply before this moved
+  // here — fewer readings makes "% in range" read as more confident than it is.
+  const pctInRange = hasStats && readings.length >= 3 ? pctTimeInRange(plant, careProfile) : null
+
   const checkStatus = wateringCheckStatus(watering, reading, Date.now())
   const status = checkStatus
     ? { ...checkStatus, icon: faClock }
@@ -241,6 +246,12 @@ export default function PlantDetailPage({
                   <span className={styles.statLabel}>Last watered</span>
                   <span className={styles.statValue}>{waterLabel(watering.unit, watering.amount)}</span>
                   <span className={styles.statMeta}>{relTime(watering.timestamp)}</span>
+                </div>
+              )}
+              {pctInRange != null && (
+                <div className={`${styles.statItem} ${styles.statItemDonut}`}>
+                  <span className={styles.statLabel}>In healthy range</span>
+                  <InRangeDonut pct={pctInRange} />
                 </div>
               )}
             </div>
