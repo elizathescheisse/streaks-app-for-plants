@@ -151,23 +151,6 @@
 .badge_struggling{ color: var(--status-struggling); background: rgba(229,97,71,0.14);   border-color: rgba(229,97,71,0.55);  }
 .badge_check     { color: #18A4E8;                  background: rgba(24,164,232,0.12);  border-color: rgba(24,164,232,0.45);}
 
-/* A ready "Check now" badge doubles as a button — tap to log the reading. */
-.badgeClickable {
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.badgeClickable:hover {
-  background: rgba(24,164,232,0.22);
-  border-color: #18A4E8;
-}
-
-.badgeClickable:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
-}
-
 /* ── Scrollable content area ─────────────────────────────────────────
    Deliberately NOT matching the shared 1035px width used by the single-
    column tab pages (Focus/Timeline/Dashboard/Accuracy) — this is a

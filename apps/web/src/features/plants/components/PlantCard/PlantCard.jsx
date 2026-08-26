@@ -148,22 +148,10 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
               )}
               {/* In compact mode the badge lives here (top-right), in chart mode it's in statsBlock */}
               {isCompact && status && (
-                status.ready ? (
-                  <button
-                    type="button"
-                    className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline} ${styles.badgeClickable}`}
-                    onClick={onQuickReading}
-                    title="Log reading"
-                  >
-                    {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                    {status.label}
-                  </button>
-                ) : (
-                  <span className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline}`}>
-                    {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                    {status.label}
-                  </span>
-                )
+                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeInline}`}>
+                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+                  {status.label}
+                </span>
               )}
             </div>
 
@@ -251,26 +239,12 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
           {!isCompact && (
           <div className={styles.statsBlock}>
 
-            {/* Watering action badge — reuses the health badge styling. A ready
-                "Check now" badge is clickable — tap it to log the reading
-                directly instead of hunting for the Reading button. */}
+            {/* Watering action badge — reuses the health badge styling */}
             {status && (
-              status.ready ? (
-                <button
-                  type="button"
-                  className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeClickable}`}
-                  onClick={onQuickReading}
-                  title="Log reading"
-                >
-                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                  {status.label}
-                </button>
-              ) : (
-                <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
-                  {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-                  {status.label}
-                </span>
-              )
+              <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+                {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+                {status.label}
+              </span>
             )}
 
             {/* Moisture bar — uses predicted moisture when drift is significant */}

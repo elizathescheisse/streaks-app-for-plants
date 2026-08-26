@@ -192,22 +192,10 @@ export default function PlantDetailPage({
           </div>
         </div>
         {status && (
-          status.ready ? (
-            <button
-              type="button"
-              className={`${styles.badge} ${styles[`badge_${status.cls}`]} ${styles.badgeClickable}`}
-              onClick={() => onQuickReading(plant)}
-              title="Log reading"
-            >
-              {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-              {status.label}
-            </button>
-          ) : (
-            <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
-              {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
-              {status.label}
-            </span>
-          )
+          <span className={`${styles.badge} ${styles[`badge_${status.cls}`]}`}>
+            {status.icon && <FontAwesomeIcon icon={status.icon} className={styles.badgeIcon} />}
+            {status.label}
+          </span>
         )}
       </div>
 
