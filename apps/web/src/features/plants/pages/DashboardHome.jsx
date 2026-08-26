@@ -6,6 +6,7 @@ import DashboardPlantSpotlight from '../../dashboard/components/DashboardPlantSp
 import RecentActivityCard from '../../dashboard/components/RecentActivityCard'
 import CareTipCard from '../../dashboard/components/CareTipCard'
 import GardenChat from '../../care/components/GardenChat/GardenChat.jsx'
+import InRangeDonut from '../../care/components/InRangeDonut/InRangeDonut.jsx'
 import {
   getDashboardMetrics,
   getPrimaryHealthyPlant,
@@ -15,12 +16,6 @@ import {
   getWateringDueToday,
 } from '@plant-streaks/core/dashboardCare.js'
 import styles from './DashboardHome.module.css'
-
-function healthColor(pct) {
-  if (pct >= 80) return 'green'
-  if (pct >= 50) return 'yellow'
-  return 'red'
-}
 
 function plantName(plant) {
   return plant.name || (plant.species
@@ -191,15 +186,12 @@ export default function DashboardHome({
               {gardenHealth.plants.map(({ plant, pct }) => (
                 <button
                   key={plant.id}
-                  className={`${styles.healthPlantBtn} ${styles[`healthPlantBtn_${healthColor(pct)}`]}`}
+                  className={styles.healthPlantBtn}
                   onClick={() => navigate(`/plant/${plant.id}`)}
                   title={`${plantName(plant)} — ${pct}% in range`}
                   type="button"
                 >
-                  <span className={styles.healthCircle}>
-                    <span className={styles.healthCircleEmoji}>{plant.emoji || '🌿'}</span>
-                    <span className={styles.healthCirclePct}>{pct}%</span>
-                  </span>
+                  <InRangeDonut pct={pct} />
                   <span className={styles.healthCircleName}>{plantName(plant)}</span>
                 </button>
               ))}

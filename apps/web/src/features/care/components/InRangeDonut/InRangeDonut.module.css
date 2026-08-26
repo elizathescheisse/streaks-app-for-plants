@@ -6,13 +6,25 @@
   flex-shrink: 0;
 }
 
-.track {
-  stroke: var(--bg-surface-raised, rgba(255, 255, 255, 0.08));
-}
+/* Soft tinted disc behind the ring — same tint the dashboard's garden-health
+   circles use as a fill. */
+.fillThriving   { fill: var(--status-thriving-soft); }
+.fillOkay       { fill: var(--status-okay-soft); }
+.fillStruggling { fill: var(--status-struggling-soft); }
 
-.ringGreen  { stroke: var(--status-thriving); }
-.ringYellow { stroke: var(--status-okay); }
-.ringRed    { stroke: var(--status-struggling); }
+/* Track — the "unfilled" remainder of the ring, same hue as the filled arc
+   but muted, so an incomplete ring still reads as one color family instead
+   of a neutral gray gap. */
+.track          { fill: none; }
+.trackThriving   { stroke: var(--status-thriving-border); }
+.trackOkay       { stroke: var(--status-okay-border); }
+.trackStruggling { stroke: var(--status-struggling-border); }
+
+/* The filled arc itself. */
+.ring          { fill: none; }
+.ringThriving   { stroke: var(--status-thriving); }
+.ringOkay       { stroke: var(--status-okay); }
+.ringStruggling { stroke: var(--status-struggling); }
 
 .pctLabel {
   position: absolute;

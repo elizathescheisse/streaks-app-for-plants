@@ -1,24 +1,34 @@
 import styles from './InRangeDonut.module.css'
 
-function ringClass(pct) {
-  if (pct >= 80) return styles.ringGreen
-  if (pct >= 50) return styles.ringYellow
-  return styles.ringRed
+function tier(pct) {
+  if (pct >= 80) return 'Thriving'
+  if (pct >= 50) return 'Okay'
+  return 'Struggling'
 }
 
 // Donut chart showing what % of a plant's logged readings fell inside its
-// healthy moisture range, with the % printed in the center. Same green/
-// yellow/red thresholds as the old horizontal bar it replaced.
-export default function InRangeDonut({ pct, size = 52, strokeWidth = 6 }) {
+// healthy moisture range, with the % printed in the center — no plant
+// emoji, so it looks identical wherever it's used (Current status, the
+// dashboard's garden-health grid, etc.) regardless of whether that plant
+// has a custom icon elsewhere. Ring color/fill match the same green/
+// yellow/red status tiers used across the app.
+export default function InRangeDonut({ pct, size = 52, strokeWidth = 4 }) {
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference * (1 - pct / 100)
+  const t = tier(pct)
 
   return (
     <div className={styles.wrap} style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
         <circle
-          className={styles.track}
+          className={styles[`fill${t}`]}
+          cx={size / 2}
+          cy={size / 2}
+          r={radius - strokeWidth / 2}
+        />
+        <circle
+          className={`${styles.track} ${styles[`track${t}`]}`}
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -26,7 +36,7 @@ export default function InRangeDonut({ pct, size = 52, strokeWidth = 6 }) {
           fill="none"
         />
         <circle
-          className={ringClass(pct)}
+          className={`${styles.ring} ${styles[`ring${t}`]}`}
           cx={size / 2}
           cy={size / 2}
           r={radius}
