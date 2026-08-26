@@ -144,6 +144,20 @@
   border-color: var(--status-water);
 }
 
+/* "Ready to check" chips use the same blue as the "Check now" badge on
+   plant cards/detail pages, since both do the same thing — tap to log a
+   reading — and should read as one consistent color language. */
+.sessionChipCheck {
+  border-color: rgba(24,164,232,0.45);
+  color: #18A4E8;
+  background: rgba(24,164,232,0.12);
+}
+
+.sessionChipCheck:hover {
+  background: rgba(24,164,232,0.22);
+  border-color: #18A4E8;
+}
+
 /* Sub-groups within the merged watering/check section (need water / ready to
    check / still settling) — each gets its own label above its chip row. */
 .sessionGroup + .sessionGroup {

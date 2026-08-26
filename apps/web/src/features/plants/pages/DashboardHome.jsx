@@ -172,7 +172,7 @@ export default function DashboardHome({
                   {checkQueue.ready.map(plant => (
                     <button
                       key={plant.id}
-                      className={styles.sessionChip}
+                      className={`${styles.sessionChip} ${styles.sessionChipCheck}`}
                       onClick={() => onQuickReading(plant)}
                       title={`Log reading for ${plantName(plant)}`}
                       type="button"
