@@ -99,8 +99,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   if (!hasComputedInsights && !hasCareFacts && !careProfile?.notes && !showRunway) return null
 
   return (
-    <section className={styles.section}>
-      <h2 className={styles.title}>Insights</h2>
+    <section className={styles.sectionNoBorder}>
 
       {hasComputedInsights && (
         <>
