@@ -1,7 +1,6 @@
 import styles from './PlantInsightsSection.module.css'
 import { generateInsight } from '@plant-streaks/core/plantInsights.js'
 import {
-  pctTimeInRange,
   avgWateringInterval,
   idealWateringInterval,
   avgPourAmount,
@@ -43,12 +42,6 @@ const WATERING_STYLE_LABELS = {
   'consistent':    '🪣 Consistent moisture',
 }
 
-function barColor(pct) {
-  if (pct >= 80) return styles.barGreen
-  if (pct >= 50) return styles.barYellow
-  return styles.barRed
-}
-
 function roundDays(days) {
   return days < 1.5 ? '1' : String(Math.round(days))
 }
@@ -72,10 +65,9 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   const daysUntilDry = rec?.daysUntilDry
   const showRunway = daysUntilDry != null && daysUntilDry > 0
 
-  let pct, avgInterval, idealInterval, pour, landing, insight
+  let avgInterval, idealInterval, pour, landing, insight
   let intervalLong, pourShort
   if (hasComputedInsights) {
-    pct = pctTimeInRange(plant, careProfile)
     avgInterval = avgWateringInterval(plant)
     idealInterval = idealWateringInterval(model, careProfile)
     pour = avgPourAmount(plant)
@@ -107,20 +99,10 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   if (!hasComputedInsights && !hasCareFacts && !careProfile?.notes && !showRunway) return null
 
   return (
-    <section className={styles.section}>
-      <h2 className={styles.title}>Insights</h2>
+    <section className={styles.sectionNoBorder}>
 
       {hasComputedInsights && (
         <>
-          {pct != null && (
-            <div className={styles.inRangeRow}>
-              <div className={styles.barTrack}>
-                <div className={`${styles.barFill} ${barColor(pct)}`} style={{ width: `${pct}%` }} />
-              </div>
-              <span className={styles.barLabel}>{pct}% of readings in healthy range</span>
-            </div>
-          )}
-
           <div className={styles.statGrid}>
             {avgInterval != null && idealInterval != null && (
               <div className={styles.statRow}>
@@ -156,7 +138,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
             )}
           </div>
 
-          <p className={styles.insightText}>{insight}</p>
+          {insight && <p className={styles.insightText}>{insight}</p>}
         </>
       )}
 

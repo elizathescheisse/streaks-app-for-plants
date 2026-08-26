@@ -61,9 +61,10 @@ export function generateInsight(plant, model, careProfile) {
     return `Your typical pour of ${pour.amount} ${pour.unit} adds about ${gain} moisture points, but ${name} lands around ${landing.toFixed(1)} — just short of its healthy floor (${lo}). A slightly bigger pour should do it.`
   }
 
-  // 5. Doing well
+  // 5. Doing well — no sentence needed here; the in-range donut in Current
+  // status already communicates this directly.
   if (pct != null && pct >= 80) {
-    return `${name} has been in its healthy range ${pct}% of the time — your current routine is working well.`
+    return null
   }
 
   // 6. Fallback

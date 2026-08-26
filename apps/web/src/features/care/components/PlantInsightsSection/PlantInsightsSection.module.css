@@ -1,50 +1,5 @@
-.section {
-  padding: var(--space-5) 0;
-  border-top: 1px solid var(--border-default);
-}
-
-.title {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 var(--space-4);
-}
-
-/* ── In-range bar ── */
-
-.inRangeRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.barTrack {
-  flex: 1;
-  height: 8px;
-  background: var(--bg-surface-raised, rgba(255,255,255,0.06));
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  border: 1px solid var(--border-default);
-}
-
-.barFill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  transition: width 0.4s ease;
-}
-
-.barGreen  { background: var(--status-thriving); }
-.barYellow { background: var(--status-okay); }
-.barRed    { background: var(--status-struggling); }
-
-.barLabel {
-  font-size: 13px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
+.sectionNoBorder {
+  padding: var(--space-5) 0 var(--space-3);
 }
 
 /* ── Stat rows ── */
@@ -103,7 +58,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
-  margin-top: var(--space-2);
+  margin-top: var(--space-4);
 }
 
 .factCol {
@@ -149,12 +104,14 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.55;
+  /* At this opacity the dark page shows through more than the white does,
+     so dark text (used at higher opacities) stops being legible — back to
+     the theme's normal light-on-dark text color. */
   color: var(--text-secondary);
   font-style: italic;
   padding: var(--space-3) var(--space-4);
-  background: var(--bg-surface-raised, rgba(255,255,255,0.04));
-  border-left: 2px solid var(--brand-primary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
 }
 
 /* Static per-species care note (from Care guide, #201) — same box
@@ -184,10 +141,6 @@
 
   .statSubline {
     text-align: left;
-  }
-
-  .barLabel {
-    white-space: normal;
   }
 
   .factsGrid {

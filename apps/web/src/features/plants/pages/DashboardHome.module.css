@@ -195,51 +195,6 @@
   outline-offset: 3px;
 }
 
-/* Colored circle */
-.healthCircle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  gap: 2px;
-  transition: box-shadow 0.15s;
-}
-
-.healthPlantBtn:hover .healthCircle {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-}
-
-.healthPlantBtn_green .healthCircle {
-  background: var(--status-thriving-soft);
-  border-color: var(--status-thriving-border);
-}
-
-.healthPlantBtn_yellow .healthCircle {
-  background: var(--status-okay-soft);
-  border-color: var(--status-okay-border);
-}
-
-.healthPlantBtn_red .healthCircle {
-  background: var(--status-struggling-soft);
-  border-color: var(--status-struggling-border);
-}
-
-.healthCircleEmoji {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.healthCirclePct {
-  font-size: 10px;
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  line-height: 1;
-}
-
 /* Plant name below the circle */
 .healthCircleName {
   font-size: 10px;

@@ -1,0 +1,36 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Tinted disc behind the ring — the tier's solid status color at reduced
+   opacity, set locally (rather than reusing the shared "-soft" tokens,
+   which other UI like badges/chips also depends on) so this fill's
+   strength can be tuned independently. */
+.fillThriving   { fill: var(--status-thriving);   fill-opacity: 0.22; }
+.fillOkay       { fill: var(--status-okay);       fill-opacity: 0.22; }
+.fillStruggling { fill: var(--status-struggling); fill-opacity: 0.22; }
+
+/* Track — the "unfilled" remainder of the ring, same hue as the filled arc
+   but muted, so an incomplete ring still reads as one color family instead
+   of a neutral gray gap. */
+.track          { fill: none; }
+.trackThriving   { stroke: var(--status-thriving-border); }
+.trackOkay       { stroke: var(--status-okay-border); }
+.trackStruggling { stroke: var(--status-struggling-border); }
+
+/* The filled arc itself. */
+.ring          { fill: none; }
+.ringThriving   { stroke: var(--status-thriving); }
+.ringOkay       { stroke: var(--status-okay); }
+.ringStruggling { stroke: var(--status-struggling); }
+
+.pctLabel {
+  position: absolute;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
