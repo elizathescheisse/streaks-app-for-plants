@@ -104,13 +104,13 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.55;
-  /* Fixed white card regardless of theme (per request) — text color is the
-     app's own light-theme text-primary, so it stays legible against the
-     translucent white in both dark and light mode. */
-  color: #142017;
+  /* At this opacity the dark page shows through more than the white does,
+     so dark text (used at higher opacities) stops being legible — back to
+     the theme's normal light-on-dark text color. */
+  color: var(--text-secondary);
   font-style: italic;
   padding: var(--space-3) var(--space-4);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-md);
 }
 
