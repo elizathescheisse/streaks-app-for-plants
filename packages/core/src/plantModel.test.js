@@ -319,6 +319,31 @@ describe('getRecommendation', () => {
     expect(rec.waterNeeded).toBe(0)
     expect(rec.usingWaterOverride).toBe(false)
   })
+
+  // Species-seeded cold-start drying rate (#209) — before this, every
+  // species used the same flat DEFAULT_BETA (0.5/day) until enough real
+  // history existed to fit its own.
+  it('uses the species-seeded drying rate for daysUntilDry when there is no learned beta yet', () => {
+    // β = (top 7 − floor 4) / 3 days = 1.0/day — distinct from DEFAULT_BETA (0.5)
+    const CARE_FAST = { moistureRange: [4, 7], typicalDryDownDays: 3 }
+    const p = plant([reading(6, 0)])
+    const m = computeModel(p)
+    expect(m.beta).toBeNull()   // cold start — nothing learned yet
+    const rec = getRecommendation(p, m, CARE_FAST)
+    expect(rec.daysUntilDry).toBeCloseTo((6 - 4) / 1.0, 1)   // 2 days, not 4
+  })
+
+  it('prefers the plant\'s own learned beta over the species default once there is real history', () => {
+    const CARE_FAST = { moistureRange: [4, 7], typicalDryDownDays: 3 }  // would seed β=1.0
+    // Real learned β ≈ 0.6/day — distinct from both DEFAULT_BETA (0.5) and
+    // the species seed (1.0), so this proves the learned value wins.
+    const p = plant([reading(8, 4), reading(6.8, 2)])
+    const m = computeModel(p)
+    expect(m.beta).toBeCloseTo(0.6, 1)
+    const rec = getRecommendation(p, m, CARE_FAST)
+    const predicted = 6.8 - m.beta * 2
+    expect(rec.daysUntilDry).toBeCloseTo((predicted - 4) / m.beta, 1)
+  })
 })
 
 // ── getLastResidual ────────────────────────────────────────────────────────
