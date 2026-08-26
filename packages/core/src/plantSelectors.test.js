@@ -544,6 +544,22 @@ describe('typicalWaterAmount', () => {
   it('returns null when there is nothing to go on', () => {
     expect(typicalWaterAmount({ events: [] }, {})).toBeNull()
   })
+
+  // recommendedPour is the consistent-watering-style counterpart to
+  // minWaterAmount (#207) — separate field so it doesn't also gate
+  // isSignificantWatering()/the log-form top-off warning, which only make
+  // sense for flood-and-dry plants.
+  it('falls back to recommendedPour for a consistent-style plant with no minWaterAmount', () => {
+    const care = { moistureRange: [4, 6], wateringStyle: 'consistent', recommendedPour: { cups: 1, liters: 0.25 } }
+    const t = typicalWaterAmount({ events: [] }, care)
+    expect(t).toEqual({ amount: 1, unit: 'cups', confidence: 'default', source: 'species' })
+  })
+
+  it('prefers minWaterAmount over recommendedPour if a species somehow has both', () => {
+    const care = { moistureRange: [4, 6], minWaterAmount: { cups: 2 }, recommendedPour: { cups: 1 } }
+    const t = typicalWaterAmount({ events: [] }, care)
+    expect(t.amount).toBe(2)
+  })
 })
 
 // ── speciesDefaultBeta (#209) ────────────────────────────────────────────────

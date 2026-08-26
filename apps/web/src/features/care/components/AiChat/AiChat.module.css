@@ -134,6 +134,9 @@
   height: 38px;
   width: 38px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
@@ -198,6 +201,7 @@
 }
 .input:focus { outline: none; border-color: var(--border-focus); }
 .input:disabled { opacity: 0.6; }
+.input::placeholder { color: var(--text-placeholder); }
 
 .actionsRow {
   display: flex;
