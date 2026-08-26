@@ -355,11 +355,44 @@ export function typicalWaterAmount(plant, careProfile) {
     }
   }
 
-  // 3. Species default
-  const min = careProfile?.minWaterAmount
-  if (min && min.cups != null) {
-    return { amount: min.cups, unit: 'cups', confidence: 'default', source: 'species' }
+  // 3. Species default — flood-and-dry species use minWaterAmount (their
+  // soak threshold doubles as a sensible default amount); consistent-
+  // moisture species use recommendedPour instead. They're kept as separate
+  // fields because minWaterAmount also gates isSignificantWatering() (which
+  // waterings count toward the alpha model and the "learned" tier above)
+  // and a small-top-off warning in the log form — behavior that's specific
+  // to the flood-and-dry watering style and shouldn't switch on for a
+  // consistent-moisture plant just because it got a default pour amount.
+  const speciesDefault = careProfile?.minWaterAmount ?? careProfile?.recommendedPour
+  if (speciesDefault && speciesDefault.cups != null) {
+    return { amount: speciesDefault.cups, unit: 'cups', confidence: 'default', source: 'species' }
   }
 
   return null
+}
+
+// Species-seeded cold-start drying rate (β, moisture points/day) — #209.
+// Before this, every species used the exact same generic DEFAULT_BETA
+// (0.5/day) until a plant had enough of its own logged history to fit a
+// real one — a cactus and a fern got an identical assumption on day one.
+//
+// careProfile.typicalDryDownDays is a per-species estimate ("about how many
+// days does this plant take to go from freshly watered to needing water
+// again"), matched to each species' own wateringFrequency text. Combined
+// with the plant's moisture range (and dryThreshold for flood-and-dry
+// species, since that's the real "needs water" target, not the range
+// floor), it gives a species-flavored β: (top of range − target) / days.
+//
+// Returns null if the species has no typicalDryDownDays set, or the inputs
+// don't make sense (non-positive span or days) — callers should fall back
+// to DEFAULT_BETA in that case, same as before.
+export function speciesDefaultBeta(careProfile) {
+  const range = careProfile?.moistureRange
+  const days = careProfile?.typicalDryDownDays
+  if (!range || !days || days <= 0) return null
+  const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
+  const target = isFloodAndDry ? (careProfile.dryThreshold ?? range[0]) : range[0]
+  const span = range[1] - target
+  if (span <= 0) return null
+  return span / days
 }

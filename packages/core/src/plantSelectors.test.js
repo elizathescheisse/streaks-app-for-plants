@@ -10,6 +10,7 @@ import {
   isSuspiciousReading,
   smoothedCurrentMoisture,
   typicalWaterAmount,
+  speciesDefaultBeta,
   pctTimeInRange,
   avgWateringInterval,
   idealWateringInterval,
@@ -542,6 +543,53 @@ describe('typicalWaterAmount', () => {
 
   it('returns null when there is nothing to go on', () => {
     expect(typicalWaterAmount({ events: [] }, {})).toBeNull()
+  })
+
+  // recommendedPour is the consistent-watering-style counterpart to
+  // minWaterAmount (#207) — separate field so it doesn't also gate
+  // isSignificantWatering()/the log-form top-off warning, which only make
+  // sense for flood-and-dry plants.
+  it('falls back to recommendedPour for a consistent-style plant with no minWaterAmount', () => {
+    const care = { moistureRange: [4, 6], wateringStyle: 'consistent', recommendedPour: { cups: 1, liters: 0.25 } }
+    const t = typicalWaterAmount({ events: [] }, care)
+    expect(t).toEqual({ amount: 1, unit: 'cups', confidence: 'default', source: 'species' })
+  })
+
+  it('prefers minWaterAmount over recommendedPour if a species somehow has both', () => {
+    const care = { moistureRange: [4, 6], minWaterAmount: { cups: 2 }, recommendedPour: { cups: 1 } }
+    const t = typicalWaterAmount({ events: [] }, care)
+    expect(t.amount).toBe(2)
+  })
+})
+
+// ── speciesDefaultBeta (#209) ────────────────────────────────────────────────
+
+describe('speciesDefaultBeta', () => {
+  it('computes β from range span (using dryThreshold) over typicalDryDownDays for flood-and-dry', () => {
+    // top=8, dryThreshold=3 → span 5, over 10 days → 0.5/day
+    const care = { moistureRange: [2, 8], wateringStyle: 'flood-and-dry', dryThreshold: 3, typicalDryDownDays: 10 }
+    expect(speciesDefaultBeta(care)).toBeCloseTo(0.5, 5)
+  })
+
+  it('computes β from range span (using the range floor) over typicalDryDownDays for consistent-style', () => {
+    // top=6, floor=4 → span 2, over 6 days → 1/3 per day
+    const care = { moistureRange: [4, 6], wateringStyle: 'consistent', typicalDryDownDays: 6 }
+    expect(speciesDefaultBeta(care)).toBeCloseTo(2 / 6, 5)
+  })
+
+  it('returns null when the species has no typicalDryDownDays set', () => {
+    const care = { moistureRange: [4, 6], wateringStyle: 'consistent' }
+    expect(speciesDefaultBeta(care)).toBeNull()
+  })
+
+  it('returns null when there is no careProfile at all', () => {
+    expect(speciesDefaultBeta(null)).toBeNull()
+    expect(speciesDefaultBeta(undefined)).toBeNull()
+  })
+
+  it('returns null for a non-positive span (target at or above the range top)', () => {
+    const care = { moistureRange: [2, 3], wateringStyle: 'flood-and-dry', dryThreshold: 3, typicalDryDownDays: 10 }
+    expect(speciesDefaultBeta(care)).toBeNull()
   })
 })
 
