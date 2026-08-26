@@ -209,17 +209,22 @@ export function buildEventsFromForm(form, existingBundleId) {
   return events
 }
 
+// Whether a single moisture value falls inside the careProfile's healthy range.
+// Returns null if there's no careProfile.moistureRange to check against.
+export function isInHealthyRange(moisture, careProfile) {
+  const [lo, hi] = careProfile?.moistureRange ?? [null, null]
+  if (lo == null || hi == null) return null
+  const m = Number(moisture)
+  return m >= lo && m <= hi
+}
+
 // Percentage of all readings that fell within the careProfile's healthy moisture range.
 // Returns null if no careProfile.moistureRange or no readings.
 export function pctTimeInRange(plant, careProfile) {
-  const [lo, hi] = careProfile?.moistureRange ?? [null, null]
-  if (lo == null || hi == null) return null
+  if (!careProfile?.moistureRange) return null
   const readings = getEvents(plant, 'reading')
   if (!readings.length) return null
-  const inRange = readings.filter(r => {
-    const m = Number(r.moisture)
-    return m >= lo && m <= hi
-  }).length
+  const inRange = readings.filter(r => isInHealthyRange(r.moisture, careProfile)).length
   return Math.round((inRange / readings.length) * 100)
 }
 
