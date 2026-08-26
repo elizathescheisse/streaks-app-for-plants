@@ -6,11 +6,13 @@
   flex-shrink: 0;
 }
 
-/* Soft tinted disc behind the ring — same tint the dashboard's garden-health
-   circles use as a fill. */
-.fillThriving   { fill: var(--status-thriving-soft); }
-.fillOkay       { fill: var(--status-okay-soft); }
-.fillStruggling { fill: var(--status-struggling-soft); }
+/* Tinted disc behind the ring — the tier's solid status color at reduced
+   opacity, set locally (rather than reusing the shared "-soft" tokens,
+   which other UI like badges/chips also depends on) so this fill's
+   strength can be tuned independently. */
+.fillThriving   { fill: var(--status-thriving);   fill-opacity: 0.22; }
+.fillOkay       { fill: var(--status-okay);       fill-opacity: 0.22; }
+.fillStruggling { fill: var(--status-struggling); fill-opacity: 0.22; }
 
 /* Track — the "unfilled" remainder of the ring, same hue as the filled arc
    but muted, so an incomplete ring still reads as one color family instead
