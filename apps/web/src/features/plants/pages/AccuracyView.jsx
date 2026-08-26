@@ -3,7 +3,7 @@ import styles from './AccuracyView.module.css'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import { getResidualHistory } from '@plant-streaks/core/plantModel.js'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
-import { currentHealth } from '@plant-streaks/core/plantSelectors.js'
+import { currentHealth, isInHealthyRange } from '@plant-streaks/core/plantSelectors.js'
 
 function titleCase(s) {
   if (!s) return s
@@ -52,10 +52,22 @@ function residualClass(residual) {
 
 function waterVerdict(given, recommended) {
   if (given == null || recommended == null) return null
-  const diff = given - recommended
-  if (diff > 0.5)  return { label: 'more than suggested', cls: styles.chipWarn }
-  if (diff < -0.5) return { label: 'less than suggested', cls: styles.chipWarn }
+  const diff = Math.round((given - recommended) * 10) / 10
+  if (diff > 0.5)  return { label: `more than suggested · +${diff}`,  cls: styles.chipWarn }
+  if (diff < -0.5) return { label: `less than suggested · ${diff}`,   cls: styles.chipWarn }
   return { label: 'about right', cls: styles.chipGood }
+}
+
+// Did the plant actually end up in its healthy range after this watering,
+// regardless of whether the amount given matched what was suggested? Reads
+// off the reading logged right after (entry.actual) — over/under-watering
+// relative to the suggestion doesn't always mean the outcome was bad.
+function waterOutcome(actual, careProfile) {
+  const inRange = isInHealthyRange(actual, careProfile)
+  if (inRange == null) return null
+  return inRange
+    ? 'Reached its healthy range anyway.'
+    : "Didn't reach its healthy range."
 }
 
 function PlantReport({ plant }) {
@@ -115,6 +127,14 @@ function PlantReport({ plant }) {
                   {(() => {
                     const v = waterVerdict(e.givenWater, e.recommendedWater)
                     return v ? <span className={`${styles.chip} ${v.cls}`}>{v.label}</span> : null
+                  })()}
+                  {(() => {
+                    // Only worth a note when the amount actually deviated —
+                    // an "about right" pour reaching its range isn't a surprise.
+                    const v = waterVerdict(e.givenWater, e.recommendedWater)
+                    if (!v || v.cls !== styles.chipWarn) return null
+                    const outcome = waterOutcome(e.actual, careProfile)
+                    return outcome ? <span className={styles.entryOutcome}>{outcome}</span> : null
                   })()}
                 </>
               )}

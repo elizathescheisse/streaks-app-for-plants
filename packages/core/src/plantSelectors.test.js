@@ -11,6 +11,7 @@ import {
   smoothedCurrentMoisture,
   typicalWaterAmount,
   speciesDefaultBeta,
+  isInHealthyRange,
   pctTimeInRange,
   avgWateringInterval,
   idealWateringInterval,
@@ -470,6 +471,34 @@ describe('buildEventsFromForm', () => {
     const form = { ...baseForm, moisture: 7 }
     const events = buildEventsFromForm(form, 'existing-bundle-id')
     expect(events[0].bundleId).toBe('existing-bundle-id')
+  })
+})
+
+// ── isInHealthyRange ───────────────────────────────────────────────────────
+
+describe('isInHealthyRange', () => {
+  const CARE = { moistureRange: [4, 7] }
+
+  it('returns null when no careProfile', () => {
+    expect(isInHealthyRange(5, null)).toBeNull()
+  })
+
+  it('returns null when careProfile has no moistureRange', () => {
+    expect(isInHealthyRange(5, {})).toBeNull()
+  })
+
+  it('returns true for a value inside the range', () => {
+    expect(isInHealthyRange(5, CARE)).toBe(true)
+  })
+
+  it('returns true for boundary values (lo and hi)', () => {
+    expect(isInHealthyRange(4, CARE)).toBe(true)
+    expect(isInHealthyRange(7, CARE)).toBe(true)
+  })
+
+  it('returns false for a value outside the range', () => {
+    expect(isInHealthyRange(2, CARE)).toBe(false)
+    expect(isInHealthyRange(9, CARE)).toBe(false)
   })
 })
 
