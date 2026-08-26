@@ -13,7 +13,7 @@
  * data exists yet.
  */
 
-import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture, typicalWaterAmount } from './plantSelectors.js'
+import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture, typicalWaterAmount, speciesDefaultBeta } from './plantSelectors.js'
 
 // Exported so plantCurve.js (the fitted-line estimator) shares the exact same
 // priors and ceiling — redeclaring them there would let the two silently drift.
@@ -304,10 +304,17 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
   const reading = lastReading(plant)
   if (!reading) return null
 
-  const beta  = model.beta  ?? DEFAULT_BETA
+  // Species-seeded cold start (#209): before a plant has enough of its own
+  // history to fit a real β, use its species' typical drying rate instead
+  // of the same flat generic default for every plant. Resolved once here so
+  // predictMoisture() below sees the same β this function uses — passing it
+  // a model with beta pre-filled means it doesn't need its own species
+  // awareness; it already falls back to model.beta when present.
+  const beta  = model.beta  ?? speciesDefaultBeta(careProfile) ?? DEFAULT_BETA
   const alpha = model.alpha ?? DEFAULT_ALPHA
+  const modelWithBeta = model.beta != null ? model : { ...model, beta }
 
-  const predicted = predictMoisture(plant, model, asOf)
+  const predicted = predictMoisture(plant, modelWithBeta, asOf)
   if (predicted === null) return null
 
   const hasRange = !!careProfile?.moistureRange
@@ -343,7 +350,7 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
     waterNeeded = learnedAmt.amount
     dominantUnit = learnedAmt.unit
     amountSource = learnedAmt.source          // 'override' | 'outcome' | 'history' | 'species'
-    amountConfidence = learnedAmt.confidence  // 'set' | 'dialing-in' | 'learned' | 'default'
+    amountConfidence = learnedAmt.confidence  // 'set' | 'learned' | 'default'
   } else {
     waterNeeded = modelWaterNeeded
     dominantUnit = model.dominantUnit
@@ -375,7 +382,7 @@ export function getRecommendation(plant, model, careProfile, asOf = Date.now()) 
     usingDefaults: model.beta == null,
     usingWaterOverride,
     amountSource,        // where the recommended amount came from
-    amountConfidence,    // 'set'|'dialing-in'|'learned'|'default'|null
+    amountConfidence,    // 'set'|'learned'|'default'|null
     totalSamples,
   }
 }
@@ -434,7 +441,13 @@ export function getResidualHistory(plant, careProfile) {
       // have predicted for this moment?
       const history = { ...plant, events: allEvents.filter(e => new Date(e.timestamp) < new Date(cur.timestamp)) }
       const model = computeModel(history, careProfile)
-      const predicted = predictMoisture(history, model, curTs)
+      // Same species-seeded cold start as getRecommendation (#209) — a
+      // historical replay of "what would we have predicted" should use the
+      // same cold-start prior the live app now uses, not the old flat one.
+      const modelWithBeta = model.beta != null
+        ? model
+        : { ...model, beta: speciesDefaultBeta(careProfile) ?? DEFAULT_BETA }
+      const predicted = predictMoisture(history, modelWithBeta, curTs)
       if (predicted != null) {
         entry.predicted = Math.round(predicted * 10) / 10
         entry.residual  = Math.round((entry.actual - predicted) * 10) / 10
@@ -528,7 +541,7 @@ export function getPredictionReliability(plant, careProfile) {
 // is an EMA over recent S's, clamped to a sane range.
 //
 // Returns { amount, unit, confidence, source, outcomes, lastOutcome } or null.
-//   confidence: 'set'|'default'|'learned'|'dialing-in'   source: 'override'|'outcome'|'history'|'species'
+//   confidence: 'set'|'default'|'learned'   source: 'override'|'outcome'|'history'|'species'
 // ─────────────────────────────────────────────────────────
 const AMOUNT_STEP        = 0.18  // ±18% nudge per under/over cycle
 const AMOUNT_SMOOTH      = 0.45  // EMA weight on each cycle's suggestion
@@ -536,6 +549,13 @@ const PEAK_FRESH_MS      = 2 * 86_400_000  // a reading within 2 days = the post
 const UNDER_TOL          = 1.0   // peak this far below target ⇒ under-watered
 const OVER_BUFFER        = 1.5   // peak this far above range top ⇒ waterlogged (consistent)
 const DRYDOWN_FAST_FRAC  = 0.5   // dried in < half the expected time ⇒ under-watered
+// Same "not enough data yet" threshold used everywhere else in this app
+// (typicalWaterAmount's history tier, PlantInsightsSection's computed rows).
+// A single graded cycle is thin, easily-noisy evidence (e.g. #101's
+// probe-variance bug) — nudging the recommendation off it, rather than
+// waiting for a real pattern, is exactly what let a first watering distort
+// the very next recommendation.
+const MIN_OUTCOMES_TO_LEARN = 3
 
 export function learnedWaterAmount(plant, careProfile) {
   const seed = typicalWaterAmount(plant, careProfile)
@@ -550,7 +570,8 @@ export function learnedWaterAmount(plant, careProfile) {
   const [rangeLo, rangeHi] = careProfile?.moistureRange ?? [3, 7]
   const isFloodAndDry = careProfile?.wateringStyle === 'flood-and-dry'
   const dryThreshold  = isFloodAndDry ? (careProfile?.dryThreshold ?? rangeLo) : rangeLo
-  const beta = computeModel(plant, careProfile).beta ?? DEFAULT_BETA
+  // Species-seeded cold start (#209) — same reasoning as getRecommendation.
+  const beta = computeModel(plant, careProfile).beta ?? speciesDefaultBeta(careProfile) ?? DEFAULT_BETA
 
   // Segment into cycles (watering → its readings until the next watering).
   const cycles = segmentCycles(plant)
@@ -611,13 +632,15 @@ export function learnedWaterAmount(plant, careProfile) {
   amount = Math.min(ceiling, Math.max(0.1, amount))
   amount = Math.round(amount * 10) / 10
 
-  if (outcomes === 0) {
-    // No gradeable cycles yet — just the seed (history median or species default).
-    return { amount, unit, confidence: seed.confidence, source: seed.source, outcomes: 0, lastOutcome: null }
+  if (outcomes < MIN_OUTCOMES_TO_LEARN) {
+    // Not enough gradeable cycles yet — just the seed (history median or
+    // species default), unadjusted. A cycle or two of thin evidence isn't
+    // enough to trust nudging the number away from it (#101).
+    return { amount: seed.amount, unit, confidence: seed.confidence, source: seed.source, outcomes, lastOutcome: null }
   }
   return {
     amount, unit,
-    confidence: outcomes < 2 ? 'dialing-in' : 'learned',
+    confidence: 'learned',
     source: 'outcome',
     outcomes,
     lastOutcome,

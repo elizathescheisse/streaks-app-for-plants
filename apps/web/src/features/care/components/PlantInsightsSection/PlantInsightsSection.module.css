@@ -85,6 +85,16 @@
   margin: 0 2px;
 }
 
+/* Secondary line under a statRow — e.g. watering frequency under watering
+   style. Own line so a longer description isn't squeezed to fit next to
+   the value on one line. */
+.statSubline {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: -2px;
+}
+
 .iconOk {
   color: var(--status-thriving);
   font-size: 12px;
@@ -134,6 +144,10 @@
   .statValue {
     text-align: left;
     justify-content: flex-start;
+  }
+
+  .statSubline {
+    text-align: left;
   }
 
   .barLabel {
