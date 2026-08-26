@@ -1,5 +1,9 @@
+/* Horizontal padding matches PlantDetailPage's .section (20px) — this
+   component renders directly in .mainCol without that wrapper, so it has
+   to replicate the inset itself or its content bleeds wider than every
+   other section on the page (Current status, Moisture history, etc). */
 .sectionNoBorder {
-  padding: var(--space-5) 0 var(--space-3);
+  padding: var(--space-5) 20px var(--space-3);
 }
 
 /* ── Stat rows ── */
