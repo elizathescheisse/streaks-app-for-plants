@@ -95,6 +95,38 @@
   margin-top: -2px;
 }
 
+/* Watering style / Light / Humidity as 3 columns — label above, value
+   below — instead of the label-left/value-right rows used elsewhere in
+   this section. Those three are short, single-line facts that read better
+   scanned side by side than stacked. */
+.factsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.factCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.factLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.factValue {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.factSubline {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .iconOk {
   color: var(--status-thriving);
   font-size: 12px;
@@ -152,5 +184,10 @@
 
   .barLabel {
     white-space: normal;
+  }
+
+  .factsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
   }
 }
