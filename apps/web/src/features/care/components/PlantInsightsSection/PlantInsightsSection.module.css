@@ -105,12 +105,12 @@
   font-size: 13px;
   line-height: 1.55;
   /* Fixed white card regardless of theme (per request) — text color is the
-     app's own light-theme text-primary, so it stays legible on white in
-     both dark and light mode. */
+     app's own light-theme text-primary, so it stays legible against the
+     translucent white in both dark and light mode. */
   color: #142017;
   font-style: italic;
   padding: var(--space-3) var(--space-4);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.85);
   border-radius: var(--radius-md);
 }
 
