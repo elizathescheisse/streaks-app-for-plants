@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import AppLayout from '../layouts/AppLayout.jsx'
 import AppRoutes from './routes.jsx'
 import PlantForm from '../features/plants/components/PlantForm'
@@ -8,6 +9,7 @@ import LogEntryForm, { createEmptyLogForm } from '../features/logs/components/Lo
 import QuickLogModal from '../features/logs/components/QuickLogModal'
 import SettingsModal from '../features/settings/components/SettingsModal'
 import Modal from '../shared/components/Modal'
+import Toast from '../shared/components/Toast'
 import { buildEventsFromForm, currentHealth } from '@plant-streaks/core/plantSelectors.js'
 
 const SCHEMA_VERSION = '2'
@@ -44,6 +46,19 @@ export default function App() {
   const [panel, setPanel] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const importRef = useRef()
+
+  // Passing-toast messages, delivered via router state (e.g. a redirect from
+  // an unresolved plant link). Read once, then stripped from history state
+  // so navigating back to this entry later doesn't replay the same toast.
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [toast, setToast] = useState(null)
+  useEffect(() => {
+    if (location.state?.toast) {
+      setToast(location.state.toast)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location, navigate])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plants))
@@ -247,6 +262,8 @@ export default function App() {
         />
       )}
       <input ref={importRef} type="file" accept=".json" onChange={handleImport} style={{ display:'none' }} />
+
+      <Toast message={toast} onDismiss={() => setToast(null)} />
 
       <AppRoutes
         plants={plants}
