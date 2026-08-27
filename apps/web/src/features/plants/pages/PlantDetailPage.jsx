@@ -86,14 +86,21 @@ export default function PlantDetailPage({
 
   const plant = plants.find(p => p.id === id)
 
-  if (!plant) {
-    return (
-      <div className={styles.notFound}>
-        <p>Plant not found.</p>
-        <button className={styles.backBtn} onClick={() => navigate(-1)}>← Back to plants</button>
-      </div>
-    )
-  }
+  // No dead-end error page: a plant's URL only resolves in the specific
+  // browser it was created in (no backend, no accounts), so opening a
+  // shared link anywhere else is expected, not exceptional. Redirect
+  // straight to the real garden instead of stopping on an error — the
+  // toast (read by App.jsx off location.state) explains why.
+  useEffect(() => {
+    if (!plant) {
+      navigate('/', {
+        replace: true,
+        state: { toast: "That plant link doesn't match anything in this browser — here's your garden instead." },
+      })
+    }
+  }, [plant, navigate])
+
+  if (!plant) return null
 
   const { emoji = '🌿', species, name } = plant
   const careProfile = lookupPlant(species)

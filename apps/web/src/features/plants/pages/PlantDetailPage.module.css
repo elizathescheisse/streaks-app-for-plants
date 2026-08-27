@@ -6,18 +6,6 @@
   background: var(--bg-base);
 }
 
-/* ── Not found state ── */
-.notFound {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  min-height: 60vh;
-  color: var(--text-muted);
-  font-size: 15px;
-}
-
 /* ── Top nav bar ── */
 .topNav {
   display: flex;
