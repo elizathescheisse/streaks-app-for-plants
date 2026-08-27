@@ -90,7 +90,15 @@ export default function PlantDetailPage({
     return (
       <div className={styles.notFound}>
         <p>Plant not found.</p>
-        <button className={styles.backBtn} onClick={() => navigate(-1)}>← Back to plants</button>
+        <p className={styles.notFoundHint}>
+          This can happen when opening a link to a plant that only exists in a different
+          browser — Plant Streaks stores your garden on this device only, so a link from
+          someone else's browser (or a different browser of your own) won't have it.
+        </p>
+        {/* navigate(-1) assumes prior in-app history, which doesn't exist when this page
+            is the first thing loaded — e.g. a shared link opened fresh. Go to a real
+            destination instead so this is never a dead end. */}
+        <button className={styles.backBtn} onClick={() => navigate('/')}>← Back to plants</button>
       </div>
     )
   }
