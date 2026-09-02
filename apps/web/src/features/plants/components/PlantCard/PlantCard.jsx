@@ -86,11 +86,16 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
   const health       = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
   // If the plant was watered after the last reading, the moisture level
-  // is unknown — don't show a stale "Water now" recommendation.
+  // is unknown — but the model itself (history-derived stats, insights,
+  // typical pour, etc.) is still valid and shouldn't be thrown away. The
+  // "don't show a stale live prediction" protection lives independently in
+  // usePredicted/wateredVeryRecently below and in checkStatus's badge
+  // priority — nulling the whole model here was redundant with those and
+  // wiped out historical insights for any plant mid-settle after watering.
   const wateredAfterReading =
     watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
 
-  const model       = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
+  const model       = reading ? computeModel(plant, careProfile) : null
   const rec         = model ? getRecommendation(plant, model, careProfile) : null
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
   // When recent predictions have been unreliable, don't trust the extrapolated
