@@ -111,10 +111,17 @@ export default function PlantDetailPage({
   const health      = currentHealth(plant)
   const { readings, waterings } = chartEvents(plant)
 
+  // If the plant was watered after the last reading, the moisture level is
+  // unknown — but the model itself (history-derived stats, insights, typical
+  // pour, etc.) is still valid and shouldn't be thrown away. The "don't show
+  // a stale live prediction" protection lives independently below (usePredicted
+  // /wateredVeryRecently, and showEstimate's own !wateredAfterReading check) —
+  // nulling the whole model here was redundant with those and wiped out
+  // historical insights for any plant mid-settle after watering.
   const wateredAfterReading =
     watering && reading && new Date(watering.timestamp) > new Date(reading.timestamp)
 
-  const model      = reading && !wateredAfterReading ? computeModel(plant, careProfile) : null
+  const model      = reading ? computeModel(plant, careProfile) : null
   const rec        = model ? getRecommendation(plant, model, careProfile) : null
   const isConfident = rec && !rec.usingDefaults && rec.confidence !== 'low'
   const rawMoisture  = reading ? Math.round(Number(reading.moisture)) : null

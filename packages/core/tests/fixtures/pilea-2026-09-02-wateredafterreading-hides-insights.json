@@ -1,0 +1,137 @@
+{
+  "id": "fixture-pilea",
+  "emoji": "🌿",
+  "species": "pilea peperomioides",
+  "name": "Fixture Pilea",
+  "events": [
+    {
+      "id": "f4a82e06-dcfa-4069-b35d-be1f23419099",
+      "type": "health_change",
+      "timestamp": "2026-05-23T21:11:26.734Z",
+      "bundleId": "dceb9743-bc09-4b6d-8d04-395a6963b23c",
+      "health": "thriving"
+    },
+    {
+      "id": "bac9ace2-67f9-421d-a485-3832d4495568",
+      "type": "reading",
+      "timestamp": "2026-05-23T21:19:00.000Z",
+      "bundleId": "36618e81-ff60-4d05-9410-9e3f8e1f6f55",
+      "moisture": 4
+    },
+    {
+      "id": "b30c314a-4933-41e1-af36-9cd6be667c58",
+      "type": "reading",
+      "timestamp": "2026-05-25T03:18:00.000Z",
+      "bundleId": "bf4da44e-cd61-4929-83a4-651b9b66f77a",
+      "moisture": 4
+    },
+    {
+      "id": "95a7414d-b0ac-4dbc-a86a-3a6a49549865",
+      "type": "reading",
+      "timestamp": "2026-05-27T04:14:53.718Z",
+      "bundleId": "a89ed83b-9253-499a-af93-6b6d745e7e70",
+      "moisture": 3
+    },
+    {
+      "id": "a7248186-a3dc-4d0d-8335-1b698d190efe",
+      "type": "reading",
+      "timestamp": "2026-05-27T16:55:19.077Z",
+      "bundleId": "5ca141a3-aa84-45ba-85f8-a2c5f563b47f",
+      "moisture": 3
+    },
+    {
+      "id": "571baf48-8cfb-4705-83fc-121c02d8dc73",
+      "type": "reading",
+      "timestamp": "2026-05-28T21:42:33.931Z",
+      "bundleId": "4a53fab7-f27a-49a5-8c4c-6a019f7a3655",
+      "moisture": 2
+    },
+    {
+      "id": "859bc58e-b522-4e71-87cb-a29e4174fbe5",
+      "type": "reading",
+      "timestamp": "2026-05-30T18:19:32.580Z",
+      "bundleId": "84dabb0c-a8c0-4f7f-a143-ffec69e31022",
+      "moisture": 1
+    },
+    {
+      "id": "4183716f-8037-4a1d-b170-d76ccef42ca9",
+      "type": "watering",
+      "timestamp": "2026-05-30T18:27:58.783Z",
+      "bundleId": "67d8dbd4-e737-4ef6-a53d-2529949e3d9c",
+      "amount": ".5",
+      "unit": "cups"
+    },
+    {
+      "id": "4abf129c-acdb-4d85-9b2d-f0c09477c9be",
+      "type": "reading",
+      "timestamp": "2026-05-30T19:45:26.700Z",
+      "bundleId": "38323844-fb14-4c80-bcfb-523de1b2d2c5",
+      "moisture": 4
+    },
+    {
+      "id": "ab478805-bdfb-4afc-9b57-0ba40f4c7ee6",
+      "type": "reading",
+      "timestamp": "2026-05-31T19:32:59.314Z",
+      "bundleId": "b2f489cd-9c42-465a-be48-3acd04604d4e",
+      "moisture": 3
+    },
+    {
+      "id": "d369a691-4de4-45f1-9cb7-69175765010f",
+      "type": "reading",
+      "timestamp": "2026-06-05T04:02:23.602Z",
+      "bundleId": "949c341e-2983-4515-8ac5-c8161a62e961",
+      "moisture": 2
+    },
+    {
+      "id": "dbc30dcf-c0b2-4b2e-90a8-517b746d7575",
+      "type": "watering",
+      "timestamp": "2026-06-05T04:06:28.340Z",
+      "bundleId": "cd898049-52e3-42de-a382-c793a5b916bd",
+      "amount": ".5",
+      "unit": "cups"
+    },
+    {
+      "id": "894c7e01-95aa-466c-87af-ad8a87eae579",
+      "type": "reading",
+      "timestamp": "2026-06-05T05:08:18.120Z",
+      "bundleId": "697c93b1-39ca-45e2-922f-b98c3859f506",
+      "moisture": 6
+    },
+    {
+      "id": "abb9b8cc-57d9-412d-9bc2-feb5efe21747",
+      "type": "reading",
+      "timestamp": "2026-06-07T15:01:29.564Z",
+      "bundleId": "736ff999-de32-44c3-a65e-b54ea82031c0",
+      "moisture": 5
+    },
+    {
+      "id": "6cc0354f-c1b3-4d38-be08-ea7c28074a46",
+      "type": "reading",
+      "timestamp": "2026-06-08T18:53:14.768Z",
+      "bundleId": "150e202f-be5b-4407-99a6-5991d5cd0a6f",
+      "moisture": 4
+    },
+    {
+      "id": "a67747fb-60ba-4b59-9ec7-be97036cd4fc",
+      "type": "reading",
+      "timestamp": "2026-06-12T01:51:01.686Z",
+      "bundleId": "ca385242-9a47-4639-9f21-cb580b84b5ae",
+      "moisture": 3
+    },
+    {
+      "id": "fx-r1",
+      "type": "reading",
+      "timestamp": "2026-06-13T12:00:00.000Z",
+      "bundleId": "fx-b1",
+      "moisture": 3
+    },
+    {
+      "id": "fx-w1",
+      "type": "watering",
+      "timestamp": "2026-06-14T09:00:00.000Z",
+      "bundleId": "fx-b2",
+      "amount": "1",
+      "unit": "cups"
+    }
+  ]
+}
