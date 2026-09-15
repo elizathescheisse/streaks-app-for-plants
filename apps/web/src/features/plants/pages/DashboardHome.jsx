@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardHero from '../../dashboard/components/DashboardHero'
 import StatCard from '../../dashboard/components/StatCard'
@@ -37,13 +37,25 @@ export default function DashboardHome({
   const sessionRef   = useRef(null)
   const wateringDueRef = useRef(null)
 
+  // `today` (from App.jsx) is a Date computed once at page load and never
+  // updates — fine for calendar-day grouping ("watered today"), but the
+  // settle-timer countdown needs a real, ticking clock. Without this, a tab
+  // left open for a couple hours would compare a fresh watering's timestamp
+  // against a stale "now" from page-load, going negative and flipping the
+  // "minutes left" math into nonsense (e.g. 174m instead of ≤60m).
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   const metrics      = useMemo(() => getDashboardMetrics(plants, today), [plants, today])
   const attentionPlant = useMemo(() => getPrimaryNeedsAttentionPlant(plants), [plants])
   const healthyPlant = useMemo(() => getPrimaryHealthyPlant(plants), [plants])
   const activities   = useMemo(() => getRecentActivities(plants, 5), [plants])
   const gardenHealth  = useMemo(() => getGardenHealthStats(plants, today), [plants, today])
   const wateringDue   = useMemo(() => getWateringDueToday(plants, today), [plants, today])
-  const checkQueue    = useMemo(() => getWateringCheckQueue(plants, today), [plants, today])
+  const checkQueue    = useMemo(() => getWateringCheckQueue(plants, now), [plants, now])
 
   // Show whenever any plant hasn't been read today — not just mid-session
   const showSessionTracker = gardenHealth.unreadToday.length > 0
