@@ -32,38 +32,6 @@
   gap: 12px;
 }
 
-.btnSecondary {
-  height: 36px;
-  padding: 0 18px;
-  background: var(--bg-surface);
-  border: 1px solid rgba(71,133,61,0.50);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.btnSecondary:hover {
-  background: var(--bg-surface-raised);
-  border-color: rgba(71,133,61,0.75);
-}
-
-.btnPrimary {
-  height: 36px;
-  padding: 0 18px;
-  background: var(--brand-primary);
-  border-radius: var(--radius-sm);
-  color: #071407;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.btnPrimary:hover {
-  background: var(--brand-bright);
-}
-
 .btnIcon {
   width: 36px;
   height: 36px;

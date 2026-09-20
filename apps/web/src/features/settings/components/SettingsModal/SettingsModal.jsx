@@ -2,7 +2,7 @@ import { useState } from 'react'
 import ThemeToggle from '../ThemeToggle'
 import styles from './SettingsModal.module.css'
 
-export default function SettingsModal({ onClose, onClearData, plantCount }) {
+export default function SettingsModal({ onClose, onClearData, onExport, onImport, cloud, plantCount }) {
   const [confirming, setConfirming] = useState(false)
 
   function handleClear() {
@@ -25,7 +25,33 @@ export default function SettingsModal({ onClose, onClearData, plantCount }) {
           </div>
 
           <div className={styles.section}>
+            <p className={styles.sectionLabel}>SYNC ACROSS DEVICES</p>
+            {cloud.user ? (
+              <>
+                <p className={styles.helpText}>
+                  Signed in as {cloud.user.email ?? cloud.user.name}. Your plants are backed up and will appear on any device you sign in on.
+                </p>
+                <button className={styles.secondaryBtn} onClick={cloud.signOut}>Sign out</button>
+                <p className={styles.helpText}>Signing out keeps your plants on this device and stops syncing.</p>
+              </>
+            ) : (
+              <>
+                <p className={styles.helpText}>
+                  Your plants are saved only on this device. Sign in with Google to back them up and use them on other devices — entirely optional.
+                </p>
+                <button className={styles.secondaryBtn} onClick={cloud.signInWithGoogle}>Sign in with Google</button>
+              </>
+            )}
+            {cloud.error && <p className={styles.errorText}>{cloud.error}</p>}
+          </div>
+
+          <div className={styles.section}>
             <p className={styles.sectionLabel}>DATA</p>
+
+            <div className={styles.buttonRow}>
+              <button className={styles.secondaryBtn} onClick={onImport}>↓ Import</button>
+              <button className={styles.secondaryBtn} onClick={onExport}>↑ Export</button>
+            </div>
 
             {!confirming ? (
               <button className={styles.dangerBtn} onClick={() => setConfirming(true)}>

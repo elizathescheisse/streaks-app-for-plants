@@ -65,7 +65,7 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plants))
   }, [plants])
 
-  usePlantCloudSync(plants, setPlants)
+  const cloud = usePlantCloudSync(plants, setPlants)
 
   // ── Plant identity (add/edit) ───────────────────────────
   function savePlantIdentity() {
@@ -251,15 +251,14 @@ export default function App() {
 
   return (
     <AppLayout
-      headerProps={{
-        onExport: exportJSON,
-        onImport: () => importRef.current.click(),
-        onSettings: () => setSettingsOpen(true),
-      }}
+      headerProps={{ onSettings: () => setSettingsOpen(true) }}
     >
       {settingsOpen && (
         <SettingsModal
           plantCount={plants.length}
+          cloud={cloud}
+          onExport={exportJSON}
+          onImport={() => importRef.current.click()}
           onClose={() => setSettingsOpen(false)}
           onClearData={() => { setPlants([]); setPanel(null) }}
         />
