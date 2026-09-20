@@ -1,18 +1,17 @@
-import { useEffect, useRef } from 'react'
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 
-// Background copy of the plant list to Firestore (users/{uid}/plants/{plantId}).
-// localStorage stays the source the UI reads from, so the app works offline and
-// nothing here can block it — every failure just logs to the console.
+// Optional cloud sync. Plants always live in localStorage (the UI reads from
+// there, so the app works offline and with no account). Only after the user
+// chooses "Sign in with Google" are plants also copied to Firestore
+// (users/{uid}/plants/{plantId}). Signed out = nothing leaves the device.
+// Signing out keeps the local copy; it just stops syncing.
 //
-// Sign-in is anonymous: no account, but a stable per-browser identity. (Linking
-// a Google/email account later is what will let a second device see the same
-// plants.)
-//
-// First sync merges rather than overwrites: plants are append-only event logs,
-// so for a plant present on both sides the one with MORE events wins.
+// First sync after sign-in merges rather than overwrites: plants are append-only
+// event logs, so for a plant present on both sides the one with MORE events wins.
+// Every failure just logs to the console — nothing here can block the app.
 
 const SAVE_DELAY_MS = 1000   // arbitrary: wait for a burst of edits to settle
 
@@ -28,30 +27,35 @@ function mergePlants(local, cloud) {
 }
 
 export default function usePlantCloudSync(plants, setPlants) {
+  const [user, setUser] = useState(null)
+  const [error, setError] = useState(null)
   const uidRef = useRef(null)
   const readyRef = useRef(false)
   const savedRef = useRef(new Map())   // plantId → JSON last written/read
-  const latest = useRef(plants)
-  latest.current = plants
 
-  // Sign in, then do the first merge
   useEffect(() => {
     let cancelled = false
-    const stop = onAuthStateChanged(auth, async user => {
-      if (!user) {
-        try { await signInAnonymously(auth) } catch (e) { console.warn('Firebase sign-in failed', e) }
-        return
-      }
+    const stop = onAuthStateChanged(auth, async u => {
+      readyRef.current = false
+      uidRef.current = null
+      savedRef.current = new Map()
+
+      // Earlier builds signed everyone in anonymously; that's no longer used.
+      if (u?.isAnonymous) { signOut(auth).catch(() => {}); return }
+      setUser(u ? { email: u.email, name: u.displayName } : null)
+      if (!u) return
+
       try {
-        const snap = await getDocs(collection(db, 'users', user.uid, 'plants'))
+        const snap = await getDocs(collection(db, 'users', u.uid, 'plants'))
         if (cancelled) return
         const cloud = snap.docs.map(d => d.data())
         for (const c of cloud) savedRef.current.set(c.id, JSON.stringify(c))
-        uidRef.current = user.uid
+        uidRef.current = u.uid
         readyRef.current = true
         setPlants(local => mergePlants(local, cloud))
       } catch (e) {
         console.warn('Firebase first sync failed', e)
+        setError('Could not reach the cloud — your plants are still saved on this device.')
       }
     })
     return () => { cancelled = true; stop() }
@@ -62,6 +66,7 @@ export default function usePlantCloudSync(plants, setPlants) {
     if (!readyRef.current) return
     const timer = setTimeout(async () => {
       const uid = uidRef.current
+      if (!uid) return
       const ids = new Set(plants.map(p => p.id))
       try {
         for (const p of plants) {
@@ -81,4 +86,19 @@ export default function usePlantCloudSync(plants, setPlants) {
     }, SAVE_DELAY_MS)
     return () => clearTimeout(timer)
   }, [plants])
+
+  const signInWithGoogle = useCallback(async () => {
+    setError(null)
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider())
+    } catch (e) {
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return
+      console.warn('Google sign-in failed', e)
+      setError('Sign-in didn\'t work. Please try again.')
+    }
+  }, [])
+
+  const signOutOfCloud = useCallback(() => signOut(auth).catch(e => console.warn('Sign-out failed', e)), [])
+
+  return { user, error, signInWithGoogle, signOut: signOutOfCloud }
 }
