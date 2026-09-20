@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
-import { lastWatering, isSignificantWatering, isSuspiciousReading, typicalWaterAmount } from '@plant-streaks/core/plantSelectors.js'
+import { lastWatering, isSignificantWatering, isSuspiciousReading } from '@plant-streaks/core/plantSelectors.js'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
-import { computeModel, getRecommendation, parseAmount } from '@plant-streaks/core/plantModel.js'
+import { computeModel, getRecommendation, learnedWaterAmount, parseAmount } from '@plant-streaks/core/plantModel.js'
 
 function titleCase(s) {
   if (!s) return s
@@ -18,7 +18,7 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
   // so the common case is a single tap; fall back to the last watering.
   // Rounded to a whole number — the field stays editable to 0.25 steps if a
   // precise amount matters, but the default itself shouldn't show a decimal.
-  const typical       = typicalWaterAmount(plant, careProfile)
+  const typical       = learnedWaterAmount(plant, careProfile)   // same source as the badge
   const defaultUnit   = typical?.unit ?? lastWater?.unit ?? 'cups'
   const lastWaterAmt  = parseAmount(lastWater?.amount)
   const defaultAmount = typical

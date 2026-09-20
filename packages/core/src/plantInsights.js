@@ -4,11 +4,12 @@
 import {
   pctTimeInRange,
   avgWateringInterval,
-  idealWateringInterval,
+  wateringIntervalAdvice,
   avgPourAmount,
   predictedLandingMoisture,
   getEvents,
 } from './plantSelectors.js'
+import { learnedWaterAmount } from './plantModel.js'
 
 function plantName(plant) {
   const n = plant.name || (plant.species ? plant.species.replace(/\b\w/g, c => c.toUpperCase()) : null)
@@ -30,7 +31,8 @@ export function generateInsight(plant, model, careProfile) {
   const hi = range?.[1]
   const pct = pctTimeInRange(plant, careProfile)
   const avgInterval = avgWateringInterval(plant)
-  const idealInterval = idealWateringInterval(model, careProfile)
+  const advice = wateringIntervalAdvice(plant, model, careProfile)
+  const idealInterval = advice?.basis === 'model' ? advice.days : null
   const pour = avgPourAmount(plant)
   const landing = pour ? predictedLandingMoisture(plant, model, careProfile) : null
 
@@ -44,7 +46,7 @@ export function generateInsight(plant, model, careProfile) {
 
     if (median < lo) {
       if (avgInterval != null && idealInterval != null && avgInterval > idealInterval * 1.1) {
-        return `${name} has been below its healthy range ${100 - pct}% of the time. It dries out in ~${Math.round(idealInterval)} days, but you're watering every ~${Math.round(avgInterval)} — it's thirsty by the time you get to it.`
+        return `${name} has been below its healthy range ${100 - pct}% of the time. It's ready for water about every ~${Math.round(idealInterval)} days, but you're watering every ~${Math.round(avgInterval)} — it's thirsty by the time you get to it.`
       }
       return `${name} has been below its healthy range ${100 - pct}% of the time. Its median moisture is ${median.toFixed(1)}, below the healthy floor of ${lo}.`
     }
@@ -52,11 +54,20 @@ export function generateInsight(plant, model, careProfile) {
 
   // 3. Watering interval significantly longer than ideal (>30% beyond)
   if (avgInterval != null && idealInterval != null && avgInterval > idealInterval * 1.3) {
-    return `${name} dries out in ~${Math.round(idealInterval)} days based on how it's been behaving, but you're watering every ~${Math.round(avgInterval)}. Closing that gap should keep it in range more consistently.`
+    return `${name} needs water about every ~${Math.round(idealInterval)} days based on how it's been behaving, but you're watering every ~${Math.round(avgInterval)}. Closing that gap should keep it in range more consistently.`
   }
 
   // 4. Typical pour doesn't lift the plant into its healthy range
-  if (landing != null && lo != null && landing < lo) {
+  //    Skipped when the plant's own history says bigger pours don't raise its
+  //    reading — advice to "pour more" would be wrong; the interval is the lever.
+  const pourHelps = learnedWaterAmount(plant, careProfile).pourSizeMatters !== false
+  if (!pourHelps && landing != null && lo != null && landing < lo && model.beta) {
+    const test = advice?.basis === 'experiment'
+      ? ` Worth a test: try every ~${Math.round(advice.days)} days for a few waterings and see whether more readings land in range.`
+      : ''
+    return `Watering ${name} more doesn't seem to raise its reading (it tops out around ${landing.toFixed(1)}, below the healthy floor of ${lo}), so extra water likely just drains out. It dries about ${model.beta.toFixed(1)} points a day, so watering a bit more often — not more per pour — is the lever.${test}`
+  }
+  if (pourHelps && landing != null && lo != null && landing < lo) {
     const gain = (pour.amount * model.alpha).toFixed(1)
     return `Your typical pour of ${pour.amount} ${pour.unit} adds about ${gain} moisture points, but ${name} lands around ${landing.toFixed(1)} — just short of its healthy floor (${lo}). A slightly bigger pour should do it.`
   }

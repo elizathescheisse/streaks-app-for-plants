@@ -592,6 +592,70 @@ describe('learnedWaterAmount', () => {
   })
 })
 
+// ── learnedWaterAmount — runaway guard ─────────────────────────────────────
+// If bigger pours haven't raised the post-water reading (the pot never reads as
+// high as the species chart expects — #152), the loop must stop climbing.
+describe('learnedWaterAmount — runaway guard (pourSizeMatters)', () => {
+  // Range [4,7]: a post-water peak under 6 grades 'under'. Each cycle is a
+  // watering followed 0.5 day later by a reading at `peak`, 7 days apart.
+  function cycles(specs) {
+    const events = []
+    specs.forEach(([amount, peak], i) => {
+      const d = 70 - i * 7
+      events.push(watering(amount, d), reading(peak, d - 0.5))
+    })
+    return plant(events)
+  }
+  const MIXED = [2, 4, 8, 2, 4, 8, 2, 4, 8]
+
+  it('fires when pours of very different sizes all end at the same reading', () => {
+    const p = cycles(MIXED.map(a => [a, 4]))            // 2 cups and 8 cups both → 4
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.pourSizeMatters).toBe(false)
+    expect(t.source).toBe('history')                    // held at the typical pour...
+    expect(t.amount).toBe(4)                            // ...the median of what was actually poured
+    expect(t.lastOutcome).toBeNull()
+  })
+
+  it('does not fire when bigger pours do raise the reading', () => {
+    const peakFor = { 2: 4, 4: 5, 8: 7 }
+    const p = cycles(MIXED.map(a => [a, peakFor[a]]))
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.pourSizeMatters).toBe(true)
+    expect(t.source).toBe('outcome')                    // loop still active
+  })
+
+  it('gives no verdict (null) with too few cycles, and the loop still adjusts', () => {
+    const p = cycles([[2, 4], [4, 4], [8, 4], [2, 4], [4, 4]])   // 5 < 8 cycles
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.pourSizeMatters).toBeNull()
+    expect(t.source).toBe('outcome')
+  })
+
+  it('gives no verdict when the pour never varied — and a chronically under-watered plant still climbs', () => {
+    const p = cycles(Array.from({ length: 9 }, () => [1, 4]))    // always 1 cup → 4
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.pourSizeMatters).toBeNull()
+    expect(t.source).toBe('outcome')
+    expect(t.amount).toBeGreaterThan(1.2)               // same climb as before the guard existed
+  })
+
+  it('ignores waterings that were never followed by a reading', () => {
+    const events = []
+    MIXED.forEach((a, i) => events.push(watering(a, 70 - i * 7)))   // no readings at all
+    const t = learnedWaterAmount(plant(events), CARE)
+    expect(t.pourSizeMatters).toBeNull()
+  })
+
+  it('carries through to getRecommendation so the badge amount cannot run away', () => {
+    const p = cycles(MIXED.map(a => [a, 4]))
+    const model = computeModel(p, CARE)
+    const rec = getRecommendation(p, model, CARE)
+    expect(rec.waterNeeded).toBeGreaterThan(0)          // water IS needed (so this isn't vacuous)
+    expect(rec.waterNeeded).toBeLessThanOrEqual(8)      // never more than the biggest pour ever given
+  })
+})
+
 // ── weightedLinearFit (added for the fitted-curve feature, #172) ───────────
 
 describe('weightedLinearFit', () => {
