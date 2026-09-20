@@ -10,6 +10,7 @@ import QuickLogModal from '../features/logs/components/QuickLogModal'
 import SettingsModal from '../features/settings/components/SettingsModal'
 import Modal from '../shared/components/Modal'
 import Toast from '../shared/components/Toast'
+import usePlantCloudSync from '../shared/firebase/usePlantCloudSync.js'
 import { buildEventsFromForm, currentHealth } from '@plant-streaks/core/plantSelectors.js'
 
 const SCHEMA_VERSION = '2'
@@ -63,6 +64,8 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plants))
   }, [plants])
+
+  usePlantCloudSync(plants, setPlants)
 
   // ── Plant identity (add/edit) ───────────────────────────
   function savePlantIdentity() {
