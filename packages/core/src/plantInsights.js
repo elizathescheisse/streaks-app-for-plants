@@ -4,7 +4,7 @@
 import {
   pctTimeInRange,
   avgWateringInterval,
-  recommendedWateringInterval,
+  wateringIntervalAdvice,
   avgPourAmount,
   predictedLandingMoisture,
   getEvents,
@@ -31,7 +31,8 @@ export function generateInsight(plant, model, careProfile) {
   const hi = range?.[1]
   const pct = pctTimeInRange(plant, careProfile)
   const avgInterval = avgWateringInterval(plant)
-  const idealInterval = recommendedWateringInterval(plant, model, careProfile)
+  const advice = wateringIntervalAdvice(plant, model, careProfile)
+  const idealInterval = advice?.basis === 'model' ? advice.days : null
   const pour = avgPourAmount(plant)
   const landing = pour ? predictedLandingMoisture(plant, model, careProfile) : null
 
@@ -61,7 +62,10 @@ export function generateInsight(plant, model, careProfile) {
   //    reading — advice to "pour more" would be wrong; the interval is the lever.
   const pourHelps = learnedWaterAmount(plant, careProfile).pourSizeMatters !== false
   if (!pourHelps && landing != null && lo != null && landing < lo && model.beta) {
-    return `Watering ${name} more doesn't seem to raise its reading (it tops out around ${landing.toFixed(1)}, below the healthy floor of ${lo}), so extra water likely just drains out. It dries about ${model.beta.toFixed(1)} points a day, so watering a bit more often — not more per pour — is the lever.`
+    const test = advice?.basis === 'experiment'
+      ? ` Worth a test: try every ~${Math.round(advice.days)} days for a few waterings and see whether more readings land in range.`
+      : ''
+    return `Watering ${name} more doesn't seem to raise its reading (it tops out around ${landing.toFixed(1)}, below the healthy floor of ${lo}), so extra water likely just drains out. It dries about ${model.beta.toFixed(1)} points a day, so watering a bit more often — not more per pour — is the lever.${test}`
   }
   if (pourHelps && landing != null && lo != null && landing < lo) {
     const gain = (pour.amount * model.alpha).toFixed(1)

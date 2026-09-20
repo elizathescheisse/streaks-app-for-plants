@@ -273,6 +273,40 @@ export function recommendedWateringInterval(plant, model, careProfile) {
   return Math.max(days, MIN_RECOMMENDED_INTERVAL_DAYS)
 }
 
+// What the app should tell the user about watering frequency. Returns
+// { days, basis } or null.
+//   basis 'working'    — recent readings are mostly in range, so the current
+//                        rhythm is fine: days = the user's own average gap.
+//                        (If it later stops working the check fails and the
+//                        advice changes on its own.)
+//   basis 'model'      — not working yet, and the drying-rate maths gives a
+//                        number (recommendedWateringInterval).
+//   basis 'experiment' — not working, and the pot can't reach its species
+//                        range so the maths has nothing to say: suggest a
+//                        shorter gap as a test to dial in from.
+// Judgment calls, NOT validated: WORKING_MIN_READINGS/WORKING_PCT (backtested
+// only on one user's nine plants) and EXPERIMENT_FACTOR.
+const WORKING_WINDOW = 10        // most recent readings considered
+const WORKING_MIN_READINGS = 6
+const WORKING_PCT = 80           // % of those in range to call it "working"
+const EXPERIMENT_FACTOR = 0.7    // try gaps this fraction of the current one
+
+export function wateringIntervalAdvice(plant, model, careProfile) {
+  const current = avgWateringInterval(plant)
+  const readings = getEvents(plant, 'reading').slice(-WORKING_WINDOW)
+  const range = careProfile?.moistureRange
+  if (current != null && range && readings.length >= WORKING_MIN_READINGS) {
+    const inRange = readings.filter(r => isInHealthyRange(r.moisture, careProfile)).length
+    if (inRange / readings.length * 100 >= WORKING_PCT) return { days: current, basis: 'working' }
+  }
+  const days = recommendedWateringInterval(plant, model, careProfile)
+  if (days != null) return { days, basis: 'model' }
+  if (current != null && model?.beta) {
+    return { days: Math.max(MIN_RECOMMENDED_INTERVAL_DAYS, current * EXPERIMENT_FACTOR), basis: 'experiment' }
+  }
+  return null
+}
+
 // Median of the highest reading within 2 days after each watering (stopping at
 // the next watering). Null if no watering has a follow-up reading.
 function medianPostWaterPeak(plant) {

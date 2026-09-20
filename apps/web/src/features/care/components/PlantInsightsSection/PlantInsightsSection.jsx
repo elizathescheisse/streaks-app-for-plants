@@ -2,7 +2,7 @@ import styles from './PlantInsightsSection.module.css'
 import { generateInsight } from '@plant-streaks/core/plantInsights.js'
 import {
   avgWateringInterval,
-  recommendedWateringInterval,
+  wateringIntervalAdvice,
   avgPourAmount,
   predictedLandingMoisture,
   typicalWaterAmount,
@@ -65,11 +65,12 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   const daysUntilDry = rec?.daysUntilDry
   const showRunway = daysUntilDry != null && daysUntilDry > 0
 
-  let avgInterval, idealInterval, pour, landing, insight
+  let avgInterval, advice, idealInterval, pour, landing, insight
   let intervalLong, pourShort
   if (hasComputedInsights) {
     avgInterval = avgWateringInterval(plant)
-    idealInterval = recommendedWateringInterval(plant, model, careProfile)
+    advice = wateringIntervalAdvice(plant, model, careProfile)
+    idealInterval = advice?.basis === 'model' ? advice.days : null
     pour = avgPourAmount(plant)
     landing = model && pour ? predictedLandingMoisture(plant, model, careProfile) : null
     insight = generateInsight(plant, model, careProfile)
@@ -105,16 +106,22 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
       {hasComputedInsights && (
         <>
           <div className={styles.statGrid}>
-            {avgInterval != null && idealInterval != null && (
+            {avgInterval != null && advice && (
               <div className={styles.statRow}>
                 <span className={styles.statLabel}>Watering interval</span>
                 <span className={styles.statValue}>
                   every ~{roundDays(avgInterval)}d
                   <span className={styles.statSep}>·</span>
-                  recommended ~{roundDays(idealInterval)}d
-                  <span className={intervalLong ? styles.iconWarn : styles.iconOk}>
-                    {intervalLong ? '⚠' : '✓'}
-                  </span>
+                  {advice.basis === 'working' && (
+                    <>working well — keep it up<span className={styles.iconOk}>✓</span></>
+                  )}
+                  {advice.basis === 'model' && (
+                    <>recommended ~{roundDays(advice.days)}d
+                      <span className={intervalLong ? styles.iconWarn : styles.iconOk}>
+                        {intervalLong ? '⚠' : '✓'}
+                      </span></>
+                  )}
+                  {advice.basis === 'experiment' && <>try ~{roundDays(advice.days)}d as a test</>}
                 </span>
               </div>
             )}

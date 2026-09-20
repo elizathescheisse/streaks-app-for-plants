@@ -15,6 +15,7 @@ import {
   pctTimeInRange,
   avgWateringInterval,
   recommendedWateringInterval,
+  wateringIntervalAdvice,
   avgPourAmount,
   predictedLandingMoisture,
 } from './plantSelectors.js'
@@ -787,5 +788,42 @@ describe('predictedLandingMoisture', () => {
     }
     const result = predictedLandingMoisture(plant, { alpha: 2 }, CARE)
     expect(result).toBeLessThanOrEqual(8)
+  })
+})
+
+// ── wateringIntervalAdvice ────────────────────────────────────────────────────
+
+describe('wateringIntervalAdvice', () => {
+  const RANGE = { moistureRange: [4, 7] }
+  const day = (d, h, extra) => ({ timestamp: new Date(Date.UTC(2026, 5, d, h)).toISOString(), bundleId: 'b', ...extra })
+  const build = moistures => ({ events: [
+    ...[1, 5, 9, 13].map(d => day(d, 12, { type: 'watering', amount: 2, unit: 'cups' })),
+    ...moistures.map((m, i) => day(1 + i, 13, { type: 'reading', moisture: m })),
+  ] })
+
+  it("says 'working' with the user's own gap when recent readings are mostly in range", () => {
+    const advice = wateringIntervalAdvice(build([5, 5, 6, 5, 5, 6, 5, 6]), { beta: 0.5 }, RANGE)
+    expect(advice.basis).toBe('working')
+    expect(advice.days).toBeCloseTo(4)
+  })
+
+  it('does not call it working with too few readings', () => {
+    expect(wateringIntervalAdvice(build([5, 5, 6]), { beta: 0.5 }, RANGE)?.basis).not.toBe('working')
+  })
+
+  it('stops saying working once recent readings fall out of range', () => {
+    const advice = wateringIntervalAdvice(build([5, 5, 6, 5, 2, 2, 3, 2, 2, 3]), { beta: 0.5 }, RANGE)
+    expect(advice?.basis).not.toBe('working')
+  })
+
+  it('suggests a shorter test gap when the pot cannot reach its range', () => {
+    // readings never exceed 4 (the floor) → no dry-down room → experiment
+    const advice = wateringIntervalAdvice(build([4, 3, 3, 4, 3, 3, 3, 3]), { beta: 0.5 }, RANGE)
+    expect(advice.basis).toBe('experiment')
+    expect(advice.days).toBeCloseTo(4 * 0.7)
+  })
+
+  it('returns null with no watering history and no learned drying rate', () => {
+    expect(wateringIntervalAdvice({ events: [] }, {}, RANGE)).toBeNull()
   })
 })
