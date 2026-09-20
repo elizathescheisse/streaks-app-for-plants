@@ -181,13 +181,15 @@ Key selectors live in `src/utils/plantSelectors.js`:
 **URL:** https://www.figma.com/design/XKgfjKDKC56bvT6lasIbSH/streaks_app_for_plants?node-id=0-1&m=dev
 **File key:** `XKgfjKDKC56bvT6lasIbSH`
 
-One page: `🌿 Cover`. Frames on that page:
-- `Cover` — title card
-- `Desktop – Plant Streaks` — 1440px wide desktop layout
-- `Home – Today's Log` — 390px mobile layout
-- `Log Entry Modal` — log form
-- `Add Plant Modal` — add/edit plant form
-- `Settings Modal` — settings dialog
+16 pages (corrected 2026-08-27 — previously documented as a single page, which was stale):
+
+- **`🌿 Cover`** — the main working page. **Off-limits by standing instruction — never edit anything on this page**, including the frames within it. Contains: `Cover` (title card), `Desktop – Plant Streaks` (1440px layout), `Home – Today's Log` (390px mobile layout), `Add Plant Modal`, `Log Entry Modal`, `Settings Modal`, plus a number of untitled/loose exploration groups.
+- **`Getting Started`** — empty.
+- **`— Foundations —`** (section divider), **`Colors`**, **`Typography`**, **`Spacing & Radius`** — design tokens. Kept in sync with `apps/web/src/theme/tokens.css` / `themes.css` as of the 2026-08-27 sync.
+- **`— Components —`** (section divider), **`HealthBadge`**, **`Button`**, **`InputField`**, **`SegmentedControl`**, **`MoistureStepper`**, **`PlantCard`**, **`NavBar`** — component reference. `HealthBadge`, `NavBar`, and `PlantCard` were brought up to date in the 2026-08-27 sync; `Button`/`InputField`/`SegmentedControl`/`MoistureStepper` were checked and already matched real usage closely enough to leave alone.
+- **`Archive`** — historical snapshots of earlier app versions (predates the current `Cover`-page frames). Not maintained, not meant to be synced — treat as read-only reference.
+- **`Test`** — unrelated scratch content (a patient-intake form mockup for a different project). Ignore.
+- **`Dashboard`** — rough layout-exploration mockups (imported screenshots + overlay boxes comparing dashboard variants) that predate the current shipped Dashboard tab. Not a maintained spec.
 
 ### Figma sync snapshots
 When making Figma updates, save a PNG screenshot of each modified frame to `figma-snapshots/` with the naming convention:
