@@ -240,14 +240,57 @@ export function avgWateringInterval(plant) {
   return totalDays / (waterings.length - 1)
 }
 
-// How many days the plant can sustain before dropping from the top of its
-// healthy range to the floor, given the model's drying rate (beta).
-// Returns null if model.beta or careProfile.moistureRange is missing.
-export function idealWateringInterval(model, careProfile) {
+// How often this plant should be watered, in days: how long it takes to dry
+// from where a typical watering actually leaves it down to the level where it
+// wants water again.
+//   start  = the median post-watering peak from the plant's own history (what
+//            watering really achieves in this pot, not what the species chart
+//            hopes for); falls back to the top of the healthy range.
+//   target = the dry-down level that triggers watering: dryThreshold for
+//            flood-and-dry species, otherwise the floor of the healthy range.
+// Needs a LEARNED drying rate (model.beta) — with only species defaults it
+// returns null rather than passing a guess off as a recommendation.
+// Returns null when there's under a point of dry-down room (see below), and
+// never returns less than MIN_RECOMMENDED_INTERVAL_DAYS otherwise.
+export const MIN_RECOMMENDED_INTERVAL_DAYS = 1   // judgment call, not validated
+const MIN_DRYDOWN_ROOM = 1                        // moisture points; judgment call, not validated
+
+export function recommendedWateringInterval(plant, model, careProfile) {
   const beta = model?.beta
   const range = careProfile?.moistureRange
   if (!beta || !range || range[1] <= range[0]) return null
-  return (range[1] - range[0]) / beta
+
+  const target = careProfile.wateringStyle === 'flood-and-dry' && careProfile.dryThreshold != null
+    ? careProfile.dryThreshold
+    : range[0]
+
+  const start = medianPostWaterPeak(plant) ?? range[1]
+  // If a typical watering leaves the plant within a point of its watering
+  // trigger, there's no dry-down to time — the species range is out of reach
+  // for this pot and any number here would be noise. Say nothing instead.
+  if (start - target < MIN_DRYDOWN_ROOM) return null
+  const days = (start - target) / beta
+  return Math.max(days, MIN_RECOMMENDED_INTERVAL_DAYS)
+}
+
+// Median of the highest reading within 2 days after each watering (stopping at
+// the next watering). Null if no watering has a follow-up reading.
+function medianPostWaterPeak(plant) {
+  const waterings = getEvents(plant, 'watering')
+  const readings = getEvents(plant, 'reading')
+  const peaks = []
+  waterings.forEach((w, i) => {
+    const t = new Date(w.timestamp).getTime()
+    const next = waterings[i + 1] ? new Date(waterings[i + 1].timestamp).getTime() : Infinity
+    const after = readings
+      .filter(r => { const rt = new Date(r.timestamp).getTime(); return rt > t && rt <= Math.min(t + 2 * 86_400_000, next) })
+      .map(r => Number(r.moisture))
+    if (after.length) peaks.push(Math.max(...after))
+  })
+  if (!peaks.length) return null
+  peaks.sort((a, b) => a - b)
+  const mid = Math.floor(peaks.length / 2)
+  return peaks.length % 2 ? peaks[mid] : (peaks[mid - 1] + peaks[mid]) / 2
 }
 
 // Average watering amount in the most common unit the user uses.

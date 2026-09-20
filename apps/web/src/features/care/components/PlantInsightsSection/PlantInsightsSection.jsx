@@ -2,7 +2,7 @@ import styles from './PlantInsightsSection.module.css'
 import { generateInsight } from '@plant-streaks/core/plantInsights.js'
 import {
   avgWateringInterval,
-  idealWateringInterval,
+  recommendedWateringInterval,
   avgPourAmount,
   predictedLandingMoisture,
   typicalWaterAmount,
@@ -69,13 +69,14 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   let intervalLong, pourShort
   if (hasComputedInsights) {
     avgInterval = avgWateringInterval(plant)
-    idealInterval = idealWateringInterval(model, careProfile)
+    idealInterval = recommendedWateringInterval(plant, model, careProfile)
     pour = avgPourAmount(plant)
     landing = model && pour ? predictedLandingMoisture(plant, model, careProfile) : null
     insight = generateInsight(plant, model, careProfile)
 
     intervalLong = avgInterval != null && idealInterval != null && avgInterval > idealInterval * 1.3
     pourShort = landing != null && range && landing < range[0]
+      && learnedWaterAmount(plant, careProfile).pourSizeMatters !== false
   }
 
   const showTypicalPour = landing != null && !!pour
@@ -110,7 +111,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
                 <span className={styles.statValue}>
                   every ~{roundDays(avgInterval)}d
                   <span className={styles.statSep}>·</span>
-                  ideal ~{roundDays(idealInterval)}d
+                  recommended ~{roundDays(idealInterval)}d
                   <span className={intervalLong ? styles.iconWarn : styles.iconOk}>
                     {intervalLong ? '⚠' : '✓'}
                   </span>

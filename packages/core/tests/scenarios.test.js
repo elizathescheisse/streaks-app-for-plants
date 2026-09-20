@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 import { smoothedCurrentMoisture } from '../src/plantSelectors.js'
-import { computeModel, getRecommendation } from '../src/plantModel.js'
+import { computeModel, getRecommendation, learnedWaterAmount } from '../src/plantModel.js'
 import { fitMoistureSeries, fittedLevelAt } from '../src/plantCurve.js'
 import { lookupPlant } from '../src/plantLookup.js'
 
@@ -205,5 +205,33 @@ describe('Big Monstera — fitted line rides through a noisy mid-cycle dip (#172
     const clean = fitMoistureSeries(withoutDip, careProfile)
     expect(fittedLevelAt(full.segments, DIP_TS))
       .toBeLessThan(fittedLevelAt(clean.segments, DIP_TS))
+  })
+})
+
+// ────────────────────────────────────────────────────────────────────────
+// alocasia-2026-09-02-pour-size-not-limiting — runaway "Water · 18 cups"
+// The plant's readings after watering hover around 3–5 whether the pour is
+// 2 cups or 8 (only 1 of 26 waterings ever reached the top of its 4–7 range),
+// so the pour-outcome loop graded nearly every cycle "under" and kept
+// climbing toward its 2.5× ceiling — the card badge said "Water · 18.4 cups"
+// for a plant that is fine on ~4. Real cause: the range top isn't reachable
+// in this pot (see #152), so more water was never the lever.
+// ────────────────────────────────────────────────────────────────────────
+describe('Alocasia — recommended pour must not run away when pour size does not move the reading', () => {
+  const plant = loadFixture('alocasia-2026-09-02-pour-size-not-limiting.json')
+  const careProfile = lookupPlant(plant.species)
+  const pours = plant.events.filter(e => e.type === 'watering').map(e => Number(e.amount))
+  const ASOF = new Date('2026-09-04T23:07:05.381Z').getTime() // 2 days after the last reading
+
+  it('notices that bigger pours have not raised the reading', () => {
+    expect(learnedWaterAmount(plant, careProfile).pourSizeMatters).toBe(false)
+  })
+
+  it('never recommends more than the biggest pour the user has ever given', () => {
+    const model = computeModel(plant, careProfile)
+    const rec = getRecommendation(plant, model, careProfile, ASOF)
+    expect(rec.waterNeeded).toBeGreaterThan(0)
+    expect(rec.waterNeeded).toBeLessThanOrEqual(Math.max(...pours))
+    expect(rec.waterNeeded).toBeGreaterThanOrEqual(Math.min(...pours))
   })
 })

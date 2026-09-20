@@ -540,9 +540,29 @@ export function getPredictionReliability(plant, careProfile) {
 // (under → A·(1+step), over → A·(1−step), good → A), and the running estimate
 // is an EMA over recent S's, clamped to a sane range.
 //
-// Returns { amount, unit, confidence, source, outcomes, lastOutcome } or null.
+// Runaway guard: the loop assumes "reading too low" means "poured too little".
+// That's false when the pot simply never reads as high as the species chart
+// expects — bigger pours then don't lift the reading, every cycle grades
+// 'under', and the amount climbs to its ceiling (real case: a card saying
+// "Water · 18.4 cups" for a plant that is fine on ~4; see #152 for the deeper
+// fix of learning each plant's real ceiling). So once there's enough history
+// with varied pour sizes, we check whether bigger pours actually raised the
+// post-water reading. If not, `pourSizeMatters` is false and we stop
+// climbing: the recommendation holds at the plant's typical pour. Extra water
+// beyond that likely runs out the bottom; the lever left is how OFTEN to water.
+// (We can't tell from readings alone that a SMALLER pour would be enough.)
+//
+// Returns { amount, unit, confidence, source, outcomes, lastOutcome,
+//           pourSizeMatters } or null.
 //   confidence: 'set'|'default'|'learned'   source: 'override'|'outcome'|'history'|'species'
+//   pourSizeMatters: true | false | null (null = not enough evidence to say)
 // ─────────────────────────────────────────────────────────
+// The three POUR_CHECK_* values are judgment-call starting points, not tuned
+// against real usage (unlike the moisture model's thresholds): they say how
+// much evidence we want before concluding "more water isn't the lever".
+const POUR_CHECK_MIN_CYCLES = 8    // waterings with a post-water peak needed to judge
+const POUR_CHECK_MIN_SPREAD = 2    // biggest pour must be ≥ this × smallest, else no signal
+const POUR_CHECK_MIN_GAIN   = 0.5  // reading must rise by at least this (smallest→biggest pour) to count as "helps"
 const AMOUNT_STEP        = 0.18  // ±18% nudge per under/over cycle
 const AMOUNT_SMOOTH      = 0.45  // EMA weight on each cycle's suggestion
 const PEAK_FRESH_MS      = 2 * 86_400_000  // a reading within 2 days = the post-water peak
@@ -563,7 +583,7 @@ export function learnedWaterAmount(plant, careProfile) {
 
   // An explicit override is a hard value — honor it, don't let the loop drift.
   if (seed.source === 'override') {
-    return { amount: seed.amount, unit: seed.unit, confidence: 'set', source: 'override', outcomes: 0, lastOutcome: null }
+    return { amount: seed.amount, unit: seed.unit, confidence: 'set', source: 'override', outcomes: 0, lastOutcome: null, pourSizeMatters: null }
   }
 
   const unit = seed.unit
@@ -580,6 +600,7 @@ export function learnedWaterAmount(plant, careProfile) {
   let maxObserved = seed.amount
   let outcomes = 0
   let lastOutcome = null
+  const pairs = []   // (pour size, post-water peak) per cycle — feeds the runaway guard
 
   for (const cycle of cycles) {
     if (!cycle.watering) continue
@@ -599,6 +620,7 @@ export function learnedWaterAmount(plant, careProfile) {
     })
     if (freshReadings.length) {
       const peak = Math.max(...freshReadings.map(r => Number(r.moisture)))
+      pairs.push({ x: A, y: peak })
       if (peak < rangeHi - UNDER_TOL)                       verdict = 'under'
       else if (!isFloodAndDry && peak > rangeHi + OVER_BUFFER) verdict = 'over'
       else                                                  verdict = 'good'
@@ -632,11 +654,19 @@ export function learnedWaterAmount(plant, careProfile) {
   amount = Math.min(ceiling, Math.max(0.1, amount))
   amount = Math.round(amount * 10) / 10
 
+  const pourSizeMatters = pourSizeMattersFromPairs(pairs)
+
+  if (pourSizeMatters === false) {
+    // Bigger pours haven't raised this plant's readings, so "keep adding
+    // water" would just chase a number the pot can't reach. Recommend the
+    // typical pour.
+    return { amount: seed.amount, unit, confidence: seed.confidence, source: seed.source, outcomes, lastOutcome: null, pourSizeMatters }
+  }
   if (outcomes < MIN_OUTCOMES_TO_LEARN) {
     // Not enough gradeable cycles yet — just the seed (history median or
     // species default), unadjusted. A cycle or two of thin evidence isn't
     // enough to trust nudging the number away from it (#101).
-    return { amount: seed.amount, unit, confidence: seed.confidence, source: seed.source, outcomes, lastOutcome: null }
+    return { amount: seed.amount, unit, confidence: seed.confidence, source: seed.source, outcomes, lastOutcome: null, pourSizeMatters }
   }
   return {
     amount, unit,
@@ -644,5 +674,22 @@ export function learnedWaterAmount(plant, careProfile) {
     source: 'outcome',
     outcomes,
     lastOutcome,
+    pourSizeMatters,
   }
+}
+
+// Did bigger pours actually raise the post-water reading? `pairs` is
+// [{ x: pour size, y: post-water peak }]. Returns true / false, or null when
+// there isn't enough varied history to tell. Fits a straight line through the
+// pairs and asks how much the reading rises going from the smallest to the
+// biggest pour the user has tried.
+function pourSizeMattersFromPairs(pairs) {
+  if (pairs.length < POUR_CHECK_MIN_CYCLES) return null
+  const sizes = pairs.map(p => p.x)
+  const smallest = Math.min(...sizes)
+  const biggest  = Math.max(...sizes)
+  if (biggest < smallest * POUR_CHECK_MIN_SPREAD) return null   // always poured about the same — can't tell
+  const fit = linearFit(pairs)
+  if (!fit) return null
+  return fit.slope * (biggest - smallest) >= POUR_CHECK_MIN_GAIN
 }

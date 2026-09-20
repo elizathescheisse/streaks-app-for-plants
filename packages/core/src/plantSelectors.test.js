@@ -14,7 +14,7 @@ import {
   isInHealthyRange,
   pctTimeInRange,
   avgWateringInterval,
-  idealWateringInterval,
+  recommendedWateringInterval,
   avgPourAmount,
   predictedLandingMoisture,
 } from './plantSelectors.js'
@@ -685,26 +685,44 @@ describe('avgWateringInterval', () => {
   })
 })
 
-// ── idealWateringInterval ─────────────────────────────────────────────────────
+// ── recommendedWateringInterval ───────────────────────────────────────────────
 
-describe('idealWateringInterval', () => {
-  const CARE = { moistureRange: [4, 8] }
+describe('recommendedWateringInterval', () => {
+  const at = (day, extra) => ({ timestamp: `2026-06-${String(day).padStart(2, '0')}T${extra.type === 'reading' ? '13' : '12'}:00:00.000Z`, bundleId: 'b', ...extra })
+  const FLOOD = { moistureRange: [4, 7], wateringStyle: 'flood-and-dry', dryThreshold: 3 }
+  // Two waterings whose post-water reading peaks at 5 (never reaches range top 7)
+  const plant = { events: [
+    at(1, { type: 'watering', amount: 4, unit: 'cups' }), at(1, { type: 'reading', moisture: 5 }),
+    at(10, { type: 'watering', amount: 4, unit: 'cups' }), at(10, { type: 'reading', moisture: 5 }),
+  ] }
 
-  it('returns null with no model.beta', () => {
-    expect(idealWateringInterval({}, CARE)).toBeNull()
+  it('returns null without a learned drying rate or a range', () => {
+    expect(recommendedWateringInterval(plant, {}, FLOOD)).toBeNull()
+    expect(recommendedWateringInterval(plant, { beta: 1 }, null)).toBeNull()
+    expect(recommendedWateringInterval(plant, { beta: 1 }, { moistureRange: [5, 5] })).toBeNull()
   })
 
-  it('returns null with no careProfile', () => {
-    expect(idealWateringInterval({ beta: 1 }, null)).toBeNull()
+  it('starts from where waterings actually land, and ends at dryThreshold for flood-and-dry', () => {
+    // (5 - 3) / 0.5 = 4 days
+    expect(recommendedWateringInterval(plant, { beta: 0.5 }, FLOOD)).toBeCloseTo(4)
   })
 
-  it('divides range width by beta', () => {
-    // range width = 8 - 4 = 4; beta = 2 → 2 days
-    expect(idealWateringInterval({ beta: 2 }, CARE)).toBeCloseTo(2)
+  it('uses the floor of the healthy range for non-flood-and-dry species', () => {
+    // (5 - 4) / 0.5 = 2 days
+    expect(recommendedWateringInterval(plant, { beta: 0.5 }, { moistureRange: [4, 7] })).toBeCloseTo(2)
   })
 
-  it('returns null when range[1] <= range[0]', () => {
-    expect(idealWateringInterval({ beta: 1 }, { moistureRange: [5, 5] })).toBeNull()
+  it('falls back to the top of the range when no watering has a follow-up reading', () => {
+    expect(recommendedWateringInterval({ events: [] }, { beta: 1 }, { moistureRange: [4, 7] })).toBeCloseTo(3)
+  })
+
+  it('returns null when watering never lifts the plant a point above its trigger', () => {
+    // waterings peak at 5; range floor 5 → no dry-down room to time
+    expect(recommendedWateringInterval(plant, { beta: 0.5 }, { moistureRange: [5, 7] })).toBeNull()
+  })
+
+  it('never recommends less than one day', () => {
+    expect(recommendedWateringInterval(plant, { beta: 10 }, FLOOD)).toBe(1)
   })
 })
 
