@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each signed-in user (anonymous or not) can read and write ONLY their own
+    // plants. Everything else is denied.
+    match /users/{uid}/plants/{plantId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
