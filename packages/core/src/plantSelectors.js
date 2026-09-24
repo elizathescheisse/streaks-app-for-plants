@@ -393,11 +393,24 @@ export function predictedLandingMoisture(plant, model, careProfile) {
   return Math.min(rawLanding, observedPeak, rangeCeiling)
 }
 
+// Most-recent significant waterings considered "typical" — older ones age out
+// entirely rather than being down-weighted. A pour from months ago (e.g. when
+// a plant was smaller, or before the user found their rhythm) shouldn't
+// permanently outvote what they've actually been doing lately: with an
+// all-time median, ~6 months of small early pours kept an Alocasia's
+// recommendation stuck at "4 cups" while the last several real pours were
+// 5, 4, 8, 8, 8 (see #152 discussion, scenario fixture
+// alocasia-2026-09-24-typical-pour-lags-recent.json). 8 matches the model's
+// other recency windows (BETA_WINDOW, ALPHA_WINDOW in plantModel.js) — a
+// judgment call, not tuned against real usage.
+const RECENT_POUR_WINDOW = 8
+
 // Returns the best per-plant "typical" watering amount, or null when unknown.
 // Priority (most-trusted first):
 //   1. explicit user override (plant.typicalWater, set in the edit form, #135)
-//   2. the user's own history — median of significant past waterings in the
-//      dominant unit, once there are ≥3 to median over (#64)
+//   2. the user's own RECENT history — median of the last RECENT_POUR_WINDOW
+//      significant waterings in the dominant unit, once there are ≥3 to
+//      median over (#64, recency-windowed per #152 discussion)
 //   3. the species default (careProfile.minWaterAmount)
 //
 // Returns { amount, unit, confidence, source }:
@@ -414,19 +427,23 @@ export function typicalWaterAmount(plant, careProfile) {
     return { amount: ovAmount, unit: ov.unit ?? 'cups', confidence: 'set', source: 'override' }
   }
 
-  // 2. Learned from the user's own waterings (median is robust to one deep soak)
-  const waterings = getEvents(plant, 'watering').filter(w => {
+  // 2. Learned from the user's own RECENT waterings (median is robust to one
+  // deep soak; getEvents returns them oldest-first, so slice(-N) is the most
+  // recent N). A short history is unaffected — the window only matters once
+  // there's more than RECENT_POUR_WINDOW logged.
+  const allWaterings = getEvents(plant, 'watering').filter(w => {
     const a = parseFloat(w.amount)
     return !isNaN(a) && a > 0 && isSignificantWatering(w, careProfile)
   })
-  if (waterings.length >= 3) {
+  if (allWaterings.length >= 3) {
+    const recent = allWaterings.slice(-RECENT_POUR_WINDOW)
     const unitCounts = {}
-    for (const w of waterings) {
+    for (const w of recent) {
       const u = w.unit ?? 'cups'
       unitCounts[u] = (unitCounts[u] ?? 0) + 1
     }
     const unit = Object.entries(unitCounts).sort((a, b) => b[1] - a[1])[0][0]
-    const vals = waterings
+    const vals = recent
       .filter(w => (w.unit ?? 'cups') === unit)
       .map(w => parseFloat(w.amount))
       .sort((a, b) => a - b)

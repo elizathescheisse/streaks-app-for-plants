@@ -43,3 +43,4 @@ e.g. `alocasia-2026-05-20-probe-variance.json`.
 |------|-------|-------|
 | `alocasia-2026-05-20-probe-variance.json` | #101 | Reading 3 → water 2c → reading 2 (dry-pocket probe) → reading 6 (good probe). Should not recommend re-watering. |
 | `big-monstera-2026-05-28-noisy-dip.json` | #172 | Mid-cycle readings 5 → 2 → 4 with no watering between (probe dip). Fitted line stays near the neighbor consensus, only slightly pulled down. |
+| `alocasia-2026-09-24-typical-pour-lags-recent.json` | #152 | Real Alocasia history (32 waterings) extended with the recent 5/4/8/8/8-cup pours the user reported. All-time-median "typical pour" was stuck at 4 cups; should reflect recent behavior (≥6). |

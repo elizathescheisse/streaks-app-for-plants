@@ -235,3 +235,33 @@ describe('Alocasia — recommended pour must not run away when pour size does no
     expect(rec.waterNeeded).toBeGreaterThanOrEqual(Math.min(...pours))
   })
 })
+
+// ────────────────────────────────────────────────────────────────────────
+// alocasia-2026-09-24-typical-pour-lags-recent — badge stuck at "Water · 4
+// cups" while the last several pours were 5, 4, 8, 8, 8. "Typical pour" was
+// the median of every watering ever logged for this plant, so ~6 months of
+// early small pours (0.75–3 cups, back when the plant was struggling)
+// permanently outvoted the last few weeks of real behavior. Real cause:
+// the seed for the recommendation should weight recent waterings, not the
+// plant's entire lifetime (see #152 discussion). This fixture is the same
+// plant as alocasia-2026-09-02-pour-size-not-limiting.json, extended with
+// the real waterings Eliza reported seeing on 2026-09-24.
+// ────────────────────────────────────────────────────────────────────────
+describe('Alocasia — typical pour should reflect recent behavior, not the whole lifetime', () => {
+  const plant = loadFixture('alocasia-2026-09-24-typical-pour-lags-recent.json')
+  const careProfile = lookupPlant(plant.species)
+  const ASOF = new Date('2026-09-24T12:00:00.000Z').getTime()
+
+  it('does not stay anchored to the stale all-time-median pour once recent pours have grown', () => {
+    // All-time median of the 32 logged waterings is 4 — that's the bug.
+    // The last several real pours (5, 4, 8, 8, 8) median to 8.
+    const learned = learnedWaterAmount(plant, careProfile)
+    expect(learned.amount).toBeGreaterThanOrEqual(6)
+  })
+
+  it('badge recommendation reflects the same, unstale amount', () => {
+    const model = computeModel(plant, careProfile)
+    const rec = getRecommendation(plant, model, careProfile, ASOF)
+    expect(rec.waterNeeded).toBeGreaterThanOrEqual(6)
+  })
+})
