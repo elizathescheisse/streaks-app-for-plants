@@ -83,6 +83,10 @@ Example: "I set HISTORY_CAP to 500 — that's an arbitrary safety backstop, not 
 
 Always check whether what's being asked for already exists, partially or fully, before writing any code. Search the codebase for related components, utilities, or patterns first. The plant detail modal existing while I assumed it didn't is a concrete example of why this matters — building on top of what's there is almost always better than duplicating it.
 
+## Basic architecture habits
+
+`docs/app-basics-checklist.md` is a short list of general resilience/safety habits (error containment, not trusting outside data, confirming destructive actions, per-user data isolation, testing reasoning code, eventual error reporting) that Eliza wants applied as a matter of course, not just when asked. When building something new that plausibly touches one of these — a new data source, a new destructive action, a new section that could throw — apply the relevant habit without being asked, the same way the plant-detail-page error boundaries (#227) came out of noticing the pattern generalized. Flag any new threshold this introduces as a judgment call, per the usual rule.
+
 ## Dead code
 
 If a refactor, removal, or pivot leaves code that nothing references anymore — unused props, orphan CSS classes, dead functions, leftover imports, unreachable branches — **remove it.** Don't leave it sitting around "in case we need it later." YAGNI applies; the abstraction can be re-added when it's actually needed, and you'll be in a better position to design it correctly then.
