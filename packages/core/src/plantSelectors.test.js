@@ -565,6 +565,24 @@ describe('typicalWaterAmount', () => {
     expect(t.unit).toBe('cups')
   })
 
+  it('only considers the most recent RECENT_POUR_WINDOW (8) waterings once there are more', () => {
+    // 6 old small pours (2 cups, 30-20 days ago) + 8 recent big pours (8 cups,
+    // 9-2 days ago). An all-time median would land near 2; recency-windowing
+    // should land at 8, matching what the user has actually been doing lately.
+    const old    = [30, 28, 26, 24, 22, 20].map(d => makeWatering(2, d))
+    const recent = [9, 8, 7, 6, 5, 4, 3, 2].map(d => makeWatering(8, d))
+    const plant = { events: [...old, ...recent] }
+    const t = typicalWaterAmount(plant, CARE)
+    expect(t.amount).toBe(8)
+    expect(t.source).toBe('history')
+  })
+
+  it('uses the whole history when there are fewer waterings than the window', () => {
+    const plant = { events: [makeWatering(2, 3), makeWatering(4, 2), makeWatering(6, 1)] }
+    const t = typicalWaterAmount(plant, CARE)
+    expect(t.amount).toBe(4) // median of [2,4,6] — window (8) is larger than the history, so nothing ages out
+  })
+
   it('falls back to the species default below 3 waterings', () => {
     const plant = { events: [makeWatering('5', 2)] }
     const t = typicalWaterAmount(plant, CARE)
