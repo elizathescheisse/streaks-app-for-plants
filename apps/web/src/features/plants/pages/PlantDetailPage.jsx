@@ -9,6 +9,7 @@ import PlantInsightsSection from '../../care/components/PlantInsightsSection/Pla
 import PlantChat from '../../care/components/PlantChat/PlantChat.jsx'
 import InRangeDonut from '../../care/components/InRangeDonut/InRangeDonut.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
+import ErrorBoundary from '../../../shared/components/ErrorBoundary'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents, pctTimeInRange
@@ -231,6 +232,7 @@ export default function PlantDetailPage({
 
         {/* ── Current status ── */}
         {(reading || watering) && (
+          <ErrorBoundary label="Current status">
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Current status</h2>
             <div className={styles.statusGrid}>
@@ -285,13 +287,17 @@ export default function PlantDetailPage({
               </p>
             )}
           </section>
+          </ErrorBoundary>
         )}
 
         {/* ── Insights ── */}
-        <PlantInsightsSection plant={plant} model={model} rec={rec} careProfile={careProfile} />
+        <ErrorBoundary label="Insights">
+          <PlantInsightsSection plant={plant} model={model} rec={rec} careProfile={careProfile} />
+        </ErrorBoundary>
 
         {/* ── History chart ── */}
         {readings.length >= 2 && (
+          <ErrorBoundary label="Moisture history chart">
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>Moisture history</h2>
@@ -339,9 +345,11 @@ export default function PlantDetailPage({
               </div>
             )}
           </section>
+          </ErrorBoundary>
         )}
 
         {/* ── Log history ── */}
+        <ErrorBoundary label="Log history">
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>
             Log history
@@ -390,6 +398,7 @@ export default function PlantDetailPage({
             )
           })}
         </section>
+        </ErrorBoundary>
 
         </div>{/* /mainCol */}
 
@@ -403,15 +412,17 @@ export default function PlantDetailPage({
           <aside className={styles.sidebar}>
             <div className={styles.sidebarStack}>
               <section className={styles.careCard}>
-                <PlantChat
-                  plant={plant}
-                  careProfile={careProfile}
-                  health={health}
-                  reading={reading}
-                  watering={watering}
-                  rec={rec}
-                  usePredicted={usePredicted}
-                />
+                <ErrorBoundary label="AI chat">
+                  <PlantChat
+                    plant={plant}
+                    careProfile={careProfile}
+                    health={health}
+                    reading={reading}
+                    watering={watering}
+                    rec={rec}
+                    usePredicted={usePredicted}
+                  />
+                </ErrorBoundary>
               </section>
             </div>
           </aside>
