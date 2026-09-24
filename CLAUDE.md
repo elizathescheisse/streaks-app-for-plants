@@ -175,6 +175,7 @@ Key selectors live in `src/utils/plantSelectors.js`:
 - `PlantPrediction.jsx` — shows next watering prediction and model confidence
 - `MoistureBar.jsx` — horizontal bar showing current moisture vs ideal range
 - `Modal.jsx` — generic modal wrapper used for forms and confirmations
+- `ErrorBoundary.jsx` — contains a render crash to the section it wraps instead of unmounting the whole app (#226 was a missing import that, with no boundary anywhere, took the entire page black with no way back). Wrap each independently-risky section of a page — a chart, a data-derived insights panel, anything doing its own modeling math — with `<ErrorBoundary label="...">`. See `PlantDetailPage.jsx` for the pattern.
 
 ## Figma Design File
 

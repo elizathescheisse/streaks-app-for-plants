@@ -1,0 +1,10 @@
+.fallback {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
