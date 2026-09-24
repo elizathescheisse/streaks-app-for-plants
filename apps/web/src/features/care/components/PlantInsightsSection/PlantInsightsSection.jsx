@@ -1,5 +1,6 @@
 import styles from './PlantInsightsSection.module.css'
 import { generateInsight } from '@plant-streaks/core/plantInsights.js'
+import { learnedWaterAmount } from '@plant-streaks/core/plantModel.js'
 import {
   avgWateringInterval,
   wateringIntervalAdvice,
