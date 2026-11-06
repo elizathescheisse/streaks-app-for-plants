@@ -20,6 +20,14 @@ const SCHEMA_KEY     = 'plant-streaks-schema'
 const today = new Date()
 const DATE_KEY = today.toISOString().slice(0, 10)
 
+// { amount, unit } from a form's amount/unit pair, or null when the amount is
+// blank — how the optional per-plant water settings (typical pour, max pour)
+// are stored on the plant.
+function amountFromForm(form, amountKey, unitKey) {
+  const amount = String(form[amountKey] ?? '').trim()
+  return amount ? { amount, unit: form[unitKey] ?? 'cups' } : null
+}
+
 // One-time schema reset — clears any old-format data on first load
 function loadInitialPlants() {
   const ver = localStorage.getItem(SCHEMA_KEY)
@@ -76,10 +84,9 @@ export default function App() {
     if (form.id) {
       setPlants(ps => ps.map(p => {
         if (p.id !== form.id) return p
-        const typicalWater = String(form.typicalWaterAmount ?? '').trim()
-          ? { amount: String(form.typicalWaterAmount).trim(), unit: form.typicalWaterUnit ?? 'cups' }
-          : null
-        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name, typicalWater }
+        const typicalWater = amountFromForm(form, 'typicalWaterAmount', 'typicalWaterUnit')
+        const maxPour      = amountFromForm(form, 'maxPourAmount', 'maxPourUnit')
+        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name, typicalWater, maxPour }
         // Append a health_change event only if health actually changed
         if (form.health && form.health !== currentHealth(p)) {
           updated.events = [...p.events, {
@@ -103,9 +110,7 @@ export default function App() {
           health:    form.health,
         })
       }
-      const typicalWater = String(form.typicalWaterAmount ?? '').trim()
-        ? { amount: String(form.typicalWaterAmount).trim(), unit: form.typicalWaterUnit ?? 'cups' }
-        : null
+      const typicalWater = amountFromForm(form, 'typicalWaterAmount', 'typicalWaterUnit')
       setPlants(ps => [...ps, {
         id:      crypto.randomUUID(),
         emoji:   form.emoji,
@@ -130,6 +135,8 @@ export default function App() {
         health: currentHealth(plant),
         typicalWaterAmount: plant.typicalWater?.amount ?? '',
         typicalWaterUnit:   plant.typicalWater?.unit ?? 'cups',
+        maxPourAmount:      plant.maxPour?.amount ?? '',
+        maxPourUnit:        plant.maxPour?.unit ?? 'cups',
       }
     })
   }

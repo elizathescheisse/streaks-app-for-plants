@@ -10,6 +10,7 @@ import {
   isSuspiciousReading,
   smoothedCurrentMoisture,
   typicalWaterAmount,
+  recentMaxPour,
   speciesDefaultBeta,
   isInHealthyRange,
   pctTimeInRange,
@@ -809,6 +810,35 @@ describe('predictedLandingMoisture', () => {
   })
 })
 
+// ── recentMaxPour ─────────────────────────────────────────────────────────────
+
+describe('recentMaxPour', () => {
+  it('returns null with no waterings', () => {
+    expect(recentMaxPour({ events: [] }, {})).toBeNull()
+  })
+
+  it('returns the biggest of the recent pours, with its unit', () => {
+    const plant = { events: [makeWatering(2, 3), makeWatering(5, 2), makeWatering(3, 1)] }
+    expect(recentMaxPour(plant, {})).toEqual({ amount: 5, unit: 'cups' })
+  })
+
+  it('only looks at the most recent 8 waterings — an old big pour ages out', () => {
+    const old    = makeWatering(12, 60)
+    const recent = [9, 8, 7, 6, 5, 4, 3, 2].map(d => makeWatering(2, d))
+    expect(recentMaxPour({ events: [old, ...recent] }, {})).toEqual({ amount: 2, unit: 'cups' })
+  })
+
+  it('works with a single watering (unlike the typical-pour median, which needs 3)', () => {
+    expect(recentMaxPour({ events: [makeWatering(4, 1)] }, {})).toEqual({ amount: 4, unit: 'cups' })
+  })
+
+  it('uses the dominant unit when mixed', () => {
+    const liters = { id: 'w9', type: 'watering', timestamp: ts(5), amount: '0.5', unit: 'liters', bundleId: 'b' }
+    const plant = { events: [makeWatering(2, 3), makeWatering(4, 2), liters] }
+    expect(recentMaxPour(plant, {})).toEqual({ amount: 4, unit: 'cups' })
+  })
+})
+
 // ── wateringIntervalAdvice ────────────────────────────────────────────────────
 
 describe('wateringIntervalAdvice', () => {
@@ -843,5 +873,38 @@ describe('wateringIntervalAdvice', () => {
 
   it('returns null with no watering history and no learned drying rate', () => {
     expect(wateringIntervalAdvice({ events: [] }, {}, RANGE)).toBeNull()
+  })
+
+  // ── 'capped' basis (#232): same water per day in pours that fit ──
+  it("suggests a shorter interval when the pour is capped, keeping the same water per day", () => {
+    // wanted 4 cups per watering at a 4-day rhythm, can only pour 2 → every 2 days
+    const learned = { amount: 2, uncapped: 4, capped: true }
+    const advice = wateringIntervalAdvice(build([4, 3, 3, 4, 3, 3, 3, 3]), { beta: 0.5 }, RANGE, learned)
+    expect(advice.basis).toBe('capped')
+    expect(advice.days).toBeCloseTo(2)
+  })
+
+  it("never suggests an interval under the 1-day minimum", () => {
+    const learned = { amount: 1, uncapped: 20, capped: true }
+    const advice = wateringIntervalAdvice(build([4, 3, 3, 4, 3, 3, 3, 3]), { beta: 0.5 }, RANGE, learned)
+    expect(advice.days).toBe(1)
+  })
+
+  it("still says 'working' when readings are in range, even if the pour is capped", () => {
+    const learned = { amount: 2, uncapped: 4, capped: true }
+    const advice = wateringIntervalAdvice(build([5, 5, 6, 5, 5, 6, 5, 6]), { beta: 0.5 }, RANGE, learned)
+    expect(advice.basis).toBe('working')
+  })
+
+  it("ignores a learned amount that is not capped", () => {
+    const learned = { amount: 4, uncapped: 4, capped: false }
+    const advice = wateringIntervalAdvice(build([4, 3, 3, 4, 3, 3, 3, 3]), { beta: 0.5 }, RANGE, learned)
+    expect(advice.basis).not.toBe('capped')
+  })
+
+  it("cannot suggest a capped interval with no watering history to stretch — falls through to the drying-rate advice", () => {
+    const learned = { amount: 2, uncapped: 4, capped: true }
+    const advice = wateringIntervalAdvice({ events: [] }, { beta: 0.5 }, RANGE, learned)
+    expect(advice.basis).toBe('model')
   })
 })

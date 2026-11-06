@@ -16,6 +16,14 @@ function plantName(plant) {
   return n || 'This plant'
 }
 
+// "4 cups", "1.5 cups", "1 L" — trims trailing zeros, singular for exactly 1.
+function volumeLabel(amount, unit) {
+  const n = +Number(amount).toFixed(1)
+  if (unit === 'liters') return `${n} L`
+  if (unit === 'cups') return `${n} cup${n === 1 ? '' : 's'}`
+  return `${n} ${unit}`
+}
+
 export function generateInsight(plant, model, careProfile) {
   const name = plantName(plant)
   const readings = getEvents(plant, 'reading')
@@ -31,10 +39,22 @@ export function generateInsight(plant, model, careProfile) {
   const hi = range?.[1]
   const pct = pctTimeInRange(plant, careProfile)
   const avgInterval = avgWateringInterval(plant)
-  const advice = wateringIntervalAdvice(plant, model, careProfile)
+  const learned = learnedWaterAmount(plant, careProfile)
+  const advice = wateringIntervalAdvice(plant, model, careProfile, learned)
   const idealInterval = advice?.basis === 'model' ? advice.days : null
   const pour = avgPourAmount(plant)
   const landing = pour ? predictedLandingMoisture(plant, model, careProfile) : null
+
+  // 1b. The pour is limited (#232): the plant seems to need more per watering
+  //     than can be poured at once, so the lever is how often, not how much.
+  //     Comes before the interval/pour cases below, which would otherwise tell
+  //     the user to "pour a bit more".
+  if (advice?.basis === 'capped') {
+    const why = learned.cap.source === 'set'
+      ? `the most you can pour at once is ${volumeLabel(learned.cap.amount, learned.unit)}`
+      : `that's more than the ${volumeLabel(learned.cap.amount, learned.unit)} or so you've been pouring`
+    return `${name} seems to need about ${volumeLabel(learned.uncapped, learned.unit)} per watering at your current pace, but ${why}. Watering about every ~${Math.round(advice.days)} days instead of ~${Math.round(avgInterval)} should give it the same water in smaller pours.`
+  }
 
   // 2. Chronically too dry: <50% in range AND median below floor
   if (pct != null && pct < 50 && lo != null) {
@@ -60,7 +80,7 @@ export function generateInsight(plant, model, careProfile) {
   // 4. Typical pour doesn't lift the plant into its healthy range
   //    Skipped when the plant's own history says bigger pours don't raise its
   //    reading — advice to "pour more" would be wrong; the interval is the lever.
-  const pourHelps = learnedWaterAmount(plant, careProfile).pourSizeMatters !== false
+  const pourHelps = learned?.pourSizeMatters !== false
   if (!pourHelps && landing != null && lo != null && landing < lo && model.beta) {
     const test = advice?.basis === 'experiment'
       ? ` Worth a test: try every ~${Math.round(advice.days)} days for a few waterings and see whether more readings land in range.`

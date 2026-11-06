@@ -18,6 +18,8 @@ export const EMPTY_PLANT_FORM = {
   health:  null,
   typicalWaterAmount: '',
   typicalWaterUnit:   'cups',
+  maxPourAmount:      '',
+  maxPourUnit:        'cups',
 }
 
 const HEALTH_OPTIONS = [
@@ -231,6 +233,40 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
             </div>
             <p className={styles.fieldHint}>
               Use this if the suggested amount looks wrong — the app will recommend your amount instead.
+            </p>
+          </div>
+
+          {/* Most I can pour at once (#232) — a hard limit on the suggested
+              pour, for plants whose pot/tray can't take more in one go. Blank
+              is fine: the app then uses what's been poured recently as a guide. */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              MOST I CAN POUR AT ONCE <span className={styles.optional}>(optional)</span>
+            </label>
+            <div className={styles.waterOverrideRow}>
+              <input
+                className={styles.input}
+                type="number"
+                min="0"
+                step="0.25"
+                inputMode="decimal"
+                placeholder="not sure yet"
+                value={form.maxPourAmount ?? ''}
+                onChange={e => set('maxPourAmount', e.target.value)}
+              />
+              <div className={styles.segmented}>
+                {['cups', 'liters'].map(u => (
+                  <button
+                    key={u}
+                    type="button"
+                    className={`${styles.seg} ${(form.maxPourUnit ?? 'cups') === u ? styles.segActive : ''}`}
+                    onClick={() => set('maxPourUnit', u)}
+                  >{u === 'cups' ? 'cups' : 'L'}</button>
+                ))}
+              </div>
+            </div>
+            <p className={styles.fieldHint}>
+              Leave blank if you're not sure. If you set it, the app never suggests more than this in one watering — it suggests watering more often instead.
             </p>
           </div>
 

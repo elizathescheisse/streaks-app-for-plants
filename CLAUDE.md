@@ -144,6 +144,8 @@ Plants are stored as event logs — never mutate history, only append:
 }
 ```
 
+Plants can also carry optional per-plant water settings, each `{ amount, unit }` (set in the edit form, null/absent when blank): `typicalWater` (an override of the suggested pour, #135) and `maxPour` (a hard limit on the suggested pour for tray/pot-limited plants, #232 — applied by `learnedWaterAmount`, which also reports `uncapped`/`capped`/`cap`).
+
 Key selectors live in `src/utils/plantSelectors.js`:
 - `lastReading(plant)` — most recent moisture reading event
 - `lastWatering(plant)` — most recent watering event

@@ -7,10 +7,11 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-import { smoothedCurrentMoisture } from '../src/plantSelectors.js'
+import { smoothedCurrentMoisture, wateringIntervalAdvice, avgWateringInterval } from '../src/plantSelectors.js'
 import { computeModel, getRecommendation, learnedWaterAmount } from '../src/plantModel.js'
 import { fitMoistureSeries, fittedLevelAt } from '../src/plantCurve.js'
 import { lookupPlant } from '../src/plantLookup.js'
+import { generateInsight } from '../src/plantInsights.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -154,6 +155,51 @@ describe('Chronically under-watered — amount loop climbs the recommendation (P
     expect(rec.amountSource).toBe('outcome')           // the loop is driving the amount
     expect(rec.waterNeeded).toBeGreaterThan(1)         // climbed above the poured 1 cup
     expect(rec.waterNeeded).toBeLessThanOrEqual(2.5)   // but bounded — no runaway
+  })
+})
+
+// ────────────────────────────────────────────────────────────────────────
+// underwatered-2026-05-25-amount-loop, with a per-plant "most I can pour at
+// once" cap (#232). The plant never gets wet enough on its 1 cup/week, so the
+// amount loop keeps asking for more — but a small plant in a small catcher
+// tray can't take more in one go, so the user never follows the suggestion.
+// With the cap set, the recommendation must stop at what physically fits and
+// the app should say "water more often" instead of "pour more".
+// ────────────────────────────────────────────────────────────────────────
+describe('Tray-limited plant — recommendation respects the max pour and shortens the interval (#232)', () => {
+  const plant = { ...loadFixture('underwatered-2026-05-25-amount-loop.json'), maxPour: { amount: '1', unit: 'cups' } }
+  const careProfile = lookupPlant(plant.species)
+
+  const FIXTURE_NOW = new Date('2026-05-25T17:00:00.000Z')
+  beforeAll(() => { vi.useFakeTimers(); vi.setSystemTime(FIXTURE_NOW) })
+  afterAll(() => { vi.useRealTimers() })
+
+  it('never recommends more than the cap, even though the loop wants more', () => {
+    const model = computeModel(plant, careProfile)
+    const rec   = getRecommendation(plant, model, careProfile)
+    expect(rec.waterNeeded).toBeGreaterThan(0)
+    expect(rec.waterNeeded).toBeLessThanOrEqual(1)
+    const learned = learnedWaterAmount(plant, careProfile)
+    expect(learned.capped).toBe(true)
+    expect(learned.uncapped).toBeGreaterThan(1)
+    expect(learned.cap).toEqual({ amount: 1, source: 'set' })
+  })
+
+  it('suggests watering more often instead of pouring more', () => {
+    const model   = computeModel(plant, careProfile)
+    const learned = learnedWaterAmount(plant, careProfile)
+    const advice  = wateringIntervalAdvice(plant, model, careProfile, learned)
+    expect(advice.basis).toBe('capped')
+    expect(advice.days).toBeLessThan(avgWateringInterval(plant))   // shorter than the current ~7 days
+    expect(advice.days).toBeGreaterThanOrEqual(1)
+  })
+
+  it('says so in plain words: pours are limited, water more often', () => {
+    const model = computeModel(plant, careProfile)
+    const text  = generateInsight(plant, model, careProfile)
+    expect(text).toMatch(/most you can pour at once is 1 cup/)
+    expect(text).toMatch(/Watering about every ~\d+ days/)
+    expect(text).not.toMatch(/bigger pour/)
   })
 })
 
