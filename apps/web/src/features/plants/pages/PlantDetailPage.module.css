@@ -470,7 +470,7 @@
   margin-bottom: 6px;
 }
 
-.moisturePill, .waterPill {
+.moisturePill, .waterPill, .trayPill {
   font-size: 12px;
   color: var(--text-muted);
   background: var(--bg-surface);
@@ -480,6 +480,7 @@
 }
 
 .waterPill { color: var(--data-water); }
+.trayPill { color: var(--text-secondary); }
 
 .logBar {
   margin-top: 4px;

@@ -7,6 +7,10 @@ import {
   logBundles,
   chartEvents,
   buildEventsFromForm,
+  TRAY_FILL_OPTIONS,
+  formatVolume,
+  describeTrayFill,
+  trayRunoff,
   isSuspiciousReading,
   smoothedCurrentMoisture,
   typicalWaterAmount,
@@ -436,6 +440,28 @@ describe('buildEventsFromForm', () => {
     expect(events[0].moisture).toBe(6)
   })
 
+  // ── tray fill (#233) ──
+  it('stores the tray-fill pick on the watering event', () => {
+    const events = buildEventsFromForm({ ...baseForm, waterAmount: '2', trayFill: 'half' })
+    expect(events.find(e => e.type === 'watering').trayFill).toBe('half')
+  })
+
+  it('leaves trayFill off the watering event when nothing was picked', () => {
+    for (const trayFill of ['', undefined, null]) {
+      const w = buildEventsFromForm({ ...baseForm, waterAmount: '2', trayFill }).find(e => e.type === 'watering')
+      expect(w).not.toHaveProperty('trayFill')
+    }
+  })
+
+  it('ignores an unknown tray-fill value', () => {
+    const w = buildEventsFromForm({ ...baseForm, waterAmount: '2', trayFill: 'sloshing' }).find(e => e.type === 'watering')
+    expect(w).not.toHaveProperty('trayFill')
+  })
+
+  it('ignores a tray-fill pick when there was no watering', () => {
+    expect(buildEventsFromForm({ ...baseForm, trayFill: 'half' })).toEqual([])
+  })
+
   it('creates a watering event when waterAmount is set', () => {
     const form = { ...baseForm, waterAmount: '1.5' }
     const events = buildEventsFromForm(form)
@@ -836,6 +862,81 @@ describe('recentMaxPour', () => {
     const liters = { id: 'w9', type: 'watering', timestamp: ts(5), amount: '0.5', unit: 'liters', bundleId: 'b' }
     const plant = { events: [makeWatering(2, 3), makeWatering(4, 2), liters] }
     expect(recentMaxPour(plant, {})).toEqual({ amount: 4, unit: 'cups' })
+  })
+})
+
+describe('formatVolume', () => {
+  it('words cups with singular/plural', () => {
+    expect(formatVolume(1, 'cups')).toBe('1 cup')
+    expect(formatVolume(1.5, 'cups')).toBe('1.5 cups')
+    expect(formatVolume(4, 'cups')).toBe('4 cups')
+    expect(formatVolume('2', 'cups')).toBe('2 cups')
+  })
+
+  it('trims trailing zeros but keeps up to 2 decimals', () => {
+    expect(formatVolume(1.0, 'cups')).toBe('1 cup')
+    expect(formatVolume(0.25, 'cups')).toBe('0.25 cups')
+    expect(formatVolume(1.4000001, 'cups')).toBe('1.4 cups')
+  })
+
+  it('writes liters as L and shows other units as-is', () => {
+    expect(formatVolume(0.5, 'liters')).toBe('0.5 L')
+    expect(formatVolume(5, 'ice cubes')).toBe('5 ice cubes')
+  })
+})
+
+// ── tray fill helpers (#233) ──────────────────────────────────────────────────
+
+describe('describeTrayFill', () => {
+  it('words each pick', () => {
+    expect(describeTrayFill('empty')).toBe('tray stayed empty')
+    expect(describeTrayFill('quarter')).toBe('tray ¼ full')
+    expect(describeTrayFill('half')).toBe('tray ½ full')
+    expect(describeTrayFill('three_quarters')).toBe('tray ¾ full')
+    expect(describeTrayFill('full')).toBe('tray full')
+    expect(describeTrayFill('overflowed')).toBe('tray overflowed')
+  })
+
+  it('returns null for a missing or unknown value', () => {
+    expect(describeTrayFill(undefined)).toBeNull()
+    expect(describeTrayFill('')).toBeNull()
+    expect(describeTrayFill('sloshing')).toBeNull()
+  })
+
+  it('every pick has a label and a 0-1 fraction', () => {
+    for (const o of TRAY_FILL_OPTIONS) {
+      expect(o.label).toBeTruthy()
+      expect(o.fraction).toBeGreaterThanOrEqual(0)
+      expect(o.fraction).toBeLessThanOrEqual(1)
+    }
+  })
+})
+
+describe('trayRunoff', () => {
+  const plant = { trayCapacity: { amount: '2', unit: 'cups' } }
+
+  it('turns a pick into cups using the tray size', () => {
+    expect(trayRunoff({ trayFill: 'half' }, plant)).toEqual({ amount: 1, unit: 'cups', atLeast: false })
+    expect(trayRunoff({ trayFill: 'empty' }, plant).amount).toBe(0)
+    expect(trayRunoff({ trayFill: 'full' }, plant).amount).toBe(2)
+  })
+
+  it("reports overflow as a floor ('at least' the tray size)", () => {
+    expect(trayRunoff({ trayFill: 'overflowed' }, plant)).toEqual({ amount: 2, unit: 'cups', atLeast: true })
+  })
+
+  it("uses the tray's own unit", () => {
+    const p = { trayCapacity: { amount: '0.5', unit: 'liters' } }
+    expect(trayRunoff({ trayFill: 'quarter' }, p)).toEqual({ amount: 0.125, unit: 'liters', atLeast: false })
+  })
+
+  it('returns null with no fill picked, an unknown fill, or no usable tray size', () => {
+    expect(trayRunoff({}, plant)).toBeNull()
+    expect(trayRunoff({ trayFill: 'sloshing' }, plant)).toBeNull()
+    expect(trayRunoff({ trayFill: 'half' }, {})).toBeNull()
+    expect(trayRunoff({ trayFill: 'half' }, { trayCapacity: { amount: '', unit: 'cups' } })).toBeNull()
+    expect(trayRunoff({ trayFill: 'half' }, { trayCapacity: { amount: '0', unit: 'cups' } })).toBeNull()
+    expect(trayRunoff(null, plant)).toBeNull()
   })
 })
 

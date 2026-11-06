@@ -86,7 +86,8 @@ export default function App() {
         if (p.id !== form.id) return p
         const typicalWater = amountFromForm(form, 'typicalWaterAmount', 'typicalWaterUnit')
         const maxPour      = amountFromForm(form, 'maxPourAmount', 'maxPourUnit')
-        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name, typicalWater, maxPour }
+        const trayCapacity = amountFromForm(form, 'trayAmount', 'trayUnit')
+        const updated = { ...p, emoji: form.emoji, species: form.species, name: form.name, typicalWater, maxPour, trayCapacity }
         // Append a health_change event only if health actually changed
         if (form.health && form.health !== currentHealth(p)) {
           updated.events = [...p.events, {
@@ -137,6 +138,8 @@ export default function App() {
         typicalWaterUnit:   plant.typicalWater?.unit ?? 'cups',
         maxPourAmount:      plant.maxPour?.amount ?? '',
         maxPourUnit:        plant.maxPour?.unit ?? 'cups',
+        trayAmount:         plant.trayCapacity?.amount ?? '',
+        trayUnit:           plant.trayCapacity?.unit ?? 'cups',
       }
     })
   }
@@ -170,6 +173,7 @@ export default function App() {
         moisture:    reading?.moisture  ?? '',
         waterAmount: watering?.amount   ?? '',
         waterUnit:   watering?.unit     ?? 'cups',
+        trayFill:    watering?.trayFill ?? '',
         health:      healthEv?.health   ?? 'no_change',
         notes:       note?.text         ?? '',
       }

@@ -12,7 +12,8 @@ import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import ErrorBoundary from '../../../shared/components/ErrorBoundary'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
 import {
-  lastReading, lastWatering, currentHealth, logBundles, chartEvents, pctTimeInRange
+  lastReading, lastWatering, currentHealth, logBundles, chartEvents, pctTimeInRange,
+  describeTrayFill, trayRunoff, formatVolume
 } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
 import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
@@ -382,6 +383,15 @@ export default function PlantDetailPage({
                 <div className={styles.logMeta}>
                   {reading  && <span className={styles.moisturePill}>◎ {reading.moisture} / 10</span>}
                   {watering && <span className={styles.waterPill}>💧 {waterLabel(watering.unit, watering.amount)}</span>}
+                  {watering?.trayFill && (() => {
+                    const runoff = trayRunoff(watering, plant)
+                    return (
+                      <span className={styles.trayPill}>
+                        🪣 {describeTrayFill(watering.trayFill)}
+                        {runoff && ` (≈ ${runoff.atLeast ? 'at least ' : ''}${formatVolume(runoff.amount, runoff.unit)})`}
+                      </span>
+                    )
+                  })()}
                   {healthEv && (
                     <span className={`${styles.badge} ${styles[`badge_${healthEv.health}`]}`}>
                       {HEALTH_LABELS[healthEv.health]}

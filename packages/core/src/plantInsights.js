@@ -8,20 +8,13 @@ import {
   avgPourAmount,
   predictedLandingMoisture,
   getEvents,
+  formatVolume,
 } from './plantSelectors.js'
 import { learnedWaterAmount } from './plantModel.js'
 
 function plantName(plant) {
   const n = plant.name || (plant.species ? plant.species.replace(/\b\w/g, c => c.toUpperCase()) : null)
   return n || 'This plant'
-}
-
-// "4 cups", "1.5 cups", "1 L" — trims trailing zeros, singular for exactly 1.
-function volumeLabel(amount, unit) {
-  const n = +Number(amount).toFixed(1)
-  if (unit === 'liters') return `${n} L`
-  if (unit === 'cups') return `${n} cup${n === 1 ? '' : 's'}`
-  return `${n} ${unit}`
 }
 
 export function generateInsight(plant, model, careProfile) {
@@ -51,9 +44,9 @@ export function generateInsight(plant, model, careProfile) {
   //     the user to "pour a bit more".
   if (advice?.basis === 'capped') {
     const why = learned.cap.source === 'set'
-      ? `the most you can pour at once is ${volumeLabel(learned.cap.amount, learned.unit)}`
-      : `that's more than the ${volumeLabel(learned.cap.amount, learned.unit)} or so you've been pouring`
-    return `${name} seems to need about ${volumeLabel(learned.uncapped, learned.unit)} per watering at your current pace, but ${why}. Watering about every ~${Math.round(advice.days)} days instead of ~${Math.round(avgInterval)} should give it the same water in smaller pours.`
+      ? `the most you can pour at once is ${formatVolume(learned.cap.amount, learned.unit)}`
+      : `that's more than the ${formatVolume(learned.cap.amount, learned.unit)} or so you've been pouring`
+    return `${name} seems to need about ${formatVolume(learned.uncapped, learned.unit)} per watering at your current pace, but ${why}. Watering about every ~${Math.round(advice.days)} days instead of ~${Math.round(avgInterval)} should give it the same water in smaller pours.`
   }
 
   // 2. Chronically too dry: <50% in range AND median below floor

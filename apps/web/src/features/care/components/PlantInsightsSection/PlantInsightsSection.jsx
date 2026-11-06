@@ -8,6 +8,7 @@ import {
   predictedLandingMoisture,
   typicalWaterAmount,
   getEvents,
+  formatVolume,
 } from '@plant-streaks/core/plantSelectors.js'
 
 // Watering style/light/humidity consolidated in from the old sidebar Care
@@ -41,14 +42,6 @@ const HUMIDITY_LABELS = {
 const WATERING_STYLE_LABELS = {
   'flood-and-dry': '🌊 Flood & dry out',
   'consistent':    '🪣 Consistent moisture',
-}
-
-// "1 cup", "1.5 cups", "1 L" — same wording as the badge amounts.
-function volumeText(amount, unit) {
-  const n = +Number(amount).toFixed(1)
-  if (unit === 'liters') return `${n} L`
-  if (unit === 'cups') return `${n} cup${n === 1 ? '' : 's'}`
-  return `${n} ${unit}`
 }
 
 function roundDays(days) {
@@ -133,7 +126,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
                   )}
                   {advice.basis === 'experiment' && <>try ~{roundDays(advice.days)}d as a test</>}
                   {advice.basis === 'capped' && (
-                    <>try ~{roundDays(advice.days)}d — pours limited to {volumeText(learned.cap.amount, learned.unit)}</>
+                    <>try ~{roundDays(advice.days)}d — pours limited to {formatVolume(learned.cap.amount, learned.unit)}</>
                   )}
                 </span>
               </div>
