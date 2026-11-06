@@ -352,3 +352,56 @@
   border-radius: var(--radius-sm);
   border-left: 2px solid rgba(245, 166, 35, 0.4);
 }
+
+/* Tray runoff picks (#233) — optional detail under the watering row */
+.trayBlock {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.optionalTag {
+  color: var(--text-muted);
+}
+
+.trayRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trayPill {
+  height: 36px;
+  min-width: 44px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.trayPill:hover {
+  background: var(--bg-surface-raised);
+}
+
+.trayPillActive {
+  background: rgba(69,209,87,0.14);
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.trayHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}

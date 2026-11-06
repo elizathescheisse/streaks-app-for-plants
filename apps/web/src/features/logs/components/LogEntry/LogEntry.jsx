@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import styles from './LogEntry.module.css'
 import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
-import { isSignificantWatering, isSuspiciousReading } from '@plant-streaks/core/plantSelectors.js'
+import { isSignificantWatering, isSuspiciousReading, TRAY_FILL_OPTIONS, trayRunoff, formatVolume } from '@plant-streaks/core/plantSelectors.js'
 
 const HEALTH_OPTIONS = [
   { value: 'no_change',  label: 'No change'    },
@@ -35,6 +35,7 @@ export function createEmptyLogForm() {
     moisture:    '',
     waterAmount: '',
     waterUnit:   'cups',
+    trayFill:    '',
     health:      'no_change',
     notes:       '',
     timestamp:   nowLocalInput(),
@@ -172,6 +173,37 @@ export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, on
             For a flood-and-dry plant, consider watering more thoroughly
             (at least {form.waterUnit === 'liters' ? `${careProfile.minWaterAmount.liters} L` : `${careProfile.minWaterAmount.cups} cups`}).
           </p>
+        )}
+
+        {/* Tray runoff (#233) — optional detail, only once there's a watering to
+            attach it to. Tap a pick again to clear it. */}
+        {String(form.waterAmount).trim() && (
+          <div className={styles.trayBlock}>
+            <span className={styles.subLabel}>
+              How full did the tray get? <span className={styles.optionalTag}>(optional)</span>
+            </span>
+            <div className={styles.trayRow} role="group" aria-label="How full the tray got">
+              {TRAY_FILL_OPTIONS.map(o => (
+                <button
+                  key={o.value}
+                  type="button"
+                  className={`${styles.trayPill} ${form.trayFill === o.value ? styles.trayPillActive : ''}`}
+                  aria-pressed={form.trayFill === o.value}
+                  onClick={() => set('trayFill', form.trayFill === o.value ? '' : o.value)}
+                >{o.label}</button>
+              ))}
+            </div>
+            {form.trayFill && (() => {
+              const runoff = trayRunoff({ trayFill: form.trayFill }, plant)
+              return (
+                <p className={styles.trayHint}>
+                  {runoff
+                    ? `≈ ${runoff.atLeast ? 'at least ' : ''}${formatVolume(runoff.amount, runoff.unit)} ran into the tray`
+                    : "Add this plant's tray size in Edit plant to see this in cups."}
+                </p>
+              )
+            })()}
+          </div>
         )}
       </div>
 

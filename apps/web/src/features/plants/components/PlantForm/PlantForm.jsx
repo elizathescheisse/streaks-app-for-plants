@@ -20,6 +20,8 @@ export const EMPTY_PLANT_FORM = {
   typicalWaterUnit:   'cups',
   maxPourAmount:      '',
   maxPourUnit:        'cups',
+  trayAmount:         '',
+  trayUnit:           'cups',
 }
 
 const HEALTH_OPTIONS = [
@@ -267,6 +269,39 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
             </div>
             <p className={styles.fieldHint}>
               Leave blank if you're not sure. If you set it, the app never suggests more than this in one watering — it suggests watering more often instead.
+            </p>
+          </div>
+
+          {/* Tray size (#233) — how much the catcher tray holds, so the Log
+              form's "how full did the tray get?" picks can show up in cups. */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              TRAY SIZE <span className={styles.optional}>(optional)</span>
+            </label>
+            <div className={styles.waterOverrideRow}>
+              <input
+                className={styles.input}
+                type="number"
+                min="0"
+                step="0.25"
+                inputMode="decimal"
+                placeholder="e.g. 1"
+                value={form.trayAmount ?? ''}
+                onChange={e => set('trayAmount', e.target.value)}
+              />
+              <div className={styles.segmented}>
+                {['cups', 'liters'].map(u => (
+                  <button
+                    key={u}
+                    type="button"
+                    className={`${styles.seg} ${(form.trayUnit ?? 'cups') === u ? styles.segActive : ''}`}
+                    onClick={() => set('trayUnit', u)}
+                  >{u === 'cups' ? 'cups' : 'L'}</button>
+                ))}
+              </div>
+            </div>
+            <p className={styles.fieldHint}>
+              About how much water the catcher tray holds. Lets the Log form turn "how full did the tray get?" into cups.
             </p>
           </div>
 

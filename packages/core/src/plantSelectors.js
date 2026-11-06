@@ -162,6 +162,55 @@ export function chartEvents(plant) {
 // Returns [] if nothing was filled in.
 // `form.timestamp` is a local datetime string (YYYY-MM-DDTHH:MM) from the
 // <input type="datetime-local"> field. Falls back to "now" if missing.
+// "1 cup", "1.5 cups", "0.25 cups", "1 L" — trailing zeros trimmed (2 decimals
+// max), singular for exactly 1. Other units show as-is (e.g. "5 ice cubes").
+export function formatVolume(amount, unit) {
+  const n = +Number(amount).toFixed(2)
+  if (unit === 'liters') return `${n} L`
+  if (unit === 'cups') return `${n} cup${n === 1 ? '' : 's'}`
+  return `${n} ${unit}`
+}
+
+// How full the catcher tray got after a watering (#233) — the quick picks
+// offered in the full Log form. `fraction` is the pick's NOMINAL share of the
+// tray's capacity (the user is eyeballing it, so ¼ means "about a quarter"),
+// not a measurement. 'overflowed' means it spilled over: fraction 1 is only a
+// floor. Stored on the watering event as `trayFill: <value>`; collecting only —
+// nothing reads it for recommendations yet (#234).
+export const TRAY_FILL_OPTIONS = [
+  { value: 'empty',          label: 'Empty',      fraction: 0 },
+  { value: 'quarter',        label: '¼',          fraction: 0.25 },
+  { value: 'half',           label: '½',          fraction: 0.5 },
+  { value: 'three_quarters', label: '¾',          fraction: 0.75 },
+  { value: 'full',           label: 'Full',       fraction: 1 },
+  { value: 'overflowed',     label: 'Overflowed', fraction: 1 },
+]
+
+// Plain-words version for log history: "tray ½ full", "tray overflowed".
+// Returns null for a missing/unknown value.
+export function describeTrayFill(value) {
+  const opt = TRAY_FILL_OPTIONS.find(o => o.value === value)
+  if (!opt) return null
+  if (opt.value === 'empty') return 'tray stayed empty'
+  if (opt.value === 'full') return 'tray full'
+  if (opt.value === 'overflowed') return 'tray overflowed'
+  return `tray ${opt.label} full`
+}
+
+// Approximate water that ran into the tray on one watering, in the tray's own
+// unit — null when no fill was logged or the plant has no tray size set.
+// `atLeast` is true for 'overflowed' (the tray was full and then some).
+export function trayRunoff(watering, plant) {
+  const opt = TRAY_FILL_OPTIONS.find(o => o.value === watering?.trayFill)
+  const capacity = parseFloat(plant?.trayCapacity?.amount)
+  if (!opt || !(capacity > 0)) return null
+  return {
+    amount: opt.fraction * capacity,
+    unit: plant.trayCapacity.unit ?? 'cups',
+    atLeast: opt.value === 'overflowed',
+  }
+}
+
 export function buildEventsFromForm(form, existingBundleId) {
   const timestamp = form.timestamp
     ? new Date(form.timestamp).toISOString()
@@ -185,6 +234,8 @@ export function buildEventsFromForm(form, existingBundleId) {
       timestamp, bundleId,
       amount: String(form.waterAmount).trim(),
       unit: form.waterUnit ?? 'cups',
+      // Optional tray-fill pick (#233); only kept when it's a known value.
+      ...(TRAY_FILL_OPTIONS.some(o => o.value === form.trayFill) ? { trayFill: form.trayFill } : {}),
     })
   }
 
