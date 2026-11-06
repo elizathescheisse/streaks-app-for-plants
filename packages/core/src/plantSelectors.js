@@ -279,6 +279,13 @@ export function recommendedWateringInterval(plant, model, careProfile) {
 //                        rhythm is fine: days = the user's own average gap.
 //                        (If it later stops working the check fails and the
 //                        advice changes on its own.)
+//   basis 'capped'     — not working, and the amount the plant seems to need
+//                        per watering is more than can be poured at once
+//                        (explicit max pour, or the fallback limit): keep the
+//                        same water per day with smaller pours, more often.
+//                        Needs `learned` (a learnedWaterAmount result) — it
+//                        lives in plantModel.js, which imports this file, so
+//                        the caller passes it in rather than us importing it.
 //   basis 'model'      — not working yet, and the drying-rate maths gives a
 //                        number (recommendedWateringInterval).
 //   basis 'experiment' — not working, and the pot can't reach its species
@@ -291,13 +298,19 @@ const WORKING_MIN_READINGS = 6
 const WORKING_PCT = 80           // % of those in range to call it "working"
 const EXPERIMENT_FACTOR = 0.7    // try gaps this fraction of the current one
 
-export function wateringIntervalAdvice(plant, model, careProfile) {
+export function wateringIntervalAdvice(plant, model, careProfile, learned = null) {
   const current = avgWateringInterval(plant)
   const readings = getEvents(plant, 'reading').slice(-WORKING_WINDOW)
   const range = careProfile?.moistureRange
   if (current != null && range && readings.length >= WORKING_MIN_READINGS) {
     const inRange = readings.filter(r => isInHealthyRange(r.moisture, careProfile)).length
     if (inRange / readings.length * 100 >= WORKING_PCT) return { days: current, basis: 'working' }
+  }
+  if (learned?.capped && current != null) {
+    // Same water per day: wanted `uncapped` per watering at the current
+    // rhythm, can only pour `amount` → stretch the rhythm by that ratio.
+    const days = Math.max(MIN_RECOMMENDED_INTERVAL_DAYS, current * (learned.amount / learned.uncapped))
+    return { days, basis: 'capped' }
   }
   const days = recommendedWateringInterval(plant, model, careProfile)
   if (days != null) return { days, basis: 'model' }
@@ -405,6 +418,38 @@ export function predictedLandingMoisture(plant, model, careProfile) {
 // judgment call, not tuned against real usage.
 const RECENT_POUR_WINDOW = 8
 
+// The user's most recent significant waterings (last RECENT_POUR_WINDOW), in
+// their dominant unit — oldest-first from getEvents, so slice(-N) is the
+// newest N. Shared by the typical-pour median and the max-pour fallback so
+// "recent" means the same thing in both. Null when there are none.
+function recentPours(plant, careProfile) {
+  const all = getEvents(plant, 'watering').filter(w => {
+    const a = parseFloat(w.amount)
+    return !isNaN(a) && a > 0 && isSignificantWatering(w, careProfile)
+  })
+  if (!all.length) return null
+  const recent = all.slice(-RECENT_POUR_WINDOW)
+  const unitCounts = {}
+  for (const w of recent) {
+    const u = w.unit ?? 'cups'
+    unitCounts[u] = (unitCounts[u] ?? 0) + 1
+  }
+  const unit = Object.entries(unitCounts).sort((a, b) => b[1] - a[1])[0][0]
+  const amounts = recent
+    .filter(w => (w.unit ?? 'cups') === unit)
+    .map(w => parseFloat(w.amount))
+  return { unit, amounts }
+}
+
+// The biggest single pour among the user's recent waterings — what they have
+// demonstrably been able to give in one go. Basis for the fallback pour limit
+// when no explicit max pour is set (#232). Returns { amount, unit } or null.
+export function recentMaxPour(plant, careProfile) {
+  const recent = recentPours(plant, careProfile)
+  if (!recent || !recent.amounts.length) return null
+  return { amount: Math.max(...recent.amounts), unit: recent.unit }
+}
+
 // Returns the best per-plant "typical" watering amount, or null when unknown.
 // Priority (most-trusted first):
 //   1. explicit user override (plant.typicalWater, set in the edit form, #135)
@@ -428,30 +473,14 @@ export function typicalWaterAmount(plant, careProfile) {
   }
 
   // 2. Learned from the user's own RECENT waterings (median is robust to one
-  // deep soak; getEvents returns them oldest-first, so slice(-N) is the most
-  // recent N). A short history is unaffected — the window only matters once
+  // deep soak). A short history is unaffected — the window only matters once
   // there's more than RECENT_POUR_WINDOW logged.
-  const allWaterings = getEvents(plant, 'watering').filter(w => {
-    const a = parseFloat(w.amount)
-    return !isNaN(a) && a > 0 && isSignificantWatering(w, careProfile)
-  })
-  if (allWaterings.length >= 3) {
-    const recent = allWaterings.slice(-RECENT_POUR_WINDOW)
-    const unitCounts = {}
-    for (const w of recent) {
-      const u = w.unit ?? 'cups'
-      unitCounts[u] = (unitCounts[u] ?? 0) + 1
-    }
-    const unit = Object.entries(unitCounts).sort((a, b) => b[1] - a[1])[0][0]
-    const vals = recent
-      .filter(w => (w.unit ?? 'cups') === unit)
-      .map(w => parseFloat(w.amount))
-      .sort((a, b) => a - b)
-    if (vals.length >= 3) {
-      const mid = Math.floor(vals.length / 2)
-      const median = vals.length % 2 === 0 ? (vals[mid - 1] + vals[mid]) / 2 : vals[mid]
-      return { amount: Math.round(median * 100) / 100, unit, confidence: 'learned', source: 'history' }
-    }
+  const recent = recentPours(plant, careProfile)
+  if (recent && recent.amounts.length >= 3) {
+    const vals = [...recent.amounts].sort((a, b) => a - b)
+    const mid = Math.floor(vals.length / 2)
+    const median = vals.length % 2 === 0 ? (vals[mid - 1] + vals[mid]) / 2 : vals[mid]
+    return { amount: Math.round(median * 100) / 100, unit: recent.unit, confidence: 'learned', source: 'history' }
   }
 
   // 3. Species default — flood-and-dry species use minWaterAmount (their

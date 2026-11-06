@@ -43,6 +43,14 @@ const WATERING_STYLE_LABELS = {
   'consistent':    '🪣 Consistent moisture',
 }
 
+// "1 cup", "1.5 cups", "1 L" — same wording as the badge amounts.
+function volumeText(amount, unit) {
+  const n = +Number(amount).toFixed(1)
+  if (unit === 'liters') return `${n} L`
+  if (unit === 'cups') return `${n} cup${n === 1 ? '' : 's'}`
+  return `${n} ${unit}`
+}
+
 function roundDays(days) {
   return days < 1.5 ? '1' : String(Math.round(days))
 }
@@ -66,11 +74,12 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
   const daysUntilDry = rec?.daysUntilDry
   const showRunway = daysUntilDry != null && daysUntilDry > 0
 
-  let avgInterval, advice, idealInterval, pour, landing, insight
+  let avgInterval, advice, idealInterval, pour, landing, insight, learned
   let intervalLong, pourShort
   if (hasComputedInsights) {
     avgInterval = avgWateringInterval(plant)
-    advice = wateringIntervalAdvice(plant, model, careProfile)
+    learned = learnedWaterAmount(plant, careProfile)
+    advice = wateringIntervalAdvice(plant, model, careProfile, learned)
     idealInterval = advice?.basis === 'model' ? advice.days : null
     pour = avgPourAmount(plant)
     landing = model && pour ? predictedLandingMoisture(plant, model, careProfile) : null
@@ -78,7 +87,7 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
 
     intervalLong = avgInterval != null && idealInterval != null && avgInterval > idealInterval * 1.3
     pourShort = landing != null && range && landing < range[0]
-      && learnedWaterAmount(plant, careProfile).pourSizeMatters !== false
+      && learned?.pourSizeMatters !== false
   }
 
   const showTypicalPour = landing != null && !!pour
@@ -123,6 +132,9 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
                       </span></>
                   )}
                   {advice.basis === 'experiment' && <>try ~{roundDays(advice.days)}d as a test</>}
+                  {advice.basis === 'capped' && (
+                    <>try ~{roundDays(advice.days)}d — pours limited to {volumeText(learned.cap.amount, learned.unit)}</>
+                  )}
                 </span>
               </div>
             )}

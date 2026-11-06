@@ -684,6 +684,97 @@ describe('weightedLinearFit', () => {
   })
 })
 
+// ── learnedWaterAmount — pour limit / max pour (#232) ───────────────────────
+
+describe('learnedWaterAmount — pour limit (#232)', () => {
+  // 4 one-cup waterings, each only reaching 4 (below range [4,7] top) → the
+  // loop grades 'under' every cycle and wants to climb above 1 cup.
+  const underwatered = (extra = {}) => ({
+    ...plant([
+      watering(1, 20), reading(4, 19),
+      watering(1, 14), reading(4, 13),
+      watering(1, 8),  reading(4, 7),
+      watering(1, 3),  reading(4, 2),
+    ]),
+    ...extra,
+  })
+
+  it('clamps the loop to an explicit max pour and reports what it wanted', () => {
+    const t = learnedWaterAmount(underwatered({ maxPour: { amount: '1', unit: 'cups' } }), CARE)
+    expect(t.amount).toBe(1)
+    expect(t.capped).toBe(true)
+    expect(t.uncapped).toBeGreaterThan(1)
+    expect(t.cap).toEqual({ amount: 1, source: 'set' })
+  })
+
+  it('leaves the amount alone (capped=false) when the max pour is higher than what is wanted', () => {
+    const free = learnedWaterAmount(underwatered(), CARE)
+    const t = learnedWaterAmount(underwatered({ maxPour: { amount: '10', unit: 'cups' } }), CARE)
+    expect(t.capped).toBe(false)
+    expect(t.amount).toBe(free.amount)
+    expect(t.cap).toEqual({ amount: 10, source: 'set' })
+  })
+
+  it('applies the explicit max pour even over an explicit typical-pour override', () => {
+    const p = { ...plant([watering(1, 5)]), typicalWater: { amount: '6', unit: 'cups' }, maxPour: { amount: '4', unit: 'cups' } }
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.source).toBe('override')
+    expect(t.amount).toBe(4)
+    expect(t.capped).toBe(true)
+  })
+
+  it('applies the explicit max pour to a plain history median too', () => {
+    const p = { ...plant([watering(8, 20), watering(8, 13), watering(8, 6)]), maxPour: { amount: '5', unit: 'cups' } }
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.source).toBe('history')
+    expect(t.amount).toBe(5)
+    expect(t.uncapped).toBe(8)
+  })
+
+  it('converts between cups and liters when comparing', () => {
+    // 1 L ≈ 4.23 cups: a 6-cup median is clamped to ~4.2, a 3-cup one is not.
+    const six   = { ...plant([watering(6, 20), watering(6, 13), watering(6, 6)]), maxPour: { amount: '1', unit: 'liters' } }
+    const three = { ...plant([watering(3, 20), watering(3, 13), watering(3, 6)]), maxPour: { amount: '1', unit: 'liters' } }
+    expect(learnedWaterAmount(six, CARE).amount).toBeCloseTo(4.2, 1)
+    expect(learnedWaterAmount(three, CARE).capped).toBe(false)
+  })
+
+  it('ignores a max pour in a unit it cannot compare to', () => {
+    const p = { ...plant([watering(8, 20), watering(8, 13), watering(8, 6)]), maxPour: { amount: '2', unit: 'ice cubes' } }
+    const t = learnedWaterAmount(p, CARE)
+    expect(t.amount).toBe(8)
+    expect(t.cap).toBeNull()
+  })
+
+  it('ignores a blank or non-positive max pour', () => {
+    for (const maxPour of [null, { amount: '', unit: 'cups' }, { amount: '0', unit: 'cups' }, { amount: 'abc', unit: 'cups' }]) {
+      const t = learnedWaterAmount({ ...plant([watering(8, 20), watering(8, 13), watering(8, 6)]), maxPour }, CARE)
+      expect(t.amount).toBe(8)
+    }
+  })
+
+  it('without a max pour, the loop is held to 1.5× the biggest recent pour (fallback)', () => {
+    const t = learnedWaterAmount(underwatered(), CARE)
+    expect(t.cap).toEqual({ amount: 1.5, source: 'recent' })
+    expect(t.amount).toBeLessThanOrEqual(1.5)
+    expect(t.amount).toBeGreaterThan(1)          // still climbs — under-watering is still corrected
+  })
+
+  it('the fallback does not clamp a plain history median (it is never above the biggest pour)', () => {
+    const t = learnedWaterAmount(plant([watering(2, 20), watering(2, 13), watering(2, 6)]), CARE)
+    expect(t.cap).toBeNull()
+    expect(t.capped).toBe(false)
+  })
+
+  it('a big pour from long ago does not inflate the fallback limit', () => {
+    // One 10-cup pour way back, then 8 recent 1-cup pours: only the recent 8 count.
+    const events = [watering(10, 90), reading(6, 89)]
+    for (let i = 8; i >= 1; i--) events.push(watering(1, i * 5), reading(4, i * 5 - 1))
+    const t = learnedWaterAmount(plant(events), CARE)
+    expect(t.cap.amount).toBeLessThanOrEqual(1.5)
+  })
+})
+
 // ── segmentCycles (extracted from computeModel, shared with plantCurve) ────
 
 describe('segmentCycles', () => {

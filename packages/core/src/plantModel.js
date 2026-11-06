@@ -13,7 +13,7 @@
  * data exists yet.
  */
 
-import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture, typicalWaterAmount, speciesDefaultBeta } from './plantSelectors.js'
+import { lastReading, getEvents, isSignificantWatering, smoothedCurrentMoisture, typicalWaterAmount, recentMaxPour, speciesDefaultBeta } from './plantSelectors.js'
 
 // Exported so plantCurve.js (the fitted-line estimator) shares the exact same
 // priors and ceiling — redeclaring them there would let the two silently drift.
@@ -552,8 +552,18 @@ export function getPredictionReliability(plant, careProfile) {
 // beyond that likely runs out the bottom; the lever left is how OFTEN to water.
 // (We can't tell from readings alone that a SMALLER pour would be enough.)
 //
+// Pour limit (#232): a small plant in a small catcher tray can't take more
+// than so much in one go, however much the loop wants. The final amount never
+// exceeds a limit — the user's explicit `plant.maxPour` if set (applies to
+// every path, including an override: the physical limit wins), else, for the
+// loop's own climbing estimate only, a fallback of FALLBACK_CAP_FACTOR × the
+// biggest recent pour. `uncapped` is what the loop wanted before the limit and
+// `capped` says the limit is what's holding it back — wateringIntervalAdvice
+// uses that to suggest watering more often instead of pouring more.
+//
 // Returns { amount, unit, confidence, source, outcomes, lastOutcome,
-//           pourSizeMatters } or null.
+//           pourSizeMatters, uncapped, capped, cap } or null.
+//   cap: { amount, source: 'set' | 'recent' } | null  (null = no limit applies)
 //   confidence: 'set'|'default'|'learned'   source: 'override'|'outcome'|'history'|'species'
 //   pourSizeMatters: true | false | null (null = not enough evidence to say)
 // ─────────────────────────────────────────────────────────
@@ -563,6 +573,12 @@ export function getPredictionReliability(plant, careProfile) {
 const POUR_CHECK_MIN_CYCLES = 8    // waterings with a post-water peak needed to judge
 const POUR_CHECK_MIN_SPREAD = 2    // biggest pour must be ≥ this × smallest, else no signal
 const POUR_CHECK_MIN_GAIN   = 0.5  // reading must rise by at least this (smallest→biggest pour) to count as "helps"
+// Fallback pour limit when the user hasn't set a max pour (#232): the loop's
+// estimate may not exceed this × the biggest recent pour. Replaces a looser
+// 2.5× ceiling. A judgment-call starting point, not tuned against real usage —
+// the explicit max pour is the real fix; this only moderates the guesswork.
+const FALLBACK_CAP_FACTOR = 1.5
+const CUPS_PER_LITER = 4.22675   // US customary: exact conversion, not a guess
 const AMOUNT_STEP        = 0.18  // ±18% nudge per under/over cycle
 const AMOUNT_SMOOTH      = 0.45  // EMA weight on each cycle's suggestion
 const PEAK_FRESH_MS      = 2 * 86_400_000  // a reading within 2 days = the post-water peak
@@ -577,7 +593,8 @@ const DRYDOWN_FAST_FRAC  = 0.5   // dried in < half the expected time ⇒ under-
 // the very next recommendation.
 const MIN_OUTCOMES_TO_LEARN = 3
 
-export function learnedWaterAmount(plant, careProfile) {
+// The loop itself, before any pour limit — see learnedWaterAmount below.
+function learnedAmountBeforeLimit(plant, careProfile) {
   const seed = typicalWaterAmount(plant, careProfile)
   if (!seed) return null
 
@@ -597,7 +614,6 @@ export function learnedWaterAmount(plant, careProfile) {
   const cycles = segmentCycles(plant)
 
   let amount = seed.amount
-  let maxObserved = seed.amount
   let outcomes = 0
   let lastOutcome = null
   const pairs = []   // (pour size, post-water peak) per cycle — feeds the runaway guard
@@ -607,7 +623,6 @@ export function learnedWaterAmount(plant, careProfile) {
     const A = parseAmount(cycle.watering.amount)
     if (!A || A <= 0 || !isSignificantWatering(cycle.watering, careProfile)) continue
     if ((cycle.watering.unit ?? 'cups') !== unit) continue   // learn within one unit
-    maxObserved = Math.max(maxObserved, A)
 
     const wTs = new Date(cycle.watering.timestamp).getTime()
 
@@ -640,7 +655,7 @@ export function learnedWaterAmount(plant, careProfile) {
     // 'good' → the poured amount worked, so anchor to it (ground truth).
     // 'under'/'over' → push the running *recommendation* up/down, so repeated
     // unders keep climbing toward the real need even if the user keeps pouring
-    // the same too-small amount (the ceiling clamp below stops runaway).
+    // the same too-small amount (the pour limit applied in learnedWaterAmount stops runaway).
     const suggestion = verdict === 'under' ? amount * (1 + AMOUNT_STEP)
       : verdict === 'over' ? amount * (1 - AMOUNT_STEP)
       : A
@@ -649,10 +664,9 @@ export function learnedWaterAmount(plant, careProfile) {
     lastOutcome = verdict
   }
 
-  // Clamp to a sane range so it can't run away if the user never follows it.
-  const ceiling = Math.max(seed.amount, maxObserved) * 2.5
-  amount = Math.min(ceiling, Math.max(0.1, amount))
-  amount = Math.round(amount * 10) / 10
+  // The upper limit is applied by learnedWaterAmount (explicit max pour, or the
+  // fallback) — here just keep it positive.
+  amount = Math.round(Math.max(0.1, amount) * 10) / 10
 
   const pourSizeMatters = pourSizeMattersFromPairs(pairs)
 
@@ -675,6 +689,55 @@ export function learnedWaterAmount(plant, careProfile) {
     outcomes,
     lastOutcome,
     pourSizeMatters,
+  }
+}
+
+// Convert between the two real volume units we support. Anything else
+// (e.g. 'ice cubes') can't be compared, so returns null.
+function convertVolume(amount, from, to) {
+  if (from === to) return amount
+  if (from === 'liters' && to === 'cups') return amount * CUPS_PER_LITER
+  if (from === 'cups' && to === 'liters') return amount / CUPS_PER_LITER
+  return null
+}
+
+// The user's explicit max pour in `unit`, or null if unset/unusable.
+function explicitPourCap(plant, unit) {
+  const mp = plant?.maxPour
+  const amount = parseFloat(mp?.amount)
+  if (!(amount > 0)) return null
+  return convertVolume(amount, mp.unit ?? 'cups', unit)
+}
+
+export function learnedWaterAmount(plant, careProfile) {
+  const base = learnedAmountBeforeLimit(plant, careProfile)
+  if (!base) return null
+
+  let limit = null
+  let source = null
+  const explicit = explicitPourCap(plant, base.unit)
+  if (explicit != null) {
+    limit = explicit
+    source = 'set'
+  } else if (base.source === 'outcome') {
+    // Only the loop's climbing estimate gets the fallback — a median of what
+    // the user actually poured, or their own override, is never above it.
+    const recent = recentMaxPour(plant, careProfile)
+    const seedAmount = typicalWaterAmount(plant, careProfile)?.amount ?? 0
+    const recentAmount = recent?.unit === base.unit ? recent.amount : 0
+    limit = Math.max(seedAmount, recentAmount) * FALLBACK_CAP_FACTOR
+    source = 'recent'
+  }
+
+  if (limit == null) return { ...base, uncapped: base.amount, capped: false, cap: null }
+  limit = Math.round(limit * 10) / 10
+  const capped = base.amount > limit
+  return {
+    ...base,
+    amount: capped ? limit : base.amount,
+    uncapped: base.amount,
+    capped,
+    cap: { amount: limit, source },
   }
 }
 
