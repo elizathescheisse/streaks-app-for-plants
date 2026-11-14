@@ -775,6 +775,77 @@ describe('learnedWaterAmount — pour limit (#232)', () => {
   })
 })
 
+// ── getPredictionReliability — remembered per plant (typing lag) ─────────────
+//
+// The dashboard asks for every plant's reliability on every re-render (each
+// keystroke in the Add Plant box re-renders the whole page), and working it
+// out replays the plant's entire history. On a 9-plant garden that was ~390 ms
+// per keystroke. A plant's history doesn't change while typing, so the answer
+// is remembered until that plant (its events) actually changes.
+
+describe('getPredictionReliability — caching', () => {
+  // ~100 days of daily readings with a watering every 5th day.
+  function longHistory() {
+    const events = []
+    let m = 6
+    for (let d = 100; d >= 1; d--) {
+      if (d % 5 === 0) { events.push(watering(2, d)); m = 7 }
+      m = Math.max(1, m - 0.6)
+      events.push({ ...reading(Math.round(m), d - 0.5), id: `r-${d}` })
+    }
+    return plant(events)
+  }
+  const CARE_LONG = { moistureRange: [4, 7] }
+
+  it('gives the same answer as working it out fresh', () => {
+    const p = longHistory()
+    const fresh = getPredictionReliability(JSON.parse(JSON.stringify(p)), CARE_LONG)   // a different object: never cached
+    expect(getPredictionReliability(p, CARE_LONG)).toBe(fresh)
+    expect(getPredictionReliability(p, CARE_LONG)).toBe(fresh)
+  })
+
+  it('does not redo the whole-history replay when asked again about an unchanged plant', () => {
+    const p = longHistory()
+    const t0 = performance.now()
+    for (let i = 0; i < 50; i++) getPredictionReliability(p, CARE_LONG)
+    // Uncached this is ~50 full replays (hundreds of ms); remembered it is one.
+    expect(performance.now() - t0).toBeLessThan(100)
+  })
+
+  it('recomputes when the plant gets a new event (a new plant object)', () => {
+    const p = longHistory()
+    const before = getPredictionReliability(p, CARE_LONG)
+    // Wildly off readings after the last one: predictions now miss badly.
+    const worse = { ...p, events: [...p.events, reading(0, 0.4, 'x1'), reading(10, 0.3, 'x2'), reading(0, 0.2, 'x3'), reading(10, 0.1, 'x4')] }
+    expect(getPredictionReliability(worse, CARE_LONG)).toBe(
+      getPredictionReliability(JSON.parse(JSON.stringify(worse)), CARE_LONG)
+    )
+    expect(getPredictionReliability(p, CARE_LONG)).toBe(before)   // the original is unaffected
+  })
+
+  it('recomputes if the SAME plant object has an event pushed onto it', () => {
+    const p = longHistory()
+    getPredictionReliability(p, CARE_LONG)
+    p.events.push(reading(0, 0.4, 'y1'), reading(10, 0.3, 'y2'), reading(0, 0.2, 'y3'), reading(10, 0.1, 'y4'))
+    expect(getPredictionReliability(p, CARE_LONG)).toBe(
+      getPredictionReliability(JSON.parse(JSON.stringify(p)), CARE_LONG)
+    )
+  })
+
+  it('recomputes for a different care profile', () => {
+    const p = longHistory()
+    const other = { moistureRange: [1, 9], wateringStyle: 'flood-and-dry', dryThreshold: 2 }
+    expect(getPredictionReliability(p, other)).toBe(
+      getPredictionReliability(JSON.parse(JSON.stringify(p)), other)
+    )
+  })
+
+  it('still works for a plant with no events, and for a missing plant', () => {
+    expect(getPredictionReliability(plant([]), CARE_LONG)).toBe('learning')
+    expect(() => getPredictionReliability(plant([]), null)).not.toThrow()
+  })
+})
+
 // ── segmentCycles (extracted from computeModel, shared with plantCurve) ────
 
 describe('segmentCycles', () => {
