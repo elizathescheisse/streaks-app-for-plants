@@ -11,6 +11,7 @@
     "./dashboardCare.js": "./src/dashboardCare.js",
     "./plantLookup.js": "./src/plantLookup.js",
     "./plantInsights.js": "./src/plantInsights.js",
+    "./plantMerge.js": "./src/plantMerge.js",
     "./plantDatabase.js": "./src/plantDatabase.js"
   },
   "scripts": {
