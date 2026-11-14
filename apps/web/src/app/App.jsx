@@ -11,14 +11,15 @@ import SettingsModal from '../features/settings/components/SettingsModal'
 import Modal from '../shared/components/Modal'
 import Toast from '../shared/components/Toast'
 import usePlantCloudSync from '../shared/firebase/usePlantCloudSync.js'
+import useToday from '../shared/hooks/useToday.js'
 import { buildEventsFromForm, currentHealth } from '@plant-streaks/core/plantSelectors.js'
 
 const SCHEMA_VERSION = '2'
 const STORAGE_KEY    = 'plant-streaks'
 const SCHEMA_KEY     = 'plant-streaks-schema'
 
-const today = new Date()
-const DATE_KEY = today.toISOString().slice(0, 10)
+// Date stamp for export files, taken when the export happens (not at page load).
+const dateKey = () => new Date().toISOString().slice(0, 10)
 
 // { amount, unit } from a form's amount/unit pair, or null when the amount is
 // blank — how the optional per-plant water settings (typical pour, max pour)
@@ -45,6 +46,7 @@ function loadInitialPlants() {
 // in AppRoutes; per-page UI state (cardView, chartWindow, searchQuery, etc.)
 // lives in those page components, not here.
 export default function App() {
+  const today = useToday()
   const [plants, setPlants] = useState(loadInitialPlants)
 
   // panel:
@@ -220,12 +222,12 @@ export default function App() {
 
   // ── Export ──────────────────────────────────────────────
   function exportJSON() {
-    const data = { schemaVersion: SCHEMA_VERSION, date: DATE_KEY, plants }
+    const data = { schemaVersion: SCHEMA_VERSION, date: dateKey(), plants }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `plant-streaks-${DATE_KEY}.json`
+    a.download = `plant-streaks-${dateKey()}.json`
     a.click()
     URL.revokeObjectURL(url)
   }

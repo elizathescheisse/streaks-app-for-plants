@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
+import { mergePlants } from '@plant-streaks/core/plantMerge.js'
 
 // Optional cloud sync. Plants always live in localStorage (the UI reads from
 // there, so the app works offline and with no account). Only after the user
@@ -10,21 +11,13 @@ import { auth, db } from './firebase.js'
 // Signing out keeps the local copy; it just stops syncing.
 //
 // First sync after sign-in merges rather than overwrites: plants are append-only
-// event logs, so for a plant present on both sides the one with MORE events wins.
+// event logs, so a plant present on both sides gets the union of its events
+// (see mergePlants in @plant-streaks/core/plantMerge.js).
 // Every failure just logs to the console — nothing here can block the app.
 
 const SAVE_DELAY_MS = 1000   // arbitrary: wait for a burst of edits to settle
 
 const plain = plant => JSON.parse(JSON.stringify(plant))   // Firestore rejects `undefined`
-
-function mergePlants(local, cloud) {
-  const byId = new Map(local.map(p => [p.id, p]))
-  for (const c of cloud) {
-    const l = byId.get(c.id)
-    if (!l || (c.events?.length ?? 0) > (l.events?.length ?? 0)) byId.set(c.id, c)
-  }
-  return [...byId.values()]
-}
 
 export default function usePlantCloudSync(plants, setPlants) {
   const [user, setUser] = useState(null)
