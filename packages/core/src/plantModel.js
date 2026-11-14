@@ -491,7 +491,27 @@ const RELIABILITY_MIN_CHECKS = 2  // need at least this many to grade at all
 const SHAKY_MEAN_RESIDUAL  = 1.5  // mean |actual − predicted| above this = shaky
 const SHAKY_R2             = 0.4  // mean drying-fit R² below this = shaky
 
+// Remembered per plant: grading replays the plant's entire history (re-fitting
+// the model once per past reading), ~15 ms for a plant with a few months of
+// data — and the dashboard asks for every plant's reliability on every
+// re-render, including each keystroke in the Add Plant box (~390 ms for 9
+// plants). The answer only changes when the plant's events do, so keep it
+// until then. The key is the plant object itself (weak, so removed plants are
+// forgotten); `events` identity + length also catch a push onto the same
+// array, and the care profile is part of the check.
+const reliabilityCache = new WeakMap()
+
 export function getPredictionReliability(plant, careProfile) {
+  if (plant === null || typeof plant !== 'object') return computeReliability(plant, careProfile)
+  const count = plant.events?.length ?? 0
+  const hit = reliabilityCache.get(plant)
+  if (hit && hit.events === plant.events && hit.count === count && hit.careProfile === careProfile) return hit.value
+  const value = computeReliability(plant, careProfile)
+  reliabilityCache.set(plant, { events: plant.events, count, careProfile, value })
+  return value
+}
+
+function computeReliability(plant, careProfile) {
   const model = computeModel(plant, careProfile)
   const totalSamples = model.betaSamples + model.alphaSamples
 
