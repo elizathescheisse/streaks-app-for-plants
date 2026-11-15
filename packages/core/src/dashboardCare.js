@@ -5,7 +5,7 @@
 
 import { currentHealth, lastReading, lastWatering, logBundles, pctTimeInRange, getEvents } from './plantSelectors.js'
 import { getPlantSortPriority, wateringCheckStatus } from './plantStatus.js'
-import { lookupPlant } from './plantLookup.js'
+import { careProfileFor } from './plantLookup.js'
 
 const HEALTH_LABELS = {
   thriving: 'Thriving',
@@ -117,7 +117,7 @@ export function getGardenHealthStats(plants, today = new Date()) {
   const unreadToday = []
 
   for (const plant of plants) {
-    const careProfile = lookupPlant(plant.species)
+    const careProfile = careProfileFor(plant)
     const readings = getEvents(plant, 'reading')
     const pct = pctTimeInRange(plant, careProfile)
 

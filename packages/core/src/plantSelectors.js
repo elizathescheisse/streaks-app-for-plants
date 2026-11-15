@@ -575,3 +575,141 @@ export function speciesDefaultBeta(careProfile) {
   if (span <= 0) return null
   return span / days
 }
+
+// ─────────────────────────────────────────────────────────
+// personalCareProfile  (#152 — a range this pot can actually reach)
+//
+// The species chart says e.g. "Boston fern: ideal 6–8". But the top of that
+// range is really "freshly watered", and how high a freshly-watered pot reads
+// depends on the pot, the soil and where the probe sits — not the species. A
+// fern that reads 5 after eight cups, every time, isn't under-watered; 5 is
+// simply "full" for that pot. Judged against 6–8 it reads as thirsty forever.
+//
+// But low readings have a second explanation: the plant has simply never been
+// watered enough. A user's habit is not evidence of what's healthy — someone
+// who has only ever given a fern one cup must not be told that a dry fern is
+// normal. So the range is only restated when `pourSizeMatters` is false: the
+// owner HAS tried clearly bigger pours and the reading didn't rise (see
+// pourSizeMatters in plantModel.js). Without that proof the species range
+// stands, and suggestsPourTest (below) says when to ask the user to run the
+// test. With it, restate the species range on this pot's own scale:
+//   • top     = the highest reading seen at any point across the plant's
+//               recent waterings (never above the species top — we only ever
+//               lower it). Any reading counts, not just the one right after
+//               watering: the top also marks where "overwatered" starts, so
+//               it must sit at or above everything the pot has recently read
+//               — otherwise an ordinary reading gets flagged as too wet.
+//   • trigger = the "time to water" level (range floor, or dryThreshold for
+//               flood-and-dry), shrunk by the same proportion as the top —
+//               BUT never drier than the level the owner has actually been
+//               watering at. Arithmetic alone doesn't get to tell someone to
+//               let a plant dry out further than they ever have.
+//
+// Left alone (returns the species profile itself, same object) when: bigger
+// pours haven't been shown not to help, there's no species range, too few
+// waterings with a follow-up reading, the pot does reach the species top, or
+// the plant is currently struggling — a struggling
+// plant's low readings may be the problem, not the pot's normal.
+//
+// Otherwise returns a copy with moistureRange (and dryThreshold) replaced,
+// plus `personalRange: { speciesRange, speciesDryThreshold, basedOn }` so the
+// UI can say the range was adjusted and from what.
+//
+// Judgment calls, NOT validated beyond one user's ten plants:
+// PERSONAL_RANGE_WINDOW (matches RECENT_POUR_WINDOW), PERSONAL_RANGE_MIN_CYCLES
+// (the "6+ samples" suggested in #152), PRE_WATER_FRESH_MS, and reusing
+// MIN_DRYDOWN_ROOM as the minimum gap between trigger and top.
+// ─────────────────────────────────────────────────────────
+const PERSONAL_RANGE_WINDOW = 8        // most recent waterings with a follow-up reading
+const PERSONAL_RANGE_MIN_CYCLES = 6    // need this many before adjusting anything
+const PERSONAL_HABIT_MIN = 3           // pre-watering readings needed to know the owner's habit
+const PRE_WATER_FRESH_MS = 36 * 3_600_000  // a reading this soon before watering = "the level they watered at"
+
+const round1 = v => Math.round(v * 10) / 10
+
+// The plant's most recent waterings that have a reading before the next one:
+// [{ peak, pre }] — `peak` the highest reading in that stretch, `pre` the
+// reading taken shortly before the watering (null if none). Null when there
+// aren't yet PERSONAL_RANGE_MIN_CYCLES of them.
+function recentWateringCycles(plant, careProfile) {
+  const waterings = getEvents(plant, 'watering')
+  const readings = getEvents(plant, 'reading')
+  const cycles = []
+  waterings.forEach((w, i) => {
+    if (!isSignificantWatering(w, careProfile)) return
+    const t = new Date(w.timestamp).getTime()
+    const next = waterings[i + 1] ? new Date(waterings[i + 1].timestamp).getTime() : Infinity
+    const after = readings
+      .filter(r => { const rt = new Date(r.timestamp).getTime(); return rt > t && rt <= next })
+      .map(r => Number(r.moisture))
+    if (!after.length) return
+    const before = [...readings].reverse().find(r => new Date(r.timestamp).getTime() < t)
+    const pre = before && t - new Date(before.timestamp).getTime() <= PRE_WATER_FRESH_MS
+      ? Number(before.moisture)
+      : null
+    cycles.push({ peak: Math.max(...after), pre })
+  })
+  const recent = cycles.slice(-PERSONAL_RANGE_WINDOW)
+  return recent.length >= PERSONAL_RANGE_MIN_CYCLES ? recent : null
+}
+
+// Should the app ask the user to try one much bigger pour? True when the pot
+// hasn't reached the top of its species range in any recent watering AND there
+// isn't yet evidence either way on whether more water would get it there
+// (`pourSizeMatters` null — the pours have all been about the same size). The
+// test settles which it is: if the reading rises, the plant was being
+// under-watered and the amount loop takes over; if it doesn't, that's this
+// pot's limit and personalCareProfile restates the range.
+export function suggestsPourTest(plant, careProfile, pourSizeMatters) {
+  const range = careProfile?.moistureRange
+  if (!range || !(range[1] > range[0]) || pourSizeMatters != null) return false
+  const recent = recentWateringCycles(plant, careProfile)
+  if (!recent) return false
+  return Math.max(...recent.map(c => c.peak)) < range[1]
+}
+
+export function personalCareProfile(plant, careProfile, pourSizeMatters) {
+  const range = careProfile?.moistureRange
+  if (!range || !(range[1] > range[0])) return careProfile
+  if (pourSizeMatters !== false) return careProfile
+  if (currentHealth(plant) === 'struggling') return careProfile
+
+  const recent = recentWateringCycles(plant, careProfile)
+  if (!recent) return careProfile
+
+  const [speciesLo, speciesHi] = range
+  const top = Math.max(...recent.map(c => c.peak))
+  if (!(top > 0) || top >= speciesHi) return careProfile
+
+  const isFloodAndDry = careProfile.wateringStyle === 'flood-and-dry'
+  const speciesTrigger = isFloodAndDry ? (careProfile.dryThreshold ?? speciesLo) : speciesLo
+  const scale = top / speciesHi
+  const scaledTrigger = speciesTrigger * scale
+
+  const pres = recent.map(c => c.pre).filter(v => v != null).sort((a, b) => a - b)
+  let habit = null
+  if (pres.length >= PERSONAL_HABIT_MIN) {
+    const mid = Math.floor(pres.length / 2)
+    habit = pres.length % 2 ? pres[mid] : (pres[mid - 1] + pres[mid]) / 2
+  }
+
+  // Never drier than the owner's habit, never wetter than the species says…
+  let trigger = Math.min(Math.max(scaledTrigger, habit ?? scaledTrigger), speciesTrigger)
+  // …and leave at least a point of dry-down room under the top, or every
+  // reading would sit on the trigger (but never go below the scaled value).
+  if (top - trigger < MIN_DRYDOWN_ROOM) trigger = Math.max(scaledTrigger, top - MIN_DRYDOWN_ROOM)
+  trigger = round1(trigger)
+
+  const lo = isFloodAndDry ? Math.min(round1(speciesLo * scale), trigger) : trigger
+
+  return {
+    ...careProfile,
+    moistureRange: [lo, top],
+    ...(isFloodAndDry ? { dryThreshold: trigger } : {}),
+    personalRange: {
+      speciesRange: [speciesLo, speciesHi],
+      speciesDryThreshold: careProfile.dryThreshold ?? null,
+      basedOn: recent.length,
+    },
+  }
+}

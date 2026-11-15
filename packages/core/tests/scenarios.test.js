@@ -12,6 +12,7 @@ import { computeModel, getRecommendation, learnedWaterAmount } from '../src/plan
 import { fitMoistureSeries, fittedLevelAt } from '../src/plantCurve.js'
 import { lookupPlant } from '../src/plantLookup.js'
 import { generateInsight } from '../src/plantInsights.js'
+import { derivePlantCardState } from '../src/plantCardState.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
@@ -309,5 +310,52 @@ describe('Alocasia — typical pour should reflect recent behavior, not the whol
     const model = computeModel(plant, careProfile)
     const rec = getRecommendation(plant, model, careProfile, ASOF)
     expect(rec.waterNeeded).toBeGreaterThanOrEqual(6)
+  })
+})
+
+// ────────────────────────────────────────────────────────────────────────
+// back-fern-2026-11-15-range-out-of-reach — issue #152
+// A Boston fern whose pot never reads as high as the species chart expects
+// (species ideal 6–8; this pot tops out at 4–6 after 8 cups, every time).
+// Judged against the species range the app said "💧 Water" and "0 days until
+// dry" minutes after a full watering — and had been below-range at 44 of 47
+// waterings while the plant was marked "good". The fix judges the plant
+// against a range learned from what watering actually achieves in this pot.
+// The fixture is the plant's full history on purpose: the range is only
+// restated because that history PROVES more water doesn't help (pours from 1
+// to 8 cups, same readings) — low readings alone would not be enough.
+// ────────────────────────────────────────────────────────────────────────
+describe('Back Fern — species range out of reach for this pot (#152)', () => {
+  const plant = loadFixture('back-fern-2026-11-15-range-out-of-reach.json')
+
+  // Four minutes after the reading of 5 that followed an 8-cup watering.
+  const FIXTURE_NOW = new Date('2026-11-15T00:10:00.000Z')
+  beforeAll(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(FIXTURE_NOW)
+  })
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
+  it('does not tell the user to water minutes after a full watering', () => {
+    const state = derivePlantCardState(plant, FIXTURE_NOW.getTime())
+    expect(state.status.cls).not.toBe('water')
+    expect(state.status.cls).not.toBe('struggling')
+  })
+
+  it('gives the plant some days before it needs water again', () => {
+    const state = derivePlantCardState(plant, FIXTURE_NOW.getTime())
+    expect(state.rec.daysUntilDry).toBeGreaterThan(0)
+  })
+
+  it('judges the plant against a range this pot can actually reach', () => {
+    const { careProfile } = derivePlantCardState(plant, FIXTURE_NOW.getTime())
+    const species = lookupPlant(plant.species)
+    expect(careProfile.moistureRange[1]).toBeLessThan(species.moistureRange[1])
+    expect(careProfile.moistureRange[0]).toBeLessThan(species.moistureRange[0])
+    // The latest post-watering reading (5) sits inside it.
+    expect(careProfile.moistureRange[0]).toBeLessThanOrEqual(5)
+    expect(careProfile.moistureRange[1]).toBeGreaterThanOrEqual(5)
   })
 })

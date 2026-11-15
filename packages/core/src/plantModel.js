@@ -636,7 +636,6 @@ function learnedAmountBeforeLimit(plant, careProfile) {
   let amount = seed.amount
   let outcomes = 0
   let lastOutcome = null
-  const pairs = []   // (pour size, post-water peak) per cycle — feeds the runaway guard
 
   for (const cycle of cycles) {
     if (!cycle.watering) continue
@@ -655,7 +654,6 @@ function learnedAmountBeforeLimit(plant, careProfile) {
     })
     if (freshReadings.length) {
       const peak = Math.max(...freshReadings.map(r => Number(r.moisture)))
-      pairs.push({ x: A, y: peak })
       if (peak < rangeHi - UNDER_TOL)                       verdict = 'under'
       else if (!isFloodAndDry && peak > rangeHi + OVER_BUFFER) verdict = 'over'
       else                                                  verdict = 'good'
@@ -688,7 +686,7 @@ function learnedAmountBeforeLimit(plant, careProfile) {
   // fallback) — here just keep it positive.
   amount = Math.round(Math.max(0.1, amount) * 10) / 10
 
-  const pourSizeMatters = pourSizeMattersFromPairs(pairs)
+  const pourSizeMatters = pourSizeMattersFromPairs(pourPeakPairs(plant, careProfile, unit))
 
   if (pourSizeMatters === false) {
     // Bigger pours haven't raised this plant's readings, so "keep adding
@@ -759,6 +757,38 @@ export function learnedWaterAmount(plant, careProfile) {
     capped,
     cap: { amount: limit, source },
   }
+}
+
+// (pour size, post-water peak) for every significant watering in `unit` that
+// has a reading within the fresh window — the raw evidence for "does pouring
+// more raise this pot's reading?". Shared by the amount loop's runaway guard
+// and by pourSizeMatters below so the two can't disagree.
+function pourPeakPairs(plant, careProfile, unit) {
+  const pairs = []
+  for (const cycle of segmentCycles(plant)) {
+    if (!cycle.watering) continue
+    const A = parseAmount(cycle.watering.amount)
+    if (!A || A <= 0 || !isSignificantWatering(cycle.watering, careProfile)) continue
+    if ((cycle.watering.unit ?? 'cups') !== unit) continue
+    const wTs = new Date(cycle.watering.timestamp).getTime()
+    const fresh = cycle.readings.filter(r => {
+      const dt = new Date(r.timestamp).getTime() - wTs
+      return dt >= 0 && dt <= PEAK_FRESH_MS
+    })
+    if (fresh.length) pairs.push({ x: A, y: Math.max(...fresh.map(r => Number(r.moisture))) })
+  }
+  return pairs
+}
+
+// Has this plant's owner tried clearly different pour sizes, and did the
+// bigger ones raise the reading? true / false, or null when there isn't enough
+// varied history to tell. `false` is the only real evidence that low readings
+// are the pot's limit rather than a habit of under-watering — so it's what
+// careProfileFor requires before judging a plant by a lowered range (#152).
+// Works for any plant, including one with an explicit pour override.
+export function pourSizeMatters(plant, careProfile) {
+  const unit = typicalWaterAmount(plant, careProfile)?.unit ?? 'cups'
+  return pourSizeMattersFromPairs(pourPeakPairs(plant, careProfile, unit))
 }
 
 // Did bigger pours actually raise the post-water reading? `pairs` is

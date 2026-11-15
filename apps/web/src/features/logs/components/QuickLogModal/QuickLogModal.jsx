@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from './QuickLogModal.module.css'
 import { lastWatering, isSignificantWatering, isSuspiciousReading } from '@plant-streaks/core/plantSelectors.js'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import { computeModel, getRecommendation, learnedWaterAmount, parseAmount } from '@plant-streaks/core/plantModel.js'
 
 function titleCase(s) {
@@ -10,7 +10,7 @@ function titleCase(s) {
 }
 
 export default function QuickLogModal({ type, plant, onSave, onCancel }) {
-  const careProfile = lookupPlant(plant?.species)
+  const careProfile = careProfileFor(plant)
   const lastWater   = lastWatering(plant)
 
   // ── Water defaults ───────────────────────────────────────
@@ -131,7 +131,7 @@ export default function QuickLogModal({ type, plant, onSave, onCancel }) {
           </div>
           {careProfile?.moistureRange && (
             <p className={styles.rangeHint}>
-              Ideal range: {min} – {max}
+              Ideal range: {min} – {max}{careProfile.personalRange ? ' (adjusted for this pot)' : ''}
             </p>
           )}
           {isSuspiciousReading(plant, moisture, null) && (

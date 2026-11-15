@@ -5,7 +5,7 @@
  * to sort the plant list without duplicating the computation.
  */
 
-import { lookupPlant } from './plantLookup.js'
+import { careProfileFor } from './plantLookup.js'
 import { lastReading, lastWatering } from './plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from './plantModel.js'
 
@@ -85,7 +85,7 @@ const NO_STATUS_PRIORITY = 6  // No readings yet
 
 // Returns a sort priority (0 = most urgent) for a plant.
 export function getPlantSortPriority(plant) {
-  const careProfile = lookupPlant(plant.species)
+  const careProfile = careProfileFor(plant)
   const reading     = lastReading(plant)
   const watering    = lastWatering(plant)
 

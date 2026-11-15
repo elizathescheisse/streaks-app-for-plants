@@ -6,7 +6,7 @@ import styles from './PlantCard.module.css'
 import MoistureBar from '../../../care/components/MoistureBar'
 import PlantHistoryChart from '../../../care/components/PlantHistoryChart'
 import PlantIcon, { hasIcon } from '../plantIcons/PlantIcon.jsx'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import { lastReading, lastWatering, currentHealth, logBundles, chartEvents } from '@plant-streaks/core/plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from '@plant-streaks/core/plantModel.js'
 import { fitMoistureSeries } from '@plant-streaks/core/plantCurve.js'
@@ -78,7 +78,7 @@ export default function PlantCard({ plant, onEdit, onLog, onQuickWater, onQuickR
     return () => clearInterval(id)
   }, [])
 
-  const careProfile  = lookupPlant(species)
+  const careProfile  = careProfileFor(plant)
   const hasStats     = !!careProfile?.moistureRange
   const bundles      = logBundles(plant)
   const reading      = lastReading(plant)

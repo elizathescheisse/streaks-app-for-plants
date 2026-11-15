@@ -7,7 +7,7 @@
 // Centralizing it here keeps web, mobile, and the sort priority reading
 // from one source. Pure — no React, no DOM.
 
-import { lookupPlant } from './plantLookup.js'
+import { careProfileFor } from './plantLookup.js'
 import { lastReading, lastWatering, currentHealth } from './plantSelectors.js'
 import { computeModel, getRecommendation, getPredictionReliability } from './plantModel.js'
 import { moistureStatus, wateringCheckStatus } from './plantStatus.js'
@@ -21,7 +21,7 @@ const WATER_SETTLE_MS = 8 * 60 * 60 * 1000
 // `now` is passed in (not read from Date.now internally) so callers with a
 // ticking clock render consistently and tests are deterministic.
 export function derivePlantCardState(plant, now = Date.now()) {
-  const careProfile = lookupPlant(plant.species)
+  const careProfile = careProfileFor(plant)
   const hasStats = !!careProfile?.moistureRange
   const reading = lastReading(plant)
   const watering = lastWatering(plant)
