@@ -2,7 +2,7 @@ import { useState } from 'react'
 import styles from './PlantForm.module.css'
 import SpeciesInput from '../../../../shared/components/SpeciesInput'
 import MoistureBar from '../../../care/components/MoistureBar'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { lookupPlant, careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import { logBundles } from '@plant-streaks/core/plantSelectors.js'
 
 const EMOJI_OPTIONS = [
@@ -85,7 +85,12 @@ export default function PlantForm({ form, onChange, onSave, onCancel, onDelete, 
 
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const canSave = form.species.trim() || form.name.trim()
-  const careProfile = lookupPlant(form.species)
+  // Editing an existing plant (species unchanged) → judge its history by the
+  // same per-pot range the rest of the app uses (#152); otherwise there's only
+  // a species to go on.
+  const careProfile = plant && plant.species === form.species
+    ? careProfileFor(plant)
+    : lookupPlant(form.species)
   const displayName = form.name || (form.species
     ? form.species.replace(/\b\w/g, c => c.toUpperCase())
     : null)

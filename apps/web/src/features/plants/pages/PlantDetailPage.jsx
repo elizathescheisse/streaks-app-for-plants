@@ -10,7 +10,7 @@ import PlantChat from '../../care/components/PlantChat/PlantChat.jsx'
 import InRangeDonut from '../../care/components/InRangeDonut/InRangeDonut.jsx'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import ErrorBoundary from '../../../shared/components/ErrorBoundary'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import {
   lastReading, lastWatering, currentHealth, logBundles, chartEvents, pctTimeInRange,
   describeTrayFill, trayRunoff, formatVolume
@@ -105,7 +105,7 @@ export default function PlantDetailPage({
   if (!plant) return null
 
   const { emoji = '🌿', species, name } = plant
-  const careProfile = lookupPlant(species)
+  const careProfile = careProfileFor(plant)
   const hasStats    = !!careProfile?.moistureRange
   const bundles     = logBundles(plant)
   const reading     = lastReading(plant)

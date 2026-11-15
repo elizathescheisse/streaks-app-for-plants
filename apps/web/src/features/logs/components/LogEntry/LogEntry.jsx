@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import styles from './LogEntry.module.css'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import { isSignificantWatering, isSuspiciousReading, TRAY_FILL_OPTIONS, trayRunoff, formatVolume } from '@plant-streaks/core/plantSelectors.js'
 
 const HEALTH_OPTIONS = [
@@ -56,7 +56,7 @@ function describePending(form) {
 
 export default function LogEntryForm({ plant, form, isEdit, onChange, onSave, onCancel, onDelete }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const careProfile = lookupPlant(plant?.species)
+  const careProfile = careProfileFor(plant)
   function set(key, value) { onChange(f => ({ ...f, [key]: value })) }
   const moistureInt = form.moisture === '' ? null : Number(form.moisture)
   const summary = describePending(form)

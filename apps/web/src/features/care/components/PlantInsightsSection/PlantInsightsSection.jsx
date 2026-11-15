@@ -150,6 +150,21 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
                 <span className={styles.statValue}>~{roundDays(daysUntilDry)} day{daysUntilDry >= 1.5 ? 's' : ''}</span>
               </div>
             )}
+
+            {/* #152 — say so when the plant is judged against a range learned
+                from this pot rather than the species chart, and show both. */}
+            {careProfile.personalRange && (
+              <div className={styles.statRow}>
+                <span className={styles.statLabel}>Ideal moisture</span>
+                <span className={styles.statValue}>
+                  {isFloodAndDry
+                    ? `water at ${careProfile.dryThreshold}, full at ${range[1]}`
+                    : `${range[0]}–${range[1]}`}
+                  <span className={styles.statSep}>·</span>
+                  adjusted for this pot (species chart: {careProfile.personalRange.speciesRange.join('–')})
+                </span>
+              </div>
+            )}
           </div>
 
           {insight && <p className={styles.insightText}>{insight}</p>}

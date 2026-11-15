@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import styles from './AccuracyView.module.css'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import { getResidualHistory } from '@plant-streaks/core/plantModel.js'
 import PlantIcon, { hasIcon } from '../components/plantIcons/PlantIcon.jsx'
 import { currentHealth, isInHealthyRange } from '@plant-streaks/core/plantSelectors.js'
@@ -72,7 +72,7 @@ function waterOutcome(actual, careProfile) {
 
 function PlantReport({ plant }) {
   const [open, setOpen] = useState(false)
-  const careProfile = lookupPlant(plant.species)
+  const careProfile = careProfileFor(plant)
   const health = currentHealth(plant)
   const history = useMemo(() => getResidualHistory(plant, careProfile), [plant, careProfile])
   const summary = summarize(history)

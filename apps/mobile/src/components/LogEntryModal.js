@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   View, Text, TextInput, Pressable, ScrollView, StyleSheet,
 } from 'react-native'
-import { lookupPlant } from '@plant-streaks/core/plantLookup.js'
+import { careProfileFor } from '@plant-streaks/core/plantLookup.js'
 import { isSignificantWatering, isSuspiciousReading } from '@plant-streaks/core/plantSelectors.js'
 import { useTheme } from '../theme/ThemeContext.js'
 import BottomSheet from './BottomSheet.js'
@@ -27,7 +27,7 @@ function emptyForm() {
 export default function LogEntryModal({ visible, plant, onClose, onSubmit }) {
   const { colors } = useTheme()
   const [form, setForm] = useState(emptyForm)
-  const careProfile = lookupPlant(plant?.species)
+  const careProfile = careProfileFor(plant)
 
   useEffect(() => {
     if (visible) setForm(emptyForm())
