@@ -82,3 +82,39 @@ describe('mergePlants — everything else', () => {
     expect(JSON.stringify([local, cloud])).toBe(before)
   })
 })
+
+describe('mergePlants — nothing new to learn (live listeners must not loop)', () => {
+  // The cloud and other tabs now push updates live. If a merge that changes
+  // nothing still returned a fresh array, every update would trigger a save,
+  // which triggers another update, forever. "No news" must return the SAME array.
+  it('returns the very same array when the other side has nothing new', () => {
+    const local = [plant('p1', [reading('r1', 0), watering('w1', 1)])]
+    const cloud = [plant('p1', [reading('r1', 0)])]
+    expect(mergePlants(local, cloud)).toBe(local)
+  })
+
+  it('returns the same array when the other side is empty', () => {
+    const local = [plant('p1', [reading('r1', 0)])]
+    expect(mergePlants(local, [])).toBe(local)
+  })
+
+  it('still returns a new array when the other side has one new event', () => {
+    const local = [plant('p1', [reading('r1', 0)])]
+    const cloud = [plant('p1', [reading('r1', 0), watering('w2', 5)])]
+    const merged = mergePlants(local, cloud)
+    expect(merged).not.toBe(local)
+    expect(ids(merged[0])).toEqual(['r1', 'w2'])
+  })
+
+  it('still returns a new array when the other side has a plant we lack', () => {
+    const local = [plant('p1', [reading('r1', 0)])]
+    expect(mergePlants(local, [plant('p2', [])])).toHaveLength(2)
+  })
+
+  it('keeps unchanged plants as the same objects when only another plant changed', () => {
+    const p1 = plant('p1', [reading('r1', 0)])
+    const p2 = plant('p2', [reading('r2', 0)])
+    const merged = mergePlants([p1, p2], [plant('p2', [reading('r2', 0), watering('w', 9)])])
+    expect(merged[0]).toBe(p1)
+  })
+})
