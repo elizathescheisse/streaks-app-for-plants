@@ -8,6 +8,7 @@ import { useTheme } from '../theme/ThemeContext.js'
 import PlantCard from '../components/PlantCard.js'
 import AddPlantModal from '../components/AddPlantModal.js'
 import QuickLogModal from '../components/QuickLogModal.js'
+import SyncSection from '../components/SyncSection.js'
 
 function formatDate(d) {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
@@ -44,6 +45,7 @@ export default function HomeScreen({ navigation }) {
         data={sorted}
         keyExtractor={p => p.id}
         ListHeaderComponent={header}
+        ListFooterComponent={<SyncSection />}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
         ListEmptyComponent={

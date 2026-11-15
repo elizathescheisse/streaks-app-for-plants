@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { loadPlants, savePlants } from '../storage/plantStorage.js'
 import { currentHealth, buildEventsFromForm } from '@plant-streaks/core/plantSelectors.js'
 import { scheduleReMeasureReminder } from '../notifications.js'
+import useCloudSync from './useCloudSync.js'
 
 // Owns the plants array + persistence + mutators — the RN equivalent of the
 // web App.jsx state owner. Screens consume it via usePlants() so navigation
@@ -19,6 +20,8 @@ export function PlantsProvider({ children }) {
   useEffect(() => {
     if (plants !== null) savePlants(plants)
   }, [plants])
+
+  const cloud = useCloudSync(plants, setPlants, loaded)
 
   const addPlant = useCallback(({ emoji = '🌿', species, name = '', health }) => {
     const events = []
@@ -84,6 +87,7 @@ export function PlantsProvider({ children }) {
     addLogEntry,
     quickWater,
     quickReading,
+    cloud,
   }
 
   return <PlantsContext.Provider value={value}>{children}</PlantsContext.Provider>
