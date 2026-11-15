@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
-import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore'
+import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase.js'
 import { mergePlants } from '@plant-streaks/core/plantMerge.js'
 
@@ -9,6 +9,10 @@ import { mergePlants } from '@plant-streaks/core/plantMerge.js'
 // chooses "Sign in with Google" are plants also copied to Firestore
 // (users/{uid}/plants/{plantId}). Signed out = nothing leaves the device.
 // Signing out keeps the local copy; it just stops syncing.
+//
+// The cloud copy is also listened to live (onSnapshot), so a log made on another
+// device (phone, watch via the phone app) appears here without a reload (#237).
+// Every update from the cloud goes through the same merge as the first sync.
 //
 // First sync after sign-in merges rather than overwrites: plants are append-only
 // event logs, so a plant present on both sides gets the union of its events
@@ -25,10 +29,12 @@ export default function usePlantCloudSync(plants, setPlants) {
   const uidRef = useRef(null)
   const readyRef = useRef(false)
   const savedRef = useRef(new Map())   // plantId → JSON last written/read
+  const unsubRef = useRef(null)        // stops the live cloud listener
 
   useEffect(() => {
     let cancelled = false
     const stop = onAuthStateChanged(auth, async u => {
+      unsubRef.current?.(); unsubRef.current = null
       readyRef.current = false
       uidRef.current = null
       savedRef.current = new Map()
@@ -38,20 +44,23 @@ export default function usePlantCloudSync(plants, setPlants) {
       setUser(u ? { email: u.email, name: u.displayName } : null)
       if (!u) return
 
-      try {
-        const snap = await getDocs(collection(db, 'users', u.uid, 'plants'))
-        if (cancelled) return
-        const cloud = snap.docs.map(d => d.data())
-        for (const c of cloud) savedRef.current.set(c.id, JSON.stringify(c))
-        uidRef.current = u.uid
-        readyRef.current = true
-        setPlants(local => mergePlants(local, cloud))
-      } catch (e) {
-        console.warn('Firebase first sync failed', e)
-        setError('Could not reach the cloud — your plants are still saved on this device.')
-      }
+      unsubRef.current = onSnapshot(
+        collection(db, 'users', u.uid, 'plants'),
+        snap => {
+          if (cancelled) return
+          const cloud = snap.docs.map(d => d.data())
+          for (const c of cloud) savedRef.current.set(c.id, JSON.stringify(c))
+          uidRef.current = u.uid
+          readyRef.current = true
+          setPlants(local => mergePlants(local, cloud))
+        },
+        e => {
+          console.warn('Firebase sync failed', e)
+          setError('Could not reach the cloud — your plants are still saved on this device.')
+        },
+      )
     })
-    return () => { cancelled = true; stop() }
+    return () => { cancelled = true; unsubRef.current?.(); stop() }
   }, [setPlants])
 
   // Write changes (and deletions) after edits settle

@@ -19,6 +19,7 @@
 - **state-space model / Kalman filter** — the formal name for that combining trick: treat the real value as hidden and evolving predictably, treat each measurement as a noisy glimpse, and blend the two. Like phone GPS in a tunnel — it keeps you moving smoothly along the road because "cars follow roads" outweighs the garbage signal.
 - **multiplatform (two camps)** — building one app for many platforms, done in one of two ways. *Camp 1: share everything* (logic + the screens) — one codebase draws the UI everywhere; React Native (yours) and Flutter live here. *Camp 2: share the brain only* — share the logic, hand-build native screens per platform; Kotlin Multiplatform lives here. Our app is Camp 1: `@plant-streaks/core` (the JS brain) shared by the React web app and the React Native phone app.
 - **native (app/screen)** — written in the platform's own language and drawn by the OS itself (iPhone = Swift, Android = Kotlin), rather than by a cross-platform framework. Feels the most "built-in"; the Apple Watch UI is always native Swift no matter what framework the phone app uses.
+- **backtest** — grading a prediction method by replaying your own past: at each old date, let it see only what was known then, ask for its guess, and compare to what you actually measured next. (Stats/forecasting term.)
 - **slope** — how steep the line is; here, the drying speed.
 - **residual** — the gap between what the model predicted and what you actually measured (predicted 3, measured 5 → residual +2).
 - **EMA (exponential moving average)** — a running average that weights recent readings more than old ones, so it adapts to change instead of being anchored to stale data.
@@ -27,6 +28,7 @@
 - **bias vs. noise** — bias = consistently wrong in one direction (fixable by correcting); noise = scattered randomly both ways (not fixable, just genuine unpredictability).
 - **confidence (of the model)** — how much real data it has to go on; low confidence = still mostly guessing from defaults.
 - **field capacity / saturation ceiling** — the max water soil can hold, like a full sponge; pour past it and the extra just runs out the bottom ("pees out"). Watering "a lot" only buys runway up to this ceiling, not beyond.
+- **pull (polling) vs. push** — two ways for a device to learn something changed. *Pull*: the device asks "anything new?" every so often (like checking the mailbox) — simple, and works from behind a home router. *Push*: the sender reaches out the moment something happens (like a doorbell) — instant, but the sender has to be able to reach the receiver, which is the hard part for a gadget on a home network.
 
 ## What energizes / drains me (motivation log)
 

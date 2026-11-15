@@ -13,6 +13,7 @@ import Toast from '../shared/components/Toast'
 import usePlantCloudSync from '../shared/firebase/usePlantCloudSync.js'
 import useToday from '../shared/hooks/useToday.js'
 import { buildEventsFromForm, currentHealth } from '@plant-streaks/core/plantSelectors.js'
+import { mergePlants } from '@plant-streaks/core/plantMerge.js'
 
 const SCHEMA_VERSION = '2'
 const STORAGE_KEY    = 'plant-streaks'
@@ -74,6 +75,20 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(plants))
   }, [plants])
+
+  // Another tab in this browser saved newer data (#237): fold it in instead of
+  // keeping a stale list that would overwrite theirs on our next save. The
+  // browser only fires this for OTHER tabs' writes, and merging a no-news list
+  // is a no-op, so two tabs can't ping-pong.
+  useEffect(() => {
+    const onStorage = e => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return
+      try { setPlants(local => mergePlants(local, JSON.parse(e.newValue))) }
+      catch { /* unreadable data from another tab — ignore it */ }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const cloud = usePlantCloudSync(plants, setPlants)
 

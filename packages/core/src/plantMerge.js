@@ -18,13 +18,22 @@
 // Known limitation: a deleted log entry on one device comes back if the other
 // still has it (a union can't tell "deleted" from "not seen yet"). Fixing that
 // needs tombstones.
+//
+// When the other side has nothing new, this returns `local` itself (same array,
+// same plant objects) so live listeners can merge freely without causing
+// re-renders, saves, or save→update→save loops.
 export function mergePlants(local, cloud) {
   const byId = new Map(local.map(p => [p.id, p]))
+  let changed = false
   for (const c of cloud) {
     const l = byId.get(c.id)
-    byId.set(c.id, l ? { ...l, events: unionEvents(l.events, c.events) } : c)
+    if (!l) { byId.set(c.id, c); changed = true; continue }
+    const have = new Set((l.events ?? []).map(e => e.id))
+    if ((c.events ?? []).every(e => have.has(e.id))) continue
+    byId.set(c.id, { ...l, events: unionEvents(l.events, c.events) })
+    changed = true
   }
-  return [...byId.values()]
+  return changed ? [...byId.values()] : local
 }
 
 // Union by event id, oldest first. Where both sides have the same event the
