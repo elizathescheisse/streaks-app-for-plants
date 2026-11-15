@@ -585,8 +585,14 @@ export function speciesDefaultBeta(careProfile) {
 // fern that reads 5 after eight cups, every time, isn't under-watered; 5 is
 // simply "full" for that pot. Judged against 6–8 it reads as thirsty forever.
 //
-// So once there's enough history, restate the species range on this pot's own
-// scale:
+// But low readings have a second explanation: the plant has simply never been
+// watered enough. A user's habit is not evidence of what's healthy — someone
+// who has only ever given a fern one cup must not be told that a dry fern is
+// normal. So the range is only restated when `pourSizeMatters` is false: the
+// owner HAS tried clearly bigger pours and the reading didn't rise (see
+// pourSizeMatters in plantModel.js). Without that proof the species range
+// stands, and suggestsPourTest (below) says when to ask the user to run the
+// test. With it, restate the species range on this pot's own scale:
 //   • top     = the highest reading seen at any point across the plant's
 //               recent waterings (never above the species top — we only ever
 //               lower it). Any reading counts, not just the one right after
@@ -599,9 +605,10 @@ export function speciesDefaultBeta(careProfile) {
 //               watering at. Arithmetic alone doesn't get to tell someone to
 //               let a plant dry out further than they ever have.
 //
-// Left alone (returns the species profile itself, same object) when: there's
-// no species range, too few waterings with a follow-up reading, the pot does
-// reach the species top, or the plant is currently struggling — a struggling
+// Left alone (returns the species profile itself, same object) when: bigger
+// pours haven't been shown not to help, there's no species range, too few
+// waterings with a follow-up reading, the pot does reach the species top, or
+// the plant is currently struggling — a struggling
 // plant's low readings may be the problem, not the pot's normal.
 //
 // Otherwise returns a copy with moistureRange (and dryThreshold) replaced,
@@ -620,11 +627,11 @@ const PRE_WATER_FRESH_MS = 36 * 3_600_000  // a reading this soon before waterin
 
 const round1 = v => Math.round(v * 10) / 10
 
-export function personalCareProfile(plant, careProfile) {
-  const range = careProfile?.moistureRange
-  if (!range || !(range[1] > range[0])) return careProfile
-  if (currentHealth(plant) === 'struggling') return careProfile
-
+// The plant's most recent waterings that have a reading before the next one:
+// [{ peak, pre }] — `peak` the highest reading in that stretch, `pre` the
+// reading taken shortly before the watering (null if none). Null when there
+// aren't yet PERSONAL_RANGE_MIN_CYCLES of them.
+function recentWateringCycles(plant, careProfile) {
   const waterings = getEvents(plant, 'watering')
   const readings = getEvents(plant, 'reading')
   const cycles = []
@@ -642,9 +649,33 @@ export function personalCareProfile(plant, careProfile) {
       : null
     cycles.push({ peak: Math.max(...after), pre })
   })
-
   const recent = cycles.slice(-PERSONAL_RANGE_WINDOW)
-  if (recent.length < PERSONAL_RANGE_MIN_CYCLES) return careProfile
+  return recent.length >= PERSONAL_RANGE_MIN_CYCLES ? recent : null
+}
+
+// Should the app ask the user to try one much bigger pour? True when the pot
+// hasn't reached the top of its species range in any recent watering AND there
+// isn't yet evidence either way on whether more water would get it there
+// (`pourSizeMatters` null — the pours have all been about the same size). The
+// test settles which it is: if the reading rises, the plant was being
+// under-watered and the amount loop takes over; if it doesn't, that's this
+// pot's limit and personalCareProfile restates the range.
+export function suggestsPourTest(plant, careProfile, pourSizeMatters) {
+  const range = careProfile?.moistureRange
+  if (!range || !(range[1] > range[0]) || pourSizeMatters != null) return false
+  const recent = recentWateringCycles(plant, careProfile)
+  if (!recent) return false
+  return Math.max(...recent.map(c => c.peak)) < range[1]
+}
+
+export function personalCareProfile(plant, careProfile, pourSizeMatters) {
+  const range = careProfile?.moistureRange
+  if (!range || !(range[1] > range[0])) return careProfile
+  if (pourSizeMatters !== false) return careProfile
+  if (currentHealth(plant) === 'struggling') return careProfile
+
+  const recent = recentWateringCycles(plant, careProfile)
+  if (!recent) return careProfile
 
   const [speciesLo, speciesHi] = range
   const top = Math.max(...recent.map(c => c.peak))

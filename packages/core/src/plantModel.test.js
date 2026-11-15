@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability, learnedWaterAmount, linearFit, weightedLinearFit, segmentCycles } from './plantModel.js'
+import { computeModel, predictMoisture, getRecommendation, getLastResidual, getResidualHistory, getPredictionReliability, learnedWaterAmount, pourSizeMatters, linearFit, weightedLinearFit, segmentCycles } from './plantModel.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -657,6 +657,46 @@ describe('learnedWaterAmount — runaway guard (pourSizeMatters)', () => {
 })
 
 // ── weightedLinearFit (added for the fitted-curve feature, #172) ───────────
+
+// ── pourSizeMatters — the evidence careProfileFor needs (#152) ─────────────
+describe('pourSizeMatters', () => {
+  function cycles(specs, extra = {}) {
+    const events = []
+    specs.forEach(([amount, peak], i) => {
+      const d = 70 - i * 7
+      events.push(watering(amount, d), reading(peak, d - 0.5))
+    })
+    return { ...plant(events), ...extra }
+  }
+  const MIXED = [2, 4, 8, 2, 4, 8, 2, 4, 8]
+
+  it('is false when small and big pours end at the same reading', () => {
+    expect(pourSizeMatters(cycles(MIXED.map(a => [a, 4])), CARE)).toBe(false)
+  })
+
+  it('is true when bigger pours raise the reading', () => {
+    const peakFor = { 2: 4, 4: 5, 8: 7 }
+    expect(pourSizeMatters(cycles(MIXED.map(a => [a, peakFor[a]])), CARE)).toBe(true)
+  })
+
+  it('is null when the pours were all about the same size (nothing bigger was tried)', () => {
+    expect(pourSizeMatters(cycles(Array.from({ length: 9 }, () => [1, 4])), CARE)).toBeNull()
+  })
+
+  it('is null with fewer than 8 measured waterings, or no events at all', () => {
+    expect(pourSizeMatters(cycles([[2, 4], [8, 4], [2, 4], [8, 4]]), CARE)).toBeNull()
+    expect(pourSizeMatters(plant([]), CARE)).toBeNull()
+    expect(pourSizeMatters({}, CARE)).toBeNull()
+  })
+
+  it('still answers for a plant with an explicit pour override', () => {
+    // learnedWaterAmount short-circuits on an override and reports null;
+    // the evidence itself doesn't depend on what the user set.
+    const p = cycles(MIXED.map(a => [a, 4]), { typicalWater: { amount: '3', unit: 'cups' } })
+    expect(learnedWaterAmount(p, CARE).pourSizeMatters).toBeNull()
+    expect(pourSizeMatters(p, CARE)).toBe(false)
+  })
+})
 
 describe('weightedLinearFit', () => {
   it('matches linearFit when all weights are 1', () => {

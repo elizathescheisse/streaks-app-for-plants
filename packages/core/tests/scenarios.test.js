@@ -321,6 +321,9 @@ describe('Alocasia — typical pour should reflect recent behavior, not the whol
 // dry" minutes after a full watering — and had been below-range at 44 of 47
 // waterings while the plant was marked "good". The fix judges the plant
 // against a range learned from what watering actually achieves in this pot.
+// The fixture is the plant's full history on purpose: the range is only
+// restated because that history PROVES more water doesn't help (pours from 1
+// to 8 cups, same readings) — low readings alone would not be enough.
 // ────────────────────────────────────────────────────────────────────────
 describe('Back Fern — species range out of reach for this pot (#152)', () => {
   const plant = loadFixture('back-fern-2026-11-15-range-out-of-reach.json')

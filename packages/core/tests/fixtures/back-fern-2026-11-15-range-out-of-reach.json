@@ -5,6 +5,933 @@
   "name": "Back Fern",
   "events": [
     {
+      "id": "95bf3e42-0a07-47ad-aec3-666b917e5736",
+      "bundleId": "f208b4a8-e48a-44ce-aad3-6bc3bd75cb62",
+      "moisture": 2,
+      "type": "reading",
+      "timestamp": "2026-05-13T21:18:00.000Z"
+    },
+    {
+      "amount": "3",
+      "unit": "cups",
+      "timestamp": "2026-05-14T21:19:00.000Z",
+      "id": "f8aac75c-261e-4a37-96ab-4eb564d26318",
+      "bundleId": "df5a1400-1147-451d-9789-98ccd49260d8",
+      "type": "watering"
+    },
+    {
+      "bundleId": "6412c7bc-e7ee-4481-8f8f-26f904fae902",
+      "id": "f5b90be0-4f12-4e3b-b64c-cb555d22c815",
+      "moisture": 3,
+      "type": "reading",
+      "timestamp": "2026-05-17T21:19:00.000Z"
+    },
+    {
+      "timestamp": "2026-05-17T21:51:00.000Z",
+      "unit": "cups",
+      "amount": "5",
+      "id": "e5fe1c76-3722-4b94-928c-6d31eadf8869",
+      "type": "watering",
+      "bundleId": "80c6b81d-59b6-4228-a676-7d6d4efb73dc"
+    },
+    {
+      "moisture": 6,
+      "id": "2c3fb92d-56d3-4d0a-80c1-7f3d273316ff",
+      "timestamp": "2026-05-18T01:45:00.000Z",
+      "bundleId": "55933214-27a3-475f-94ab-747df3fc441c",
+      "type": "reading"
+    },
+    {
+      "moisture": 6,
+      "id": "f2185a62-ee6d-4ebd-807a-97698d762c6b",
+      "type": "reading",
+      "bundleId": "e119a0e5-e615-4bbc-9f92-d2dd977e4c9e",
+      "timestamp": "2026-05-18T22:12:00.000Z"
+    },
+    {
+      "moisture": 5,
+      "id": "4d562079-be9b-4b97-9f4c-3e2823cdae0a",
+      "type": "reading",
+      "timestamp": "2026-05-20T15:24:03.736Z",
+      "bundleId": "9e3d54d3-063f-44a4-8aee-828d830d5948"
+    },
+    {
+      "timestamp": "2026-05-20T18:01:27.740Z",
+      "type": "watering",
+      "amount": "2",
+      "bundleId": "d1abd8d2-771f-4886-87c5-1b2a06df1e5e",
+      "unit": "cups",
+      "id": "d68136c8-43b1-4c1a-80d8-2b7866366175"
+    },
+    {
+      "timestamp": "2026-05-20T19:03:24.452Z",
+      "bundleId": "2ef209a2-70c9-4d98-aacb-637d5f50ebf3",
+      "id": "3bb5283f-bdc8-40d2-a946-ec584ddc707a",
+      "moisture": 7,
+      "type": "reading"
+    },
+    {
+      "timestamp": "2026-05-22T01:28:43.047Z",
+      "moisture": 6,
+      "type": "reading",
+      "bundleId": "434f6cc9-55aa-4b23-b8c3-4eaf5460f53e",
+      "id": "e73605db-c61f-4864-be41-7e4f9f01e5b4"
+    },
+    {
+      "bundleId": "1de094f0-e636-4fd2-b6cd-77ea1bca3492",
+      "type": "reading",
+      "moisture": 6,
+      "id": "d93b9dc9-9b5e-4cf9-9714-a7e7a3c69919",
+      "timestamp": "2026-05-22T19:39:00.000Z"
+    },
+    {
+      "bundleId": "7db29060-9885-4283-8daf-a34593f38e0e",
+      "timestamp": "2026-05-23T14:31:00.000Z",
+      "id": "79b7117e-0c12-4908-a54f-e339fbb750ff",
+      "moisture": 6,
+      "type": "reading"
+    },
+    {
+      "type": "reading",
+      "timestamp": "2026-05-25T02:45:00.000Z",
+      "moisture": 5,
+      "bundleId": "09b439f5-1abf-41b5-b8f7-daa0836b54c8",
+      "id": "cf19805f-f58b-4838-ad7f-7af43286f848"
+    },
+    {
+      "id": "0ff09b80-691f-4f80-b1e9-bfe06a43450a",
+      "timestamp": "2026-05-25T02:49:10.070Z",
+      "type": "watering",
+      "amount": "2",
+      "bundleId": "e223c805-f9a9-41f2-bc7b-50d824df999d",
+      "unit": "cups"
+    },
+    {
+      "bundleId": "4dd7add7-f791-45ce-9e94-b96c094355da",
+      "type": "reading",
+      "id": "a753e68c-0c0b-4e99-b42a-a9de25113cc9",
+      "timestamp": "2026-05-25T03:57:00.000Z",
+      "moisture": 5
+    },
+    {
+      "bundleId": "df439c25-beeb-4252-bcc4-4a72c7014080",
+      "id": "85eb9ae0-1178-4c08-ad6f-e90f93413d8d",
+      "type": "reading",
+      "moisture": 6,
+      "timestamp": "2026-05-25T04:07:00.000Z"
+    },
+    {
+      "timestamp": "2026-05-25T16:33:57.231Z",
+      "moisture": 6,
+      "type": "reading",
+      "bundleId": "d9165bb8-b4d0-43b1-8560-bf7e2e13a0a8",
+      "id": "3a966baf-43f9-4e91-8aea-9f13edf9b505"
+    },
+    {
+      "type": "reading",
+      "bundleId": "5a09f462-5450-4db6-8457-4b3e1ec41d12",
+      "moisture": 6,
+      "id": "38849d00-4a2d-4c54-990f-e0415c836f06",
+      "timestamp": "2026-05-27T03:46:50.132Z"
+    },
+    {
+      "moisture": 6,
+      "timestamp": "2026-05-27T16:27:27.478Z",
+      "bundleId": "283cd0fb-6442-4603-a6fc-086e07c117e1",
+      "type": "reading",
+      "id": "b4376dcc-aacf-4e68-afc1-f4e7f1737ac0"
+    },
+    {
+      "moisture": 6,
+      "id": "eec729d3-204e-4b3f-bbb9-d0754f91c039",
+      "type": "reading",
+      "bundleId": "ee2dfed4-55c4-41ba-afe8-5a6f58453647",
+      "timestamp": "2026-05-28T20:55:06.647Z"
+    },
+    {
+      "type": "reading",
+      "id": "c11afd2e-7c3a-4158-a7fd-c3b6acaf7791",
+      "bundleId": "c310382f-df81-4bed-87fb-74ac4122a31e",
+      "timestamp": "2026-05-30T17:50:00.000Z",
+      "moisture": 5
+    },
+    {
+      "id": "f1698695-d560-4025-9abc-0f2a30ac365f",
+      "bundleId": "27b88482-615d-467e-8c08-61773629065c",
+      "timestamp": "2026-05-30T17:54:51.971Z",
+      "unit": "cups",
+      "amount": "3",
+      "type": "watering"
+    },
+    {
+      "bundleId": "bf4d8a98-8355-468c-8438-6fc36201ff4b",
+      "type": "reading",
+      "moisture": 5,
+      "timestamp": "2026-05-30T19:05:38.267Z",
+      "id": "9c2af783-9cf1-4716-a346-58b7cfcdfd04"
+    },
+    {
+      "bundleId": "58ca57d7-f151-4200-86cc-1a4b57e80e4f",
+      "type": "reading",
+      "id": "178c5659-f89e-4815-8f8f-c699c5782bf1",
+      "moisture": 6,
+      "timestamp": "2026-05-30T19:25:03.944Z"
+    },
+    {
+      "bundleId": "bb25108e-1866-4418-a1fd-bbd2d2dc6d82",
+      "timestamp": "2026-05-31T18:40:35.290Z",
+      "type": "reading",
+      "id": "502e1e12-6f4e-43a0-8e41-f6248e704944",
+      "moisture": 6
+    },
+    {
+      "id": "cebb731e-cc38-45ef-ae88-8839c5556c39",
+      "bundleId": "0fe65d87-080a-46cf-b7ed-2a4b37c9bc6d",
+      "moisture": 4,
+      "type": "reading",
+      "timestamp": "2026-06-01T20:09:30.126Z"
+    },
+    {
+      "id": "b2704d27-86af-4a88-a92d-0a75e41dbaa6",
+      "type": "watering",
+      "bundleId": "44abcb66-8a0c-48c6-babe-d9989598d18a",
+      "timestamp": "2026-06-01T20:27:53.849Z",
+      "amount": "2",
+      "unit": "cups"
+    },
+    {
+      "id": "8ca44831-bcf7-4d68-8d4a-4d82da6245d9",
+      "moisture": 6,
+      "bundleId": "1ed5b72a-8f72-4f40-aa3a-39ef631be91d",
+      "type": "reading",
+      "timestamp": "2026-06-01T21:40:19.925Z"
+    },
+    {
+      "bundleId": "3f61b73c-7a52-48c3-b48e-17540c61dffa",
+      "timestamp": "2026-06-05T03:39:24.440Z",
+      "id": "6f471852-e110-4743-a761-af1998566cef",
+      "moisture": 6,
+      "type": "reading"
+    },
+    {
+      "id": "4011f257-67d2-4a3e-a1e4-78df31a487ef",
+      "bundleId": "f7101d81-b289-4976-b128-119ed6bb7710",
+      "timestamp": "2026-06-07T15:11:40.456Z",
+      "type": "reading",
+      "moisture": 6
+    },
+    {
+      "type": "reading",
+      "bundleId": "4a364f04-f753-4386-83c5-1219dd2fbef3",
+      "timestamp": "2026-06-08T18:33:21.594Z",
+      "id": "6ab480ff-aacf-4136-a502-fd86bae86ca9",
+      "moisture": 5
+    },
+    {
+      "type": "watering",
+      "id": "4fe56192-6b16-4653-9e8a-688b94797d2d",
+      "bundleId": "76db2c8b-4dd5-4dc7-9c56-b098d1b7a509",
+      "amount": "2",
+      "unit": "cups",
+      "timestamp": "2026-06-08T18:52:46.378Z"
+    },
+    {
+      "timestamp": "2026-06-08T19:52:51.661Z",
+      "type": "reading",
+      "bundleId": "92e94a77-6172-418f-afae-76a184d5409b",
+      "moisture": 6,
+      "id": "e2c589ed-7da3-4464-b7c2-3575c16e100d"
+    },
+    {
+      "bundleId": "1c8ab7f6-7370-4cd5-92f4-10175709141a",
+      "timestamp": "2026-06-12T01:42:20.921Z",
+      "moisture": 7,
+      "type": "reading",
+      "id": "cb4f1cc4-366a-436d-97ca-0fb19178d67c"
+    },
+    {
+      "moisture": 6,
+      "type": "reading",
+      "id": "e55bf9af-05ab-4c04-a2fa-00a9ed3e12f4",
+      "timestamp": "2026-06-13T22:52:05.852Z",
+      "bundleId": "46d67648-b690-48c7-8b50-533d39414048"
+    },
+    {
+      "moisture": 4,
+      "id": "ee0bfa55-8ed1-4ffd-9d15-3eb3843e86b8",
+      "timestamp": "2026-06-16T01:44:33.901Z",
+      "bundleId": "e6e7fcb5-a8ae-4266-a091-598dd82f9a77",
+      "type": "reading"
+    },
+    {
+      "moisture": 5,
+      "timestamp": "2026-06-19T04:14:17.930Z",
+      "id": "e368985e-5aa5-4f42-b98c-af1a58b40b7e",
+      "bundleId": "92f4105f-30e1-49ab-a0fb-3e61f7574490",
+      "type": "reading"
+    },
+    {
+      "id": "71e64433-2d4c-4e88-ad78-24eaa24ff32a",
+      "bundleId": "8dcb7c2e-8ffe-4595-b671-bb067f197c06",
+      "type": "reading",
+      "moisture": 6,
+      "timestamp": "2026-06-21T20:15:54.488Z"
+    },
+    {
+      "bundleId": "0cd03b4a-8c42-40fc-b3e9-85f464a3db01",
+      "type": "reading",
+      "id": "59d2616c-8a7d-42aa-8242-068c83dbffbe",
+      "moisture": 4,
+      "timestamp": "2026-06-22T19:51:31.474Z"
+    },
+    {
+      "type": "reading",
+      "bundleId": "a7be7915-acd0-4f80-8e62-2a0ca7118899",
+      "timestamp": "2026-06-27T00:12:13.144Z",
+      "id": "2fd13b02-a96f-4a96-83bd-bfa6f2d8cf16",
+      "moisture": 4
+    },
+    {
+      "timestamp": "2026-06-27T00:26:19.275Z",
+      "type": "watering",
+      "amount": "4",
+      "bundleId": "69c7a1e2-5d13-48f6-89dc-69d6508c5bdb",
+      "id": "1ab42eca-2d01-468f-aafe-32e8c756ff9e",
+      "unit": "cups"
+    },
+    {
+      "moisture": 4,
+      "type": "reading",
+      "timestamp": "2026-06-27T01:35:31.122Z",
+      "bundleId": "bef8ab88-4c1c-4600-83c9-f1a56d305527",
+      "id": "d23e4586-c66b-411d-afaf-e2966d7f778e"
+    },
+    {
+      "moisture": 6,
+      "type": "reading",
+      "bundleId": "8fb74aff-9426-4616-a872-0ee507ebf315",
+      "id": "cf58265f-e585-4880-9988-e935b6d07399",
+      "timestamp": "2026-06-29T16:52:09.008Z"
+    },
+    {
+      "moisture": 7,
+      "timestamp": "2026-07-01T23:43:05.288Z",
+      "bundleId": "0975bde9-6c3b-4ea2-b029-50710421f260",
+      "id": "dd7322d3-584a-4610-8dee-99d52525c1a7",
+      "type": "reading"
+    },
+    {
+      "id": "94433137-ff6c-4f40-9a40-edaea62b7c7d",
+      "type": "watering",
+      "amount": "2.5",
+      "bundleId": "d435e332-8157-48ea-ba6d-0261fe1cef22",
+      "unit": "cups",
+      "timestamp": "2026-07-02T01:22:00.000Z"
+    },
+    {
+      "bundleId": "1d2421d8-c365-4ab0-9c4b-b685bf74487a",
+      "timestamp": "2026-07-02T02:33:19.175Z",
+      "id": "525ab9b0-4ca5-437a-a4b3-46f9fb091095",
+      "type": "reading",
+      "moisture": 6
+    },
+    {
+      "id": "c5622d78-8f4a-411b-8ef9-cfca4624778e",
+      "bundleId": "119fe9e7-6725-4c23-a2a2-f1d0269d6849",
+      "type": "reading",
+      "timestamp": "2026-07-14T05:03:38.888Z",
+      "moisture": 4
+    },
+    {
+      "id": "8b735ea5-40aa-4e97-bcb7-989928d371f1",
+      "moisture": 5,
+      "bundleId": "e105e7b4-40ec-48fe-8a4e-be6635bad4f9",
+      "type": "reading",
+      "timestamp": "2026-07-14T21:15:27.785Z"
+    },
+    {
+      "amount": "4",
+      "id": "28f957f5-8aa6-45f4-9d03-985f3f0e86fe",
+      "unit": "cups",
+      "bundleId": "93189f6d-5a79-451c-9e1b-bc2491a24f90",
+      "type": "watering",
+      "timestamp": "2026-07-14T21:18:12.755Z"
+    },
+    {
+      "bundleId": "cf0ba208-b9bf-462b-b2c2-e6b001f9dd82",
+      "timestamp": "2026-07-14T22:21:03.603Z",
+      "id": "6665f7e8-919a-4df3-9490-5448d74561a0",
+      "moisture": 6,
+      "type": "reading"
+    },
+    {
+      "type": "reading",
+      "bundleId": "428f77b7-d97b-49ed-b10c-7bd3eff2cca2",
+      "id": "9f1d6816-f444-47be-bfcd-ad569287bc4d",
+      "moisture": 6,
+      "timestamp": "2026-07-15T17:22:48.041Z"
+    },
+    {
+      "type": "reading",
+      "bundleId": "3fcedde0-6ddd-470c-a109-bd01f3484472",
+      "id": "5f85e575-c6bd-44cc-949d-ecdfc4911a5d",
+      "moisture": 5,
+      "timestamp": "2026-07-17T00:02:17.615Z"
+    },
+    {
+      "unit": "cups",
+      "amount": "4",
+      "bundleId": "743b2a89-6e23-4aba-9d0c-8c3ccb404a5a",
+      "timestamp": "2026-07-17T01:21:56.044Z",
+      "type": "watering",
+      "id": "cca04267-9371-4a28-996d-9811235e6fc0"
+    },
+    {
+      "moisture": 5,
+      "id": "082caa7c-5660-4a71-bc60-43c968d70302",
+      "type": "reading",
+      "timestamp": "2026-07-17T03:08:00.000Z",
+      "bundleId": "a0a66c12-31a7-4951-ac70-6f0848e943fd"
+    },
+    {
+      "bundleId": "888539d6-f280-46e2-a5c4-268ab6fb443a",
+      "type": "reading",
+      "id": "a92f24cf-69b8-47c2-8a16-ebab029b6536",
+      "timestamp": "2026-07-19T22:31:36.824Z",
+      "moisture": 6
+    },
+    {
+      "id": "221de88f-2350-4e6d-80b3-5795bbed4c44",
+      "bundleId": "37ef0f67-a97e-4d49-9097-ae2f2bf3d7cb",
+      "timestamp": "2026-07-22T19:19:46.877Z",
+      "type": "reading",
+      "moisture": 4
+    },
+    {
+      "type": "watering",
+      "bundleId": "17c941ed-07de-4dc1-9734-5c22c3fa0382",
+      "timestamp": "2026-07-22T20:17:52.808Z",
+      "unit": "cups",
+      "id": "561bf6ea-c9b7-4721-bf38-4c5607bdbb63",
+      "amount": "4"
+    },
+    {
+      "type": "health_change",
+      "bundleId": "fe9bce51-c091-48b1-8780-ce50ba62a8c9",
+      "timestamp": "2026-07-22T20:23:00.000Z",
+      "health": "okay",
+      "id": "eee4d04a-6168-47be-ae64-05ed77a91c9b"
+    },
+    {
+      "timestamp": "2026-07-22T21:18:31.972Z",
+      "bundleId": "59e4014f-d988-4594-96f1-0272992d8459",
+      "type": "reading",
+      "id": "371b4e20-9f1e-44f3-b6bf-bf5b75664af4",
+      "moisture": 6
+    },
+    {
+      "id": "99bc513a-b56f-4a42-8f8b-2b4cac3bfafe",
+      "moisture": 5,
+      "timestamp": "2026-07-23T17:52:20.407Z",
+      "type": "reading",
+      "bundleId": "e6ab59a7-4035-4b92-930e-efaa88b674d7"
+    },
+    {
+      "moisture": 5,
+      "id": "b6486fb0-cf86-43e8-83bb-3f1b8c20c36e",
+      "timestamp": "2026-07-27T18:50:38.609Z",
+      "type": "reading",
+      "bundleId": "547d225f-4a99-4e9b-8b1f-86e3ece68818"
+    },
+    {
+      "id": "a4adba61-63f1-43b6-abeb-d4403f0dbf04",
+      "amount": "4",
+      "bundleId": "3994d481-90d2-470d-9d3c-cd7bc333582d",
+      "unit": "cups",
+      "timestamp": "2026-07-27T18:59:41.065Z",
+      "type": "watering"
+    },
+    {
+      "bundleId": "914dc223-4bca-4dc6-934d-f459e594f5d1",
+      "id": "aaa08970-addd-4cbd-b649-1977c34cb8c4",
+      "type": "reading",
+      "moisture": 6,
+      "timestamp": "2026-07-27T20:03:22.904Z"
+    },
+    {
+      "moisture": 5,
+      "timestamp": "2026-07-29T02:13:34.503Z",
+      "type": "reading",
+      "bundleId": "966714de-dec9-4aa9-bc08-bf4809eea7fe",
+      "id": "7e0f767e-1caa-4ab0-bdcd-d096517b6c7a"
+    },
+    {
+      "unit": "cups",
+      "timestamp": "2026-07-29T02:15:42.555Z",
+      "id": "620ab869-89ca-483f-b40d-8fb90ca8b331",
+      "amount": "4",
+      "type": "watering",
+      "bundleId": "e90921e3-f7f9-496f-8505-d0b9edd45d7d"
+    },
+    {
+      "moisture": 4,
+      "type": "reading",
+      "id": "108c2f30-0188-46f1-8a0b-50de4b88433d",
+      "bundleId": "ca4a189f-1912-4cb7-8893-37397f188c0b",
+      "timestamp": "2026-07-29T03:39:28.431Z"
+    },
+    {
+      "type": "reading",
+      "timestamp": "2026-07-29T19:22:18.833Z",
+      "bundleId": "17061af4-60fa-4a7b-ba2a-94dc69104781",
+      "moisture": 7,
+      "id": "f85bcc0e-8367-4f52-b164-8afa1fabca8f"
+    },
+    {
+      "bundleId": "7af7b0ad-70a4-4604-b265-33bde1c2f53a",
+      "timestamp": "2026-07-29T19:32:00.000Z",
+      "health": "struggling",
+      "type": "health_change",
+      "id": "b2263ca3-456e-4438-bc02-8eb345f782d0"
+    },
+    {
+      "timestamp": "2026-07-30T18:06:38.767Z",
+      "bundleId": "93259f55-889a-4025-ac86-b756fb4aae90",
+      "type": "reading",
+      "moisture": 5,
+      "id": "39305798-6571-4084-b755-5c29572e4230"
+    },
+    {
+      "type": "watering",
+      "amount": "1",
+      "timestamp": "2026-07-30T19:03:46.862Z",
+      "unit": "cups",
+      "id": "59f8b572-00c0-4d9e-bc7c-2b7125766e97",
+      "bundleId": "3bec84b7-84cc-4ccb-ac06-85453d998016"
+    },
+    {
+      "type": "reading",
+      "timestamp": "2026-07-30T20:29:49.009Z",
+      "bundleId": "1838c410-edce-450a-8446-72e7af826578",
+      "id": "ec528eb1-0b81-4754-95d6-f4f624f5f96b",
+      "moisture": 6
+    },
+    {
+      "id": "579183ad-67a7-4a48-9cac-94b77be2220c",
+      "type": "reading",
+      "bundleId": "7e337019-5a27-4c65-be4c-72403ed4f94a",
+      "timestamp": "2026-08-01T21:50:07.332Z",
+      "moisture": 4
+    },
+    {
+      "id": "11b21523-88be-43e1-8fac-e842fe797fb3",
+      "moisture": 3,
+      "type": "reading",
+      "timestamp": "2026-08-04T04:30:07.131Z",
+      "bundleId": "37e2762a-cc6f-4300-9437-6a26566c9b80"
+    },
+    {
+      "bundleId": "58058449-82d8-486f-9827-228dd8c38039",
+      "type": "reading",
+      "id": "376c2367-d964-47a9-9f4b-8e35db38f724",
+      "moisture": 6,
+      "timestamp": "2026-08-04T14:59:53.735Z"
+    },
+    {
+      "type": "watering",
+      "amount": "3",
+      "timestamp": "2026-08-04T15:06:04.385Z",
+      "bundleId": "63590402-c7ab-404e-8bb0-4acee7be2298",
+      "id": "1253d19f-abb9-46d6-ac3d-55b756b47eab",
+      "unit": "cups"
+    },
+    {
+      "bundleId": "8c87f51e-f047-43aa-9a74-60e373f6a7e5",
+      "timestamp": "2026-08-04T16:51:49.674Z",
+      "type": "reading",
+      "moisture": 4,
+      "id": "62b342ae-d6dd-46f8-ab90-2f3905e115b7"
+    },
+    {
+      "timestamp": "2026-08-05T16:48:54.154Z",
+      "id": "eb89dc0d-dd1b-4cc3-85df-c2644bd0cfc8",
+      "moisture": 3,
+      "type": "reading",
+      "bundleId": "cfde92f1-33e3-4fac-888f-e98be36c2872"
+    },
+    {
+      "amount": "6",
+      "bundleId": "6f22f414-e38e-42ae-bd57-0733855da3d1",
+      "timestamp": "2026-08-05T16:53:35.710Z",
+      "id": "5b03b643-4843-4f35-8b77-268da5c3b0a8",
+      "unit": "cups",
+      "type": "watering"
+    },
+    {
+      "bundleId": "0c8fe651-1384-406e-a285-0bbfe4174bf2",
+      "timestamp": "2026-08-05T17:53:54.319Z",
+      "type": "reading",
+      "moisture": 4,
+      "id": "9585db2b-1115-46ad-9879-ee9a83f2de54"
+    },
+    {
+      "id": "e5ee899b-7e9f-44c6-b736-5d64ca7c85cb",
+      "bundleId": "6791c288-a5b8-403f-99ee-81d2289e6f6d",
+      "moisture": 4,
+      "timestamp": "2026-08-11T00:47:52.928Z",
+      "type": "reading"
+    },
+    {
+      "type": "watering",
+      "amount": "7",
+      "timestamp": "2026-08-11T00:52:02.830Z",
+      "bundleId": "62c33b70-b790-4a34-a881-0acbc6274a49",
+      "unit": "cups",
+      "id": "7eebb75b-c8db-4280-9b15-7ae4ad8ea4a0"
+    },
+    {
+      "id": "e91a7a32-7268-404c-b608-5aa4dc4a6cf8",
+      "moisture": 4,
+      "bundleId": "888a028f-6dc4-41a0-9976-b5dc9be2834f",
+      "timestamp": "2026-08-11T02:00:54.691Z",
+      "type": "reading"
+    },
+    {
+      "timestamp": "2026-08-12T06:10:27.271Z",
+      "id": "9f6101f1-a27a-446b-bc68-f12fb37c083d",
+      "moisture": 4,
+      "bundleId": "e50936e9-e5d4-4888-9ed7-a0c848b43e02",
+      "type": "reading"
+    },
+    {
+      "unit": "cups",
+      "bundleId": "f41fa56c-2662-4fbd-a3e1-07d65e4b1ffd",
+      "timestamp": "2026-08-12T06:40:19.292Z",
+      "id": "f2eb25b7-85c8-4a10-868f-6ce3d2979e06",
+      "amount": "3",
+      "type": "watering"
+    },
+    {
+      "type": "reading",
+      "bundleId": "65318356-9a3c-4ede-9192-2e7eefdda35a",
+      "timestamp": "2026-08-17T17:10:52.471Z",
+      "id": "484883c1-3ec0-44f2-aeea-5edecb50aae3",
+      "moisture": 5
+    },
+    {
+      "type": "watering",
+      "bundleId": "f777412e-4b35-4f5a-861c-df17d983f47b",
+      "timestamp": "2026-08-17T17:23:27.988Z",
+      "id": "329c05cc-3652-49f9-894a-96bfb2a7e06e",
+      "amount": "4",
+      "unit": "cups"
+    },
+    {
+      "timestamp": "2026-08-17T18:27:00.000Z",
+      "type": "reading",
+      "moisture": 6,
+      "id": "50b55962-2e36-4f40-932a-afb114bd7553",
+      "bundleId": "a866835d-5f34-4213-8e10-96e67a1c2c9a"
+    },
+    {
+      "type": "reading",
+      "bundleId": "b81d4562-a8f1-4a96-b9bc-da4e2370d069",
+      "timestamp": "2026-08-19T20:18:27.405Z",
+      "id": "eb23d99a-2351-4285-bda1-d933e5ed1eab",
+      "moisture": 5
+    },
+    {
+      "type": "watering",
+      "timestamp": "2026-08-19T20:21:00.000Z",
+      "unit": "cups",
+      "id": "2bc77946-3060-4138-8268-0911c2b900b6",
+      "bundleId": "8be9db96-4a94-4dbc-8d1b-10e056fa5c32",
+      "amount": "4"
+    },
+    {
+      "timestamp": "2026-08-19T21:21:44.763Z",
+      "id": "e9a122a3-87eb-4130-8275-2a29d073339b",
+      "moisture": 6,
+      "type": "reading",
+      "bundleId": "a4e0cc97-bd70-4bb9-af14-3674c73624c9"
+    },
+    {
+      "timestamp": "2026-08-20T17:54:07.547Z",
+      "type": "reading",
+      "moisture": 5,
+      "bundleId": "d5423db0-3e89-4e82-8c7e-660ec5c68788",
+      "id": "d615b2ba-19e9-4299-b237-363523b00909"
+    },
+    {
+      "type": "watering",
+      "timestamp": "2026-08-20T18:03:00.000Z",
+      "unit": "cups",
+      "bundleId": "015ba596-c0ab-4318-a5fa-39e64051c648",
+      "amount": "6",
+      "id": "63697bf7-cd87-4880-93da-5d5d2b350994"
+    },
+    {
+      "timestamp": "2026-08-20T19:07:05.706Z",
+      "moisture": 4,
+      "type": "reading",
+      "id": "2756be93-efe5-4f0c-ba01-92560dc8568b",
+      "bundleId": "247ae1d0-4af2-4ec4-8a72-35fbd3dee4c1"
+    },
+    {
+      "id": "1fe5e564-b8d6-4053-a1e0-d1ac99f979e1",
+      "timestamp": "2026-08-20T19:14:28.209Z",
+      "bundleId": "6bf3696f-08aa-444f-881d-6c8f09f8862e",
+      "type": "reading",
+      "moisture": 5
+    },
+    {
+      "moisture": 4,
+      "bundleId": "715069b8-1826-4d12-9819-008686898bf8",
+      "timestamp": "2026-08-22T14:32:52.765Z",
+      "type": "reading",
+      "id": "91348dcd-5ac7-48f7-ab31-18c14db68af6"
+    },
+    {
+      "bundleId": "99c92c7c-2e6d-4f4b-932e-32b8b8090dde",
+      "unit": "cups",
+      "id": "f34547f1-6e05-4c99-bd75-928327c42d0e",
+      "timestamp": "2026-08-22T15:01:47.045Z",
+      "type": "watering",
+      "amount": "8"
+    },
+    {
+      "timestamp": "2026-08-22T16:05:13.211Z",
+      "bundleId": "ce585165-82e6-4144-8e05-7f2a077e869a",
+      "id": "12de394d-2cb5-43a8-9a83-7754b5ff6279",
+      "moisture": 6,
+      "type": "reading"
+    },
+    {
+      "type": "reading",
+      "moisture": 6,
+      "timestamp": "2026-08-24T18:01:00.000Z",
+      "bundleId": "afcb415c-9884-4b57-99d8-5d0f9d184108",
+      "id": "254042fb-e2c0-4796-ab9c-0ac44c43a85e"
+    },
+    {
+      "id": "c1316a7e-6f4a-4d18-a053-da03ebd1185c",
+      "type": "watering",
+      "timestamp": "2026-08-24T18:35:33.779Z",
+      "amount": "2",
+      "bundleId": "15abc284-aae0-48c8-abe6-5b30e450c35c",
+      "unit": "cups"
+    },
+    {
+      "timestamp": "2026-08-24T19:45:00.000Z",
+      "moisture": 5,
+      "id": "0cb64886-0c82-42a9-8f32-7fc3b1ada473",
+      "type": "reading",
+      "bundleId": "ae65934b-4fff-4dab-98ef-eb0fe4ac6fa1"
+    },
+    {
+      "timestamp": "2026-08-26T17:43:00.000Z",
+      "moisture": 5,
+      "id": "6fc65c87-81a7-4f49-b21b-2ccf0eafd1dc",
+      "bundleId": "8d53392e-ffd7-412e-b3e3-b85b0b92ffc2",
+      "type": "reading"
+    },
+    {
+      "unit": "cups",
+      "amount": "8",
+      "id": "73b8a0d1-ae8e-4503-9df6-21a3ed02704b",
+      "bundleId": "c2c7b5a9-acf1-4597-8c03-ba727c787156",
+      "type": "watering",
+      "timestamp": "2026-08-26T17:58:08.981Z"
+    },
+    {
+      "timestamp": "2026-08-26T20:53:44.737Z",
+      "bundleId": "44900ce5-c1d1-485f-8a6d-f2bc65c0f111",
+      "moisture": 5,
+      "type": "reading",
+      "id": "5cdeb385-33e8-4b88-9732-aa9afe34338b"
+    },
+    {
+      "bundleId": "53b10505-0de2-4eb2-a9a7-55f1c852e8e9",
+      "moisture": 5,
+      "type": "reading",
+      "timestamp": "2026-08-28T15:34:59.023Z",
+      "id": "c27df719-a6d8-4caa-a71f-acf382fde2fe"
+    },
+    {
+      "amount": "4",
+      "timestamp": "2026-08-28T20:10:06.977Z",
+      "type": "watering",
+      "unit": "cups",
+      "id": "6edd4871-783a-4c6a-88a3-45f0077b991d",
+      "bundleId": "626a541d-c78d-47ea-859b-d575d3c71a13"
+    },
+    {
+      "id": "c8eb7070-c108-4bbb-9596-fe8431fad285",
+      "timestamp": "2026-08-28T21:18:14.771Z",
+      "moisture": 6,
+      "bundleId": "a0e659d6-2512-4416-a4ec-5d4d1402c2ab",
+      "type": "reading"
+    },
+    {
+      "bundleId": "01e0d5ed-20ca-4dff-b103-71d38d02e54e",
+      "type": "reading",
+      "moisture": 6,
+      "id": "9b3c3080-0581-4299-abee-c1568661a4ec",
+      "timestamp": "2026-08-31T21:18:32.589Z"
+    },
+    {
+      "bundleId": "a4197cc3-dbd2-4a95-bf0d-c3c1643f3588",
+      "health": "okay",
+      "timestamp": "2026-09-01T19:12:00.000Z",
+      "id": "b4e17f18-6671-468e-aed8-a14fc9e3d8e9",
+      "type": "health_change"
+    },
+    {
+      "bundleId": "ce0f4b3e-fa33-4e04-8d2f-8f1f06956f35",
+      "timestamp": "2026-09-01T19:12:44.805Z",
+      "type": "reading",
+      "id": "acc2b6c1-00e7-4ccc-b543-60633b03b129",
+      "moisture": 5
+    },
+    {
+      "bundleId": "07679c30-619a-43ae-8979-04977dfab8f7",
+      "type": "reading",
+      "timestamp": "2026-09-02T21:51:30.796Z",
+      "id": "18b627d5-ad0a-48a6-8eac-b12dbc1311de",
+      "moisture": 5
+    },
+    {
+      "unit": "cups",
+      "id": "4b35e22c-ff3a-49e7-b8d6-fe712de7ce33",
+      "type": "watering",
+      "bundleId": "413cf84e-8815-42d7-b402-a8798aa3f8f0",
+      "amount": "8",
+      "timestamp": "2026-09-02T21:56:31.506Z"
+    },
+    {
+      "bundleId": "2fe237dc-ff83-4b97-85f2-89910496c01d",
+      "type": "reading",
+      "moisture": 7,
+      "id": "7a60aa5e-7f27-4089-a09f-094600bb4b60",
+      "timestamp": "2026-09-02T23:00:54.196Z"
+    },
+    {
+      "type": "reading",
+      "bundleId": "0b48ce10-6d72-4130-9e71-3b30b6d58eae",
+      "timestamp": "2026-09-06T16:58:00.000Z",
+      "moisture": 5,
+      "id": "c3da6d94-b904-4113-af4e-e77ca69b8dae"
+    },
+    {
+      "timestamp": "2026-09-07T21:25:11.539Z",
+      "bundleId": "e7610315-4a56-4bee-a1c2-7080414e4469",
+      "id": "2e5d4774-9e2c-4f05-bb56-8395a2c0fe5c",
+      "type": "reading",
+      "moisture": 4
+    },
+    {
+      "amount": "6",
+      "unit": "cups",
+      "id": "f1631ecf-f512-49fb-8f78-df725cb7f10f",
+      "bundleId": "d129e17c-c63d-4326-b2a5-2ccaf27003c8",
+      "timestamp": "2026-09-08T01:17:28.721Z",
+      "type": "watering"
+    },
+    {
+      "id": "b3dac7a8-9ce5-4937-8f9f-45127ca74f6e",
+      "timestamp": "2026-09-08T02:23:14.214Z",
+      "moisture": 5,
+      "type": "reading",
+      "bundleId": "73507780-635a-4158-9194-0aeaa627f5b2"
+    },
+    {
+      "type": "reading",
+      "timestamp": "2026-09-08T16:02:59.072Z",
+      "moisture": 3,
+      "id": "38ef70d9-53c8-4fbd-9200-d631872dcd74",
+      "bundleId": "50b6c052-fe97-4173-9825-ae5a9d872853"
+    },
+    {
+      "type": "watering",
+      "id": "adeb2dbd-ad00-4bdc-9327-26fdc3d146c4",
+      "timestamp": "2026-09-08T16:08:05.338Z",
+      "bundleId": "e77e1fae-ba3a-4b63-ab32-41389ba0764f",
+      "unit": "cups",
+      "amount": "8"
+    },
+    {
+      "type": "reading",
+      "timestamp": "2026-09-08T17:17:06.912Z",
+      "bundleId": "8c0427d2-6de2-4ae3-94d6-55c61c6d311d",
+      "moisture": 4,
+      "id": "501b8575-26f4-4121-8c94-aea23d8f6a69"
+    },
+    {
+      "bundleId": "abaf9a48-9839-403f-a53a-9f0cb151f251",
+      "timestamp": "2026-09-09T17:54:53.155Z",
+      "moisture": 6,
+      "type": "reading",
+      "id": "2a65d7e8-ef49-47a1-a1f1-154010ab9fdd"
+    },
+    {
+      "timestamp": "2026-09-14T18:13:29.071Z",
+      "moisture": 3,
+      "id": "81e4f24f-fe70-4072-a168-ae1863d3412d",
+      "bundleId": "20898a51-11f3-4351-8709-30f9b4e34a14",
+      "type": "reading"
+    },
+    {
+      "unit": "cups",
+      "amount": "8",
+      "bundleId": "a71c1783-fbcf-4b1e-b4e2-4b256e629d6b",
+      "timestamp": "2026-09-14T18:22:11.210Z",
+      "type": "watering",
+      "id": "a20e883b-944e-4d79-8e8d-c89a438d90da"
+    },
+    {
+      "bundleId": "9224ce8a-467f-443f-92d0-ab40f945e605",
+      "id": "f425aebe-651b-47cc-9f2b-2d8af371956e",
+      "timestamp": "2026-09-14T19:21:55.205Z",
+      "moisture": 6,
+      "type": "reading"
+    },
+    {
+      "bundleId": "dc29de2c-4684-4203-a2dc-7ec58ca0c046",
+      "id": "e02f0a62-6c85-4d96-84cd-df212608ec5b",
+      "type": "reading",
+      "moisture": 5,
+      "timestamp": "2026-09-17T14:20:47.942Z"
+    },
+    {
+      "timestamp": "2026-09-17T14:25:42.126Z",
+      "type": "watering",
+      "id": "08a801e2-5566-43e4-82fe-a5b04e505515",
+      "bundleId": "6b55161a-66b6-4e2f-8a96-b996ce9c4ef4",
+      "amount": "4",
+      "unit": "cups"
+    },
+    {
+      "id": "5a087704-4fcc-44f4-8fe1-5830fbe68a07",
+      "timestamp": "2026-09-17T19:12:31.689Z",
+      "type": "reading",
+      "moisture": 7,
+      "bundleId": "0bdff684-5e75-4bce-a742-866c4f0127ad"
+    },
+    {
+      "bundleId": "f2d121b1-dded-459b-b37d-dc94d7f89375",
+      "type": "reading",
+      "timestamp": "2026-09-18T22:58:14.249Z",
+      "id": "05c8694b-f6e7-4408-989b-23d9fe4e21f9",
+      "moisture": 6
+    },
+    {
+      "bundleId": "ce3e4fab-cfd9-43b8-851c-cd0e54d0bb23",
+      "type": "health_change",
+      "id": "8508de69-03ab-40ea-a2bf-e52c92b57e9a",
+      "health": "good",
+      "timestamp": "2026-09-18T23:57:09.062Z"
+    },
+    {
       "id": "3f5fbbeb-8734-43d9-b3aa-fc6e21a8dffa",
       "type": "reading",
       "timestamp": "2026-09-21T17:13:48.549Z",

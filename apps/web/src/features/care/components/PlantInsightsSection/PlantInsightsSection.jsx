@@ -1,6 +1,7 @@
 import styles from './PlantInsightsSection.module.css'
 import { generateInsight } from '@plant-streaks/core/plantInsights.js'
 import { learnedWaterAmount } from '@plant-streaks/core/plantModel.js'
+import { pourTestSuggestedFor } from '@plant-streaks/core/plantLookup.js'
 import {
   avgWateringInterval,
   wateringIntervalAdvice,
@@ -168,6 +169,19 @@ export default function PlantInsightsSection({ plant, model, rec, careProfile })
           </div>
 
           {insight && <p className={styles.insightText}>{insight}</p>}
+          {/* #152 — readings never reach the species range and nothing shows
+              why yet. Don't assume low is this plant's normal (it may just
+              never have been watered enough): ask for the one test that
+              settles it. */}
+          {pourTestSuggestedFor(plant) && (
+            <p className={styles.insightText}>
+              This plant's readings haven't reached the top of its ideal range ({range[1]}), and
+              the app can't tell yet whether that's the pot or the amount of water. Next time, try
+              about double your usual pour — or water until it starts to run out the bottom — and
+              take a reading an hour later. If the reading goes up, it needed more water; if it
+              doesn't, that's simply as high as this pot reads and the app will adjust.
+            </p>
+          )}
         </>
       )}
 

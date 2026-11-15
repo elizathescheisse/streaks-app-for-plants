@@ -1,5 +1,6 @@
 import { PLANT_DB } from './plantDatabase.js'
-import { personalCareProfile } from './plantSelectors.js'
+import { personalCareProfile, suggestsPourTest } from './plantSelectors.js'
+import { pourSizeMatters } from './plantModel.js'
 
 /** Returns the care profile for an exact DB key, or null if not found. */
 export function lookupPlant(species) {
@@ -17,7 +18,9 @@ const profileCache = new WeakMap()
 /**
  * The care profile to judge THIS plant by: its species profile, with the
  * moisture range restated on this pot's own scale once there's enough history
- * (see personalCareProfile, #152). Use this wherever a specific plant is being
+ * — but only once the owner has tried clearly bigger pours and the reading
+ * didn't rise; low readings alone are never taken as "normal" (see
+ * personalCareProfile, #152). Use this wherever a specific plant is being
  * assessed; use lookupPlant when there's only a species (e.g. the add-plant
  * form). Returns null for an unrecognized species.
  */
@@ -27,7 +30,18 @@ export function careProfileFor(plant) {
   const count = plant.events?.length ?? 0
   const hit = profileCache.get(plant)
   if (hit && hit.events === plant.events && hit.count === count && hit.species === species) return hit.value
-  const value = personalCareProfile(plant, species)
+  const value = personalCareProfile(plant, species, pourSizeMatters(plant, species))
   profileCache.set(plant, { events: plant.events, count, species, value })
   return value
+}
+
+/**
+ * True when this plant's readings never reach its species range and the app
+ * can't yet tell why — time to ask the user to try one much bigger pour and
+ * take a reading afterwards (see suggestsPourTest).
+ */
+export function pourTestSuggestedFor(plant) {
+  const species = lookupPlant(plant?.species)
+  if (!species || plant === null || typeof plant !== 'object') return false
+  return suggestsPourTest(plant, species, pourSizeMatters(plant, species))
 }

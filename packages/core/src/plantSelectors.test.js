@@ -24,8 +24,9 @@ import {
   avgPourAmount,
   predictedLandingMoisture,
   personalCareProfile,
+  suggestsPourTest,
 } from './plantSelectors.js'
-import { careProfileFor, lookupPlant } from './plantLookup.js'
+import { careProfileFor, pourTestSuggestedFor, lookupPlant } from './plantLookup.js'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -1034,35 +1035,47 @@ describe('personalCareProfile', () => {
     return { events: [...events, ...extra] }
   }
 
+  // The third argument is the evidence from pourSizeMatters (plantModel.js):
+  // false = the owner tried clearly bigger pours and the reading didn't rise.
+  it('never adjusts without proof that bigger pours do not raise the reading', () => {
+    // Low readings alone could just mean the plant has never been watered
+    // enough — a habit is not evidence of what's healthy.
+    const plant = cyclesPlant(8, 4, 5)
+    expect(personalCareProfile(plant, FERN)).toBe(FERN)            // not checked
+    expect(personalCareProfile(plant, FERN, null)).toBe(FERN)      // pours all the same size — can't tell
+    expect(personalCareProfile(plant, FERN, true)).toBe(FERN)      // bigger pours DO help → under-watered
+    expect(personalCareProfile(plant, FERN, false)).not.toBe(FERN) // proven: this pot tops out
+  })
+
   it('returns the species profile itself when there is no range to adjust', () => {
     const noRange = { wateringStyle: 'consistent' }
-    expect(personalCareProfile(cyclesPlant(8, 4, 5), noRange)).toBe(noRange)
-    expect(personalCareProfile(cyclesPlant(8, 4, 5), null)).toBe(null)
-    expect(personalCareProfile({ events: [] }, FERN)).toBe(FERN)
-    expect(personalCareProfile({}, FERN)).toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(8, 4, 5), noRange, false)).toBe(noRange)
+    expect(personalCareProfile(cyclesPlant(8, 4, 5), null, false)).toBe(null)
+    expect(personalCareProfile({ events: [] }, FERN, false)).toBe(FERN)
+    expect(personalCareProfile({}, FERN, false)).toBe(FERN)
   })
 
   it('waits for 6 waterings with a follow-up reading before adjusting', () => {
-    expect(personalCareProfile(cyclesPlant(5, 4, 5), FERN)).toBe(FERN)
-    expect(personalCareProfile(cyclesPlant(6, 4, 5), FERN)).not.toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(5, 4, 5), FERN, false)).toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(6, 4, 5), FERN, false)).not.toBe(FERN)
   })
 
   it('does not count waterings with no reading before the next watering', () => {
     // 8 waterings but only 5 had any reading between them and the next one.
     const peaks = [5, null, 5, null, 5, null, 5, 5]
     const pres  = [4, 4, null, 4, null, 4, null, 4]
-    expect(personalCareProfile(cyclesPlant(8, pres, peaks), FERN)).toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(8, pres, peaks), FERN, false)).toBe(FERN)
   })
 
   it('leaves the profile alone when the pot does reach the species top', () => {
-    expect(personalCareProfile(cyclesPlant(8, 5, 8), FERN)).toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(8, 5, 8), FERN, false)).toBe(FERN)
     // One watering in the window reaching the top is enough — we only lower
     // the top when the pot has not got there at all recently.
-    expect(personalCareProfile(cyclesPlant(8, 5, [5, 5, 5, 8, 5, 5, 5, 5]), FERN)).toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(8, 5, [5, 5, 5, 8, 5, 5, 5, 5]), FERN, false)).toBe(FERN)
   })
 
   it('lowers the top to the highest reading across recent waterings', () => {
-    const p = personalCareProfile(cyclesPlant(8, 4, [5, 4, 6, 5, 4, 5, 4, 5]), FERN)
+    const p = personalCareProfile(cyclesPlant(8, 4, [5, 4, 6, 5, 4, 5, 4, 5]), FERN, false)
     expect(p.moistureRange[1]).toBe(6)
   })
 
@@ -1070,37 +1083,37 @@ describe('personalCareProfile', () => {
     // Each cycle reads 5 an hour after watering; the latest cycle also read 7
     // two days ago (well after its watering). 7 is something this pot reaches.
     const late = [{ type: 'reading', timestamp: ts(2), moisture: 7 }]
-    expect(personalCareProfile(cyclesPlant(8, 4, 5, late), FERN).moistureRange[1]).toBe(7)
+    expect(personalCareProfile(cyclesPlant(8, 4, 5, late), FERN, false).moistureRange[1]).toBe(7)
   })
 
   it('only looks at the 8 most recent waterings', () => {
     // An old 7 falls out of the window; the recent ones top out at 5.
     const peaks = [7, 5, 5, 5, 5, 5, 5, 5, 5]
-    expect(personalCareProfile(cyclesPlant(9, 3, peaks), FERN).moistureRange[1]).toBe(5)
+    expect(personalCareProfile(cyclesPlant(9, 3, peaks), FERN, false).moistureRange[1]).toBe(5)
   })
 
   it('shrinks the watering trigger in proportion when that is wetter than the owner\'s habit', () => {
     // top 6 of 8 → ×0.75 → floor 6 becomes 4.5; habit (3) is drier, so 4.5 wins.
-    const p = personalCareProfile(cyclesPlant(8, 3, 6), FERN)
+    const p = personalCareProfile(cyclesPlant(8, 3, 6), FERN, false)
     expect(p.moistureRange).toEqual([4.5, 6])
   })
 
   it('never sets the trigger drier than the level the owner has been watering at', () => {
     // Fig tops out at 5 of 8 → scaled threshold 1.9, but the owner waters at 3.
-    const p = personalCareProfile(cyclesPlant(8, 3, 5), FIG)
+    const p = personalCareProfile(cyclesPlant(8, 3, 5), FIG, false)
     expect(p.dryThreshold).toBe(3)
     expect(p.moistureRange[1]).toBe(5)
   })
 
   it('never sets the trigger wetter than the species says', () => {
     // Owner waters early (at 5); the species threshold (3) is the cap.
-    const p = personalCareProfile(cyclesPlant(8, 5, 6), FIG)
+    const p = personalCareProfile(cyclesPlant(8, 5, 6), FIG, false)
     expect(p.dryThreshold).toBe(3)
   })
 
   it('falls back to the proportional trigger when the watering level is unknown', () => {
     // No reading before any watering → no habit to respect.
-    const p = personalCareProfile(cyclesPlant(8, null, 5), FIG)
+    const p = personalCareProfile(cyclesPlant(8, null, 5), FIG, false)
     expect(p.dryThreshold).toBe(1.9)
   })
 
@@ -1112,18 +1125,18 @@ describe('personalCareProfile', () => {
       events.push({ type: 'watering', timestamp: ts(day), amount: '4', unit: 'cups' })
       events.push({ type: 'reading', timestamp: ts(day - 1 / 24), moisture: 5 })
     }
-    expect(personalCareProfile({ events }, FIG).dryThreshold).toBe(1.9)
+    expect(personalCareProfile({ events }, FIG, false).dryThreshold).toBe(1.9)
   })
 
   it('keeps at least a point of room between the trigger and the top', () => {
     // Fern tops out at 5, owner waters at 5 → habit would leave no room;
     // trigger drops to top − 1 (still above the scaled 3.8).
-    const p = personalCareProfile(cyclesPlant(8, 5, 5), FERN)
+    const p = personalCareProfile(cyclesPlant(8, 5, 5), FERN, false)
     expect(p.moistureRange).toEqual([4, 5])
   })
 
   it('scales the range floor too for flood-and-dry plants, never above the trigger', () => {
-    const p = personalCareProfile(cyclesPlant(8, 2, 6), { ...FIG, moistureRange: [2, 8] })
+    const p = personalCareProfile(cyclesPlant(8, 2, 6), { ...FIG, moistureRange: [2, 8] }, false)
     // ×0.75: floor 2 → 1.5, threshold 3 → 2.3 (habit 2 is drier).
     expect(p.moistureRange).toEqual([1.5, 6])
     expect(p.dryThreshold).toBe(2.3)
@@ -1131,21 +1144,54 @@ describe('personalCareProfile', () => {
 
   it('does not adjust while the plant is struggling', () => {
     const struggling = [{ type: 'health_change', timestamp: ts(0), health: 'struggling' }]
-    expect(personalCareProfile(cyclesPlant(8, 4, 5, struggling), FERN)).toBe(FERN)
+    expect(personalCareProfile(cyclesPlant(8, 4, 5, struggling), FERN, false)).toBe(FERN)
   })
 
   it('ignores top-off waterings below the species minimum', () => {
     const plant = cyclesPlant(8, 3, 5)
     plant.events.forEach(e => { if (e.type === 'watering') e.amount = '1' })   // FIG minimum is 2 cups
-    expect(personalCareProfile(plant, FIG)).toBe(FIG)
+    expect(personalCareProfile(plant, FIG, false)).toBe(FIG)
   })
 
   it('reports what it adjusted from, and keeps the rest of the profile', () => {
-    const p = personalCareProfile(cyclesPlant(8, 3, 5), FIG)
+    const p = personalCareProfile(cyclesPlant(8, 3, 5), FIG, false)
     expect(p.personalRange).toEqual({ speciesRange: [3, 8], speciesDryThreshold: 3, basedOn: 8 })
     expect(p.wateringStyle).toBe('flood-and-dry')
     expect(p.minWaterAmount).toEqual({ cups: 2 })
     expect(FIG.moistureRange).toEqual([3, 8])   // species profile not mutated
+  })
+})
+
+describe('suggestsPourTest', () => {
+  const FERN = { moistureRange: [6, 8], wateringStyle: 'consistent' }
+  function lowPlant(n, peak = 5) {
+    const events = []
+    for (let i = 0; i < n; i++) {
+      const day = (n - i) * 4
+      events.push({ type: 'watering', timestamp: ts(day), amount: '1', unit: 'cups' })
+      events.push({ type: 'reading', timestamp: ts(day - 1 / 24), moisture: peak })
+    }
+    return { events }
+  }
+
+  it('asks for a bigger pour when the pot never reaches its range and nothing bigger has been tried', () => {
+    expect(suggestsPourTest(lowPlant(8), FERN, null)).toBe(true)
+  })
+
+  it('does not ask once the question is settled either way', () => {
+    expect(suggestsPourTest(lowPlant(8), FERN, false)).toBe(false)  // pot limit — range gets restated
+    expect(suggestsPourTest(lowPlant(8), FERN, true)).toBe(false)   // more water helps — amount loop handles it
+  })
+
+  it('does not ask when the pot does reach the top of its range', () => {
+    expect(suggestsPourTest(lowPlant(8, 8), FERN, null)).toBe(false)
+  })
+
+  it('does not ask before there are 6 waterings with a reading, or without a range', () => {
+    expect(suggestsPourTest(lowPlant(5), FERN, null)).toBe(false)
+    expect(suggestsPourTest(lowPlant(8), { wateringStyle: 'consistent' }, null)).toBe(false)
+    expect(suggestsPourTest(lowPlant(8), null, null)).toBe(false)
+    expect(suggestsPourTest({}, FERN, null)).toBe(false)
   })
 })
 
@@ -1157,12 +1203,31 @@ describe('careProfileFor', () => {
     expect(careProfileFor(undefined)).toBe(null)
   })
 
+  it('keeps the species range for a plant only ever given small, same-sized pours', () => {
+    // The "scared to water it more" case: low readings, but no proof the pot
+    // can't read higher. The app should ask for a test, not lower the bar.
+    const events = []
+    for (let i = 0; i < 8; i++) {
+      const day = (8 - i) * 4
+      events.push({ type: 'reading', timestamp: ts(day + 1 / 24), moisture: 4 })
+      events.push({ type: 'watering', timestamp: ts(day), amount: '1', unit: 'cups' })
+      events.push({ type: 'reading', timestamp: ts(day - 1 / 24), moisture: 5 })
+    }
+    const plant = { species: 'boston fern', events }
+    expect(careProfileFor(plant)).toBe(lookupPlant('boston fern'))
+    expect(pourTestSuggestedFor(plant)).toBe(true)
+    expect(pourTestSuggestedFor({ species: 'not a plant', events })).toBe(false)
+    expect(pourTestSuggestedFor(null)).toBe(false)
+  })
+
   it('hands back the same object until the plant\'s events change', () => {
     const events = []
     for (let i = 0; i < 8; i++) {
       const day = (8 - i) * 4
       events.push({ type: 'reading', timestamp: ts(day + 1 / 24), moisture: 4 })
-      events.push({ type: 'watering', timestamp: ts(day), amount: '4', unit: 'cups' })
+      // Pours alternate 2 and 8 cups with the same result — the proof that
+      // more water doesn't raise this pot's reading.
+      events.push({ type: 'watering', timestamp: ts(day), amount: i % 2 ? '8' : '2', unit: 'cups' })
       events.push({ type: 'reading', timestamp: ts(day - 1 / 24), moisture: 5 })
     }
     const plant = { species: 'boston fern', events }
