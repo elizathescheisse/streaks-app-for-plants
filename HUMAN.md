@@ -6,6 +6,8 @@
 
 ## Sticky notes
 
+- **Do #252 (deletions don't sync across devices) before the iPhone widget/watch work** — parked 2026-11-15 at your request. Until then, a log entry deleted on one device can come back from another device that still has it.
+
 - **FLF field capacity is ~5–6, not 8** — resolved 2026-06-26. You've been watering to drainage and waiting an hour before reading. That's correct. The species database says the range tops at 8, but your specific pot/soil saturates around 5–6 — that's just field capacity for this pot. 93% in-range across all readings confirms the plant is healthy. No change needed to how you water it. Filed #152 to make the model learn per-plant peaks instead of trusting the species ceiling.
 
 ## Glossary (plain-English handles for terms that come up)
